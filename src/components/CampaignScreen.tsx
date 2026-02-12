@@ -1,21 +1,27 @@
 import { useState, useCallback } from 'react';
 import type { Screen } from '../App';
-import type { CampaignProgress } from '../types/village.ts';
+import type { CampaignProgress, TrainedTroop } from '../types/village.ts';
 import type { CampaignLevel } from '../engine/campaign-manager.ts';
 import {
   getCampaignLevels,
   isLevelUnlocked,
   getLevelProgress,
-  completeCampaignLevel,
   getStarRewards,
   getNextUncompletedLevel,
 } from '../engine/campaign-manager.ts';
+import { simulateCampaignBattle } from '../engine/campaign-simulator.ts';
 
 interface CampaignScreenProps {
   onNavigate: (screen: Screen) => void;
+  campaignProgress: CampaignProgress;
+  army: TrainedTroop[];
+  onCampaignComplete: (
+    levelNumber: number,
+    stars: number,
+    loot: { gold: number; elixir: number; darkElixir: number } | null,
+  ) => void;
 }
 
-const EMPTY_PROGRESS: CampaignProgress = { levels: [], totalStars: 0 };
 const MAX_STARS = 270;
 
 function StarDisplay({ earned, max }: { earned: number; max: number }) {
@@ -72,24 +78,51 @@ function LevelCard({
   );
 }
 
-export function CampaignScreen({ onNavigate }: CampaignScreenProps) {
-  const [progress, setProgress] = useState<CampaignProgress>(EMPTY_PROGRESS);
+export function CampaignScreen({
+  onNavigate,
+  campaignProgress,
+  army,
+  onCampaignComplete,
+}: CampaignScreenProps) {
   const [lastResult, setLastResult] = useState<string | null>(null);
   const levels = getCampaignLevels();
-  const rewards = getStarRewards(progress);
-  const nextLevel = getNextUncompletedLevel(progress);
+  const rewards = getStarRewards(campaignProgress);
+  const nextLevel = getNextUncompletedLevel(campaignProgress);
+
+  const hasArmy = army.some((t) => t.count > 0);
 
   const handleAttack = useCallback(
     (levelNumber: number) => {
-      const stars = Math.floor(Math.random() * 3) + 1;
-      const updated = completeCampaignLevel(progress, levelNumber, stars);
-      setProgress(updated);
+      if (!hasArmy) {
+        setLastResult('You need troops to attack! Train an army first.');
+        return;
+      }
+
+      const result = simulateCampaignBattle(army, levelNumber);
+      if (!result) {
+        setLastResult('Failed to start battle.');
+        return;
+      }
 
       const levelData = levels.find((l) => l.level === levelNumber);
       const name = levelData?.name ?? `Level ${levelNumber}`;
-      setLastResult(`Attacked "${name}" and earned ${stars} star${stars > 1 ? 's' : ''}!`);
+
+      onCampaignComplete(levelNumber, result.stars, result.loot);
+
+      if (result.stars === 0) {
+        setLastResult(
+          `Attacked "${name}" but only achieved ${result.destructionPercent}% destruction. No stars earned. Try training a stronger army!`,
+        );
+      } else {
+        const lootMsg = result.loot
+          ? ` Looted ${result.loot.gold.toLocaleString()} gold, ${result.loot.elixir.toLocaleString()} elixir.`
+          : '';
+        setLastResult(
+          `Attacked "${name}" with ${result.destructionPercent}% destruction and earned ${result.stars} star${result.stars > 1 ? 's' : ''}!${lootMsg}`,
+        );
+      }
     },
-    [progress, levels],
+    [army, hasArmy, levels, onCampaignComplete],
   );
 
   return (
@@ -98,19 +131,32 @@ export function CampaignScreen({ onNavigate }: CampaignScreenProps) {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <button
-            onClick={() => onNavigate('menu')}
+            onClick={() => onNavigate('village')}
             className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm transition-colors"
           >
-            Back to Menu
+            Back to Village
           </button>
           <h1 className="text-2xl font-bold text-slate-100">Campaign</h1>
           <span className="text-sm text-slate-400">
-            {progress.totalStars} / {MAX_STARS} &#9733;
+            {campaignProgress.totalStars} / {MAX_STARS} &#9733;
           </span>
         </div>
 
+        {/* Army status */}
+        {!hasArmy && (
+          <div className="mb-4 p-3 bg-red-900/40 border border-red-700 rounded-lg text-sm text-red-200 text-center">
+            No troops trained! Go back to your village and train an army before attacking.
+          </div>
+        )}
+
+        {hasArmy && (
+          <div className="mb-4 p-3 bg-slate-800 border border-slate-600 rounded-lg text-sm text-slate-300 text-center">
+            Army: {army.filter((t) => t.count > 0).map((t) => `${t.name} x${t.count}`).join(', ')}
+          </div>
+        )}
+
         {/* Star reward tiers */}
-        <div className="flex gap-2 mb-4 justify-center">
+        <div className="flex gap-2 mb-4 justify-center flex-wrap">
           {rewards.map((r) => (
             <div
               key={r.stars}
@@ -142,13 +188,13 @@ export function CampaignScreen({ onNavigate }: CampaignScreenProps) {
         {/* Level list */}
         <div className="flex flex-col gap-2 overflow-y-auto max-h-[calc(100vh-260px)] pr-1">
           {levels.map((level) => {
-            const lp = getLevelProgress(level.level, progress);
+            const lp = getLevelProgress(level.level, campaignProgress);
             return (
               <LevelCard
                 key={level.level}
                 level={level}
                 stars={lp?.stars ?? 0}
-                unlocked={isLevelUnlocked(level.level, progress)}
+                unlocked={isLevelUnlocked(level.level, campaignProgress)}
                 onAttack={handleAttack}
               />
             );
