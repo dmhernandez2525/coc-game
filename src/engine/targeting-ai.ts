@@ -62,6 +62,50 @@ const TARGET_FILTERS: Record<string, (t: Targetable, defenses: ActiveDefense[]) 
 };
 
 /**
+ * Check if a wall segment lies close enough to the line between two points
+ * to be considered "blocking" the path. Uses point-to-line-segment distance.
+ * Walls occupy 1x1 tiles, so we check if the wall center is within 0.6 tiles
+ * of the movement line (slightly larger than 0.5 to account for wall footprint).
+ */
+export function isWallBlocking(
+  fromX: number, fromY: number, toX: number, toY: number, wall: BattleBuilding,
+): boolean {
+  if (wall.isDestroyed || wall.name !== 'Wall') return false;
+
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return false;
+
+  // Project wall center onto the line segment, clamping t to [0, 1]
+  const t = Math.max(0, Math.min(1, ((wall.x - fromX) * dx + (wall.y - fromY) * dy) / lenSq));
+  const projX = fromX + t * dx;
+  const projY = fromY + t * dy;
+  const dist = distance(projX, projY, wall.x, wall.y);
+
+  return dist < 0.6;
+}
+
+/**
+ * Find the nearest wall that blocks the path from a troop to its intended target.
+ * Returns the wall's instanceId, or null if no wall blocks the path.
+ */
+export function findBlockingWall(
+  troop: DeployedTroop, targetX: number, targetY: number, buildings: BattleBuilding[],
+): string | null {
+  let nearest: BattleBuilding | null = null;
+  let nearestDist = Infinity;
+
+  for (const b of buildings) {
+    if (!isWallBlocking(troop.x, troop.y, targetX, targetY, b)) continue;
+    const d = distance(troop.x, troop.y, b.x, b.y);
+    if (d < nearestDist) { nearestDist = d; nearest = b; }
+  }
+
+  return nearest?.instanceId ?? null;
+}
+
+/**
  * Find the best target for a troop based on its favoriteTarget preference.
  * Returns the target id (instanceId or buildingInstanceId), or null if nothing remains.
  */
