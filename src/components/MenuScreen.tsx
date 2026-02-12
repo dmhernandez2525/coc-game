@@ -22,6 +22,12 @@ export function MenuScreen({ onNavigate }: MenuScreenProps) {
         >
           Campaign
         </button>
+        <button
+          onClick={() => onNavigate('load')}
+          className="px-8 py-3 bg-slate-600 hover:bg-slate-500 rounded-lg text-lg font-semibold transition-colors"
+        >
+          Load Game
+        </button>
       </div>
     </div>
   );
