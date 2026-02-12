@@ -34,6 +34,8 @@ export interface DeployedTroop {
   healRadius?: number;
   isHero?: boolean;               // Hero flag
   heroAbilityUsed?: boolean;
+  canJumpWalls?: boolean;         // Hog Rider, Royal Champion: ignore walls
+  jumpSpellActive?: boolean;      // Troop is inside a Jump Spell radius
 }
 
 export interface ActiveDefense {
@@ -77,6 +79,7 @@ export interface BattleBuilding {
   y: number;
   isDestroyed: boolean;
   weight: number;
+  earthquakeHitCount?: number;    // Tracks successive Earthquake hits for diminishing returns
 }
 
 export interface ActiveSpell {

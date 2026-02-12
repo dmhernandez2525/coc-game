@@ -4,7 +4,7 @@ import type {
 import type { PlacedBuilding, TrainedTroop } from '../types/village.ts';
 import { getDefense } from '../data/loaders/defense-loader.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
-import { findTroopTarget, findDefenseTarget, moveToward, distance } from './targeting-ai.ts';
+import { findTroopTarget, findDefenseTarget, moveToward, distance, findBlockingWall } from './targeting-ai.ts';
 import { tickSpells } from './spell-engine.ts';
 import { processDefenseSpecial, processBombTowerDeath } from './defense-behaviors.ts';
 import { processTroopSpecial, processDeathSpawns, processDeathDamage } from './troop-mechanics.ts';
@@ -131,6 +131,8 @@ export function deployTroop(
     deployed.deathDamageRadius = 1.5;
   } else if (troopName === 'Valkyrie') {
     deployed.splashRadius = 1;
+  } else if (troopName === 'Hog Rider') {
+    deployed.canJumpWalls = true;
   }
 
   const updatedAvailable = state.availableTroops
@@ -194,6 +196,11 @@ export function calculateStars(
   return { stars, destructionPercent: pct };
 }
 
+/** Check if a troop ignores walls (flying, jump spell active, or innate wall jump). */
+function canIgnoreWalls(troop: DeployedTroop): boolean {
+  return troop.isFlying || troop.canJumpWalls === true || troop.jumpSpellActive === true;
+}
+
 /** Process one troop for the current tick. Mutates troop, buildings, and defenses. */
 function processTroop(
   troop: DeployedTroop, allTroops: DeployedTroop[],
@@ -219,6 +226,31 @@ function processTroop(
 
   const targetPos = findTargetPos(troop.targetId, buildings, defenses);
   if (!targetPos) { troop.targetId = null; troop.state = 'idle'; return; }
+
+  // Wall collision: if a wall blocks the path and troop can't jump, attack the wall instead
+  if (!canIgnoreWalls(troop)) {
+    const blockingWallId = findBlockingWall(troop, targetPos.x, targetPos.y, buildings);
+    if (blockingWallId && blockingWallId !== troop.targetId) {
+      troop.targetId = blockingWallId;
+      const wallPos = findTargetPos(blockingWallId, buildings, defenses);
+      if (wallPos) {
+        const wallDist = distance(troop.x, troop.y, wallPos.x, wallPos.y);
+        if (wallDist <= troop.attackRange) {
+          troop.state = 'attacking';
+          if (!specialHandled) {
+            applyDamage(blockingWallId, troop.dps * (deltaMs / 1000), buildings, defenses);
+          }
+          return;
+        }
+        // Move toward the blocking wall
+        troop.state = 'moving';
+        const pos = moveToward(troop.x, troop.y, wallPos.x, wallPos.y, troop.movementSpeed, deltaMs);
+        troop.x = pos.x;
+        troop.y = pos.y;
+        return;
+      }
+    }
+  }
 
   const dist = distance(troop.x, troop.y, targetPos.x, targetPos.y);
   if (dist <= troop.attackRange) {

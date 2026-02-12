@@ -8,7 +8,8 @@ import { distance } from './targeting-ai.ts';
 type SpellEffect =
   | 'instant_damage' | 'instant_building_pct'
   | 'heal_over_time' | 'buff' | 'debuff'
-  | 'freeze' | 'haste' | 'skeleton_spawn' | 'bat_spawn' | 'clone' | 'invisibility';
+  | 'freeze' | 'haste' | 'skeleton_spawn' | 'bat_spawn' | 'clone' | 'invisibility'
+  | 'jump';
 
 const SPELL_EFFECTS: Record<string, SpellEffect> = {
   'Lightning Spell': 'instant_damage',
@@ -17,6 +18,7 @@ const SPELL_EFFECTS: Record<string, SpellEffect> = {
   'Rage Spell': 'buff',
   'Poison Spell': 'debuff',
   'Freeze Spell': 'freeze',
+  'Jump Spell': 'jump',
   'Haste Spell': 'haste',
   'Skeleton Spell': 'skeleton_spawn',
   'Bat Spell': 'bat_spawn',
@@ -63,15 +65,45 @@ export function applyLightningDamage(
   };
 }
 
+/**
+ * Calculate Earthquake diminishing returns damage.
+ * Successive casts on the same building: 1st = full, 2nd = 1/3, 3rd = 1/5, 4th = 1/7.
+ * Formula: damage = baseDamage / (2*n - 1) where n = hit count (1-based).
+ * For walls: 4th+ earthquake always destroys the wall (returns maxHp as damage).
+ * 3 earthquakes can never destroy a wall of any level.
+ */
+export function earthquakeDamageForHit(
+  baseDamagePercent: number, hitNumber: number, maxHp: number, isWall: boolean,
+): number {
+  if (isWall && hitNumber >= 4) return maxHp; // 4 earthquakes always destroy walls
+  const diminishedPercent = baseDamagePercent / (2 * hitNumber - 1);
+  return maxHp * (diminishedPercent / 100);
+}
+
 export function applyEarthquakeDamage(
   buildings: BattleBuilding[], defenses: ActiveDefense[],
   x: number, y: number, radius: number, damagePercent: number,
 ): { buildings: BattleBuilding[]; defenses: ActiveDefense[] } {
-  const fraction = damagePercent / 100;
-  return {
-    buildings: applyHpDamage(buildings, x, y, radius, (b) => b.maxHp * fraction),
-    defenses: applyHpDamage(defenses, x, y, radius, (d) => d.maxHp * fraction),
-  };
+  const updatedBuildings = buildings.map((b) => {
+    if (b.isDestroyed || !isInRadius(x, y, b.x, b.y, radius)) return b;
+    const hitCount = (b.earthquakeHitCount ?? 0) + 1;
+    const isWall = b.name === 'Wall';
+    const dmg = earthquakeDamageForHit(damagePercent, hitCount, b.maxHp, isWall);
+    const hp = Math.max(0, b.currentHp - dmg);
+    return { ...b, currentHp: hp, isDestroyed: hp <= 0, earthquakeHitCount: hitCount };
+  });
+
+  const updatedDefenses = defenses.map((d) => {
+    if (d.isDestroyed || !isInRadius(x, y, d.x, d.y, radius)) return d;
+    // Defenses use the same diminishing returns (non-wall formula)
+    const matchBuilding = updatedBuildings.find((b) => b.instanceId === d.buildingInstanceId);
+    const hitCount = matchBuilding?.earthquakeHitCount ?? 1;
+    const dmg = earthquakeDamageForHit(damagePercent, hitCount, d.maxHp, false);
+    const hp = Math.max(0, d.currentHp - dmg);
+    return { ...d, currentHp: hp, isDestroyed: hp <= 0 };
+  });
+
+  return { buildings: updatedBuildings, defenses: updatedDefenses };
 }
 
 // -- Spell deployment -------------------------------------------------------
@@ -263,6 +295,14 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
       if (t.state === 'dead') return t;
       const inRadius = isInRadius(spell.x, spell.y, t.x, t.y, spell.radius);
       return { ...t, isBurrowed: inRadius || t.isBurrowed };
+    });
+  },
+  jump: (spell, troops) => {
+    // Ground troops in radius can jump over walls (ignore wall collision)
+    return troops.map((t) => {
+      if (t.state === 'dead' || t.isFlying) return t;
+      const inRadius = isInRadius(spell.x, spell.y, t.x, t.y, spell.radius);
+      return { ...t, jumpSpellActive: inRadius };
     });
   },
 };
