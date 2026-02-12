@@ -1,0 +1,2029 @@
+{
+  "Barbarian": {
+    "name": "Barbarian",
+    "type": "elixir",
+    "housingSpace": 1,
+    "movementSpeed": 18,
+    "attackRange": 0.4,
+    "attackSpeed": 1.0,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 1,
+    "thUnlock": 1,
+    "specialMechanics": null,
+    "levels": [
+      {
+        "level": 1,
+        "dps": 8,
+        "hp": 45,
+        "damagePerAttack": 8,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 11,
+        "hp": 54,
+        "damagePerAttack": 11,
+        "upgradeCost": 20000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 7200,
+        "labLevelRequired": 1
+      },
+      {
+        "level": 3,
+        "dps": 14,
+        "hp": 65,
+        "damagePerAttack": 14,
+        "upgradeCost": 60000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 18000,
+        "labLevelRequired": 3
+      },
+      {
+        "level": 4,
+        "dps": 18,
+        "hp": 85,
+        "damagePerAttack": 18,
+        "upgradeCost": 200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 43200,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 5,
+        "dps": 23,
+        "hp": 105,
+        "damagePerAttack": 23,
+        "upgradeCost": 650000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 6,
+        "dps": 26,
+        "hp": 125,
+        "damagePerAttack": 26,
+        "upgradeCost": 1400000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 7,
+        "dps": 30,
+        "hp": 160,
+        "damagePerAttack": 30,
+        "upgradeCost": 2100000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 8,
+        "dps": 34,
+        "hp": 205,
+        "damagePerAttack": 34,
+        "upgradeCost": 2800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 216000,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 9,
+        "dps": 38,
+        "hp": 230,
+        "damagePerAttack": 38,
+        "upgradeCost": 5000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 10,
+        "dps": 42,
+        "hp": 250,
+        "damagePerAttack": 42,
+        "upgradeCost": 10000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 518400,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 11,
+        "dps": 45,
+        "hp": 270,
+        "damagePerAttack": 45,
+        "upgradeCost": 16000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 12,
+        "dps": 48,
+        "hp": 290,
+        "damagePerAttack": 48,
+        "upgradeCost": 18000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Archer": {
+    "name": "Archer",
+    "type": "elixir",
+    "housingSpace": 1,
+    "movementSpeed": 24,
+    "attackRange": 3.5,
+    "attackSpeed": 1.0,
+    "damageType": "single",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 2,
+    "thUnlock": 1,
+    "specialMechanics": null,
+    "levels": [
+      {
+        "level": 1,
+        "dps": 7,
+        "hp": 20,
+        "damagePerAttack": 7,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 9,
+        "hp": 23,
+        "damagePerAttack": 9,
+        "upgradeCost": 30000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 10800,
+        "labLevelRequired": 1
+      },
+      {
+        "level": 3,
+        "dps": 12,
+        "hp": 28,
+        "damagePerAttack": 12,
+        "upgradeCost": 80000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 18000,
+        "labLevelRequired": 3
+      },
+      {
+        "level": 4,
+        "dps": 16,
+        "hp": 33,
+        "damagePerAttack": 16,
+        "upgradeCost": 300000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 25200,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 5,
+        "dps": 20,
+        "hp": 40,
+        "damagePerAttack": 20,
+        "upgradeCost": 800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 50400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 6,
+        "dps": 22,
+        "hp": 44,
+        "damagePerAttack": 22,
+        "upgradeCost": 2000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 64800,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 7,
+        "dps": 25,
+        "hp": 48,
+        "damagePerAttack": 25,
+        "upgradeCost": 2500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 8,
+        "dps": 28,
+        "hp": 52,
+        "damagePerAttack": 28,
+        "upgradeCost": 3200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 9,
+        "dps": 31,
+        "hp": 56,
+        "damagePerAttack": 31,
+        "upgradeCost": 4000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 10,
+        "dps": 34,
+        "hp": 60,
+        "damagePerAttack": 34,
+        "upgradeCost": 4500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 11,
+        "dps": 37,
+        "hp": 64,
+        "damagePerAttack": 37,
+        "upgradeCost": 8000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 12,
+        "dps": 40,
+        "hp": 68,
+        "damagePerAttack": 40,
+        "upgradeCost": 14000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 777600,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Giant": {
+    "name": "Giant",
+    "type": "elixir",
+    "housingSpace": 5,
+    "movementSpeed": 12,
+    "attackRange": 1.0,
+    "attackSpeed": 2.0,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": "Defenses",
+    "barracksLevelRequired": 3,
+    "thUnlock": 1,
+    "specialMechanics": null,
+    "levels": [
+      {
+        "level": 1,
+        "dps": 11,
+        "hp": 300,
+        "damagePerAttack": 22,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 14,
+        "hp": 360,
+        "damagePerAttack": 28,
+        "upgradeCost": 40000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 14400,
+        "labLevelRequired": 2
+      },
+      {
+        "level": 3,
+        "dps": 19,
+        "hp": 450,
+        "damagePerAttack": 38,
+        "upgradeCost": 150000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 28800,
+        "labLevelRequired": 4
+      },
+      {
+        "level": 4,
+        "dps": 24,
+        "hp": 600,
+        "damagePerAttack": 48,
+        "upgradeCost": 500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 43200,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 5,
+        "dps": 31,
+        "hp": 800,
+        "damagePerAttack": 62,
+        "upgradeCost": 1200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 57600,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 6,
+        "dps": 43,
+        "hp": 1100,
+        "damagePerAttack": 86,
+        "upgradeCost": 2000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 7,
+        "dps": 55,
+        "hp": 1300,
+        "damagePerAttack": 110,
+        "upgradeCost": 3000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 8,
+        "dps": 62,
+        "hp": 1500,
+        "damagePerAttack": 124,
+        "upgradeCost": 3500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 216000,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 9,
+        "dps": 70,
+        "hp": 1850,
+        "damagePerAttack": 140,
+        "upgradeCost": 4000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 10,
+        "dps": 78,
+        "hp": 2000,
+        "damagePerAttack": 156,
+        "upgradeCost": 6000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 388800,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 11,
+        "dps": 86,
+        "hp": 2200,
+        "damagePerAttack": 172,
+        "upgradeCost": 9000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 475200,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 12,
+        "dps": 94,
+        "hp": 2400,
+        "damagePerAttack": 188,
+        "upgradeCost": 15500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 907200,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 13,
+        "dps": 102,
+        "hp": 2600,
+        "damagePerAttack": 204,
+        "upgradeCost": 18500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1166400,
+        "labLevelRequired": 13
+      }
+    ]
+  },
+  "Goblin": {
+    "name": "Goblin",
+    "type": "elixir",
+    "housingSpace": 1,
+    "movementSpeed": 32,
+    "attackRange": 0.4,
+    "attackSpeed": 1.0,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": "Resources",
+    "barracksLevelRequired": 4,
+    "thUnlock": 2,
+    "specialMechanics": "Deals 2x damage to resource buildings (Gold Mines, Elixir Collectors, Dark Elixir Drills, Gold Storages, Elixir Storages, Dark Elixir Storage, Town Hall, Clan Castle). Prioritizes resource buildings over all other targets.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 11,
+        "hp": 25,
+        "damagePerAttack": 11,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 14,
+        "hp": 30,
+        "damagePerAttack": 14,
+        "upgradeCost": 45000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 14400,
+        "labLevelRequired": 1
+      },
+      {
+        "level": 3,
+        "dps": 19,
+        "hp": 36,
+        "damagePerAttack": 19,
+        "upgradeCost": 100000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 21600,
+        "labLevelRequired": 3
+      },
+      {
+        "level": 4,
+        "dps": 24,
+        "hp": 50,
+        "damagePerAttack": 24,
+        "upgradeCost": 500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 43200,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 5,
+        "dps": 32,
+        "hp": 65,
+        "damagePerAttack": 32,
+        "upgradeCost": 1200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 6,
+        "dps": 42,
+        "hp": 80,
+        "damagePerAttack": 42,
+        "upgradeCost": 2000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 108000,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 7,
+        "dps": 52,
+        "hp": 105,
+        "damagePerAttack": 52,
+        "upgradeCost": 3000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 8,
+        "dps": 62,
+        "hp": 126,
+        "damagePerAttack": 62,
+        "upgradeCost": 4200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 9,
+        "dps": 72,
+        "hp": 146,
+        "damagePerAttack": 72,
+        "upgradeCost": 10000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 518400,
+        "labLevelRequired": 13
+      }
+    ]
+  },
+  "Wall Breaker": {
+    "name": "Wall Breaker",
+    "type": "elixir",
+    "housingSpace": 2,
+    "movementSpeed": 24,
+    "attackRange": 0.5,
+    "attackSpeed": 1.0,
+    "damageType": "areaSplash",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": "Walls (Damage x40)",
+    "barracksLevelRequired": 5,
+    "thUnlock": 3,
+    "specialMechanics": "Deals 40x damage to Walls. Targets the nearest Wall segment. Self-destructs on impact, dealing splash damage. Also has death damage if killed before reaching target.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 6,
+        "hp": 20,
+        "damagePerAttack": 6,
+        "wallDamagePerAttack": 240,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 10,
+        "hp": 24,
+        "damagePerAttack": 10,
+        "wallDamagePerAttack": 400,
+        "upgradeCost": 100000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 21600,
+        "labLevelRequired": 2
+      },
+      {
+        "level": 3,
+        "dps": 15,
+        "hp": 29,
+        "damagePerAttack": 15,
+        "wallDamagePerAttack": 600,
+        "upgradeCost": 250000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 32400,
+        "labLevelRequired": 4
+      },
+      {
+        "level": 4,
+        "dps": 20,
+        "hp": 35,
+        "damagePerAttack": 20,
+        "wallDamagePerAttack": 800,
+        "upgradeCost": 600000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 50400,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 5,
+        "dps": 43,
+        "hp": 53,
+        "damagePerAttack": 43,
+        "wallDamagePerAttack": 1720,
+        "upgradeCost": 1200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 64800,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 6,
+        "dps": 55,
+        "hp": 72,
+        "damagePerAttack": 55,
+        "wallDamagePerAttack": 2200,
+        "upgradeCost": 2500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 108000,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 7,
+        "dps": 66,
+        "hp": 82,
+        "damagePerAttack": 66,
+        "wallDamagePerAttack": 2640,
+        "upgradeCost": 3400000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 8,
+        "dps": 75,
+        "hp": 92,
+        "damagePerAttack": 75,
+        "wallDamagePerAttack": 3000,
+        "upgradeCost": 4500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 9,
+        "dps": 86,
+        "hp": 112,
+        "damagePerAttack": 86,
+        "wallDamagePerAttack": 3440,
+        "upgradeCost": 6000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 388800,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 10,
+        "dps": 94,
+        "hp": 130,
+        "damagePerAttack": 94,
+        "wallDamagePerAttack": 3760,
+        "upgradeCost": 6500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 604800,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 11,
+        "dps": 102,
+        "hp": 140,
+        "damagePerAttack": 102,
+        "wallDamagePerAttack": 4080,
+        "upgradeCost": 13000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 691200,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 12,
+        "dps": 110,
+        "hp": 150,
+        "damagePerAttack": 110,
+        "wallDamagePerAttack": 4400,
+        "upgradeCost": 16000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 907200,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 13,
+        "dps": 118,
+        "hp": 160,
+        "damagePerAttack": 118,
+        "wallDamagePerAttack": 4720,
+        "upgradeCost": 20000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1209600,
+        "labLevelRequired": 15
+      }
+    ]
+  },
+  "Balloon": {
+    "name": "Balloon",
+    "type": "elixir",
+    "housingSpace": 5,
+    "movementSpeed": 10,
+    "attackRange": 0.5,
+    "attackSpeed": 3.0,
+    "damageType": "areaSplash",
+    "targetType": "ground",
+    "isFlying": true,
+    "favoriteTarget": "Defenses",
+    "barracksLevelRequired": 6,
+    "thUnlock": 4,
+    "specialMechanics": "Death damage (drops bomb on death dealing splash damage in 1.2 tile radius). Targets defenses exclusively until all are destroyed. Flying unit.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 25,
+        "hp": 150,
+        "damagePerAttack": 75,
+        "deathDamage": 25,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 32,
+        "hp": 180,
+        "damagePerAttack": 96,
+        "deathDamage": 32,
+        "upgradeCost": 125000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 28800,
+        "labLevelRequired": 2
+      },
+      {
+        "level": 3,
+        "dps": 48,
+        "hp": 216,
+        "damagePerAttack": 144,
+        "deathDamage": 48,
+        "upgradeCost": 400000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 43200,
+        "labLevelRequired": 4
+      },
+      {
+        "level": 4,
+        "dps": 72,
+        "hp": 280,
+        "damagePerAttack": 216,
+        "deathDamage": 72,
+        "upgradeCost": 720000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 64800,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 5,
+        "dps": 108,
+        "hp": 390,
+        "damagePerAttack": 324,
+        "deathDamage": 108,
+        "upgradeCost": 1300000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 6,
+        "dps": 162,
+        "hp": 545,
+        "damagePerAttack": 486,
+        "deathDamage": 162,
+        "upgradeCost": 2750000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 7,
+        "dps": 198,
+        "hp": 690,
+        "damagePerAttack": 594,
+        "deathDamage": 214,
+        "upgradeCost": 4500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 8,
+        "dps": 236,
+        "hp": 840,
+        "damagePerAttack": 708,
+        "deathDamage": 268,
+        "upgradeCost": 5000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 9,
+        "dps": 256,
+        "hp": 940,
+        "damagePerAttack": 768,
+        "deathDamage": 322,
+        "upgradeCost": 8000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 691200,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 10,
+        "dps": 276,
+        "hp": 1040,
+        "damagePerAttack": 828,
+        "deathDamage": 352,
+        "upgradeCost": 10000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 11,
+        "dps": 290,
+        "hp": 1140,
+        "damagePerAttack": 870,
+        "deathDamage": 375,
+        "upgradeCost": 18000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Wizard": {
+    "name": "Wizard",
+    "type": "elixir",
+    "housingSpace": 4,
+    "movementSpeed": 16,
+    "attackRange": 3.0,
+    "attackSpeed": 1.5,
+    "damageType": "areaSplash",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 7,
+    "thUnlock": 5,
+    "specialMechanics": null,
+    "levels": [
+      {
+        "level": 1,
+        "dps": 50,
+        "hp": 75,
+        "damagePerAttack": 75,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 70,
+        "hp": 90,
+        "damagePerAttack": 105,
+        "upgradeCost": 120000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 28800,
+        "labLevelRequired": 3
+      },
+      {
+        "level": 3,
+        "dps": 90,
+        "hp": 108,
+        "damagePerAttack": 135,
+        "upgradeCost": 320000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 36000,
+        "labLevelRequired": 3
+      },
+      {
+        "level": 4,
+        "dps": 125,
+        "hp": 135,
+        "damagePerAttack": 187.5,
+        "upgradeCost": 620000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 57600,
+        "labLevelRequired": 4
+      },
+      {
+        "level": 5,
+        "dps": 170,
+        "hp": 165,
+        "damagePerAttack": 255,
+        "upgradeCost": 1200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 6,
+        "dps": 185,
+        "hp": 180,
+        "damagePerAttack": 277.5,
+        "upgradeCost": 2200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 7,
+        "dps": 200,
+        "hp": 195,
+        "damagePerAttack": 300,
+        "upgradeCost": 3500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 8,
+        "dps": 215,
+        "hp": 210,
+        "damagePerAttack": 322.5,
+        "upgradeCost": 4000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 9,
+        "dps": 230,
+        "hp": 230,
+        "damagePerAttack": 345,
+        "upgradeCost": 5000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 10,
+        "dps": 245,
+        "hp": 250,
+        "damagePerAttack": 367.5,
+        "upgradeCost": 7200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 475200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 11,
+        "dps": 260,
+        "hp": 270,
+        "damagePerAttack": 390,
+        "upgradeCost": 13500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 691200,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 12,
+        "dps": 275,
+        "hp": 290,
+        "damagePerAttack": 412.5,
+        "upgradeCost": 16500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 950400,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 13,
+        "dps": 290,
+        "hp": 310,
+        "damagePerAttack": 435,
+        "upgradeCost": 21000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1209600,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Healer": {
+    "name": "Healer",
+    "type": "elixir",
+    "housingSpace": 14,
+    "movementSpeed": 16,
+    "attackRange": 5.0,
+    "attackSpeed": 0.7,
+    "damageType": "healing",
+    "targetType": "ground",
+    "isFlying": true,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 8,
+    "thUnlock": 6,
+    "specialMechanics": "Heals friendly ground troops instead of dealing damage. Cannot target or heal air troops. Healing effectiveness is reduced on Heroes (approximately 50-70% of standard rate, varies by level). Healers are targeted by Air Defenses. Multiple Healers have diminishing returns (each additional Healer heals less).",
+    "levels": [
+      {
+        "level": 1,
+        "healingPerSecond": 36,
+        "healingPerPulse": 25.2,
+        "hp": 500,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "healingPerSecond": 48,
+        "healingPerPulse": 33.6,
+        "hp": 700,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 450000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 43200,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 3,
+        "healingPerSecond": 60,
+        "healingPerPulse": 42,
+        "hp": 900,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 900000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 4,
+        "healingPerSecond": 66,
+        "healingPerPulse": 46.2,
+        "hp": 1200,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 2700000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 5,
+        "healingPerSecond": 72,
+        "healingPerPulse": 50.4,
+        "hp": 1500,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 4200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 6,
+        "healingPerSecond": 72,
+        "healingPerPulse": 50.4,
+        "hp": 1600,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 7000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 7,
+        "healingPerSecond": 72,
+        "healingPerPulse": 50.4,
+        "hp": 1700,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 9500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 734400,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 8,
+        "healingPerSecond": 76,
+        "healingPerPulse": 53.2,
+        "hp": 1800,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 14800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 820800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 9,
+        "healingPerSecond": 80,
+        "healingPerPulse": 56,
+        "hp": 1900,
+        "dps": null,
+        "damagePerAttack": null,
+        "upgradeCost": 16800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Dragon": {
+    "name": "Dragon",
+    "type": "elixir",
+    "housingSpace": 20,
+    "movementSpeed": 16,
+    "attackRange": 3.0,
+    "attackSpeed": 1.25,
+    "damageType": "areaSplash",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 9,
+    "thUnlock": 7,
+    "specialMechanics": null,
+    "levels": [
+      {
+        "level": 1,
+        "dps": 140,
+        "hp": 1900,
+        "damagePerAttack": 175,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 160,
+        "hp": 2100,
+        "damagePerAttack": 200,
+        "upgradeCost": 1000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 64800,
+        "labLevelRequired": 5
+      },
+      {
+        "level": 3,
+        "dps": 180,
+        "hp": 2300,
+        "damagePerAttack": 225,
+        "upgradeCost": 2000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 4,
+        "dps": 210,
+        "hp": 2700,
+        "damagePerAttack": 262.5,
+        "upgradeCost": 3000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 5,
+        "dps": 240,
+        "hp": 3100,
+        "damagePerAttack": 300,
+        "upgradeCost": 3800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 6,
+        "dps": 270,
+        "hp": 3400,
+        "damagePerAttack": 337.5,
+        "upgradeCost": 4900000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 7,
+        "dps": 310,
+        "hp": 3900,
+        "damagePerAttack": 387.5,
+        "upgradeCost": 5000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 8,
+        "dps": 330,
+        "hp": 4200,
+        "damagePerAttack": 412.5,
+        "upgradeCost": 7500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 518400,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 9,
+        "dps": 350,
+        "hp": 4500,
+        "damagePerAttack": 437.5,
+        "upgradeCost": 10500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 777600,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 10,
+        "dps": 370,
+        "hp": 4900,
+        "damagePerAttack": 462.5,
+        "upgradeCost": 15000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 928800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 11,
+        "dps": 390,
+        "hp": 5300,
+        "damagePerAttack": 487.5,
+        "upgradeCost": 17200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 12,
+        "dps": 410,
+        "hp": 5700,
+        "damagePerAttack": 512.5,
+        "upgradeCost": 22000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1267200,
+        "labLevelRequired": 15
+      }
+    ]
+  },
+  "P.E.K.K.A": {
+    "name": "P.E.K.K.A",
+    "type": "elixir",
+    "housingSpace": 25,
+    "movementSpeed": 16,
+    "attackRange": 0.8,
+    "attackSpeed": 1.8,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 10,
+    "thUnlock": 8,
+    "specialMechanics": "Takes 2x damage from Hidden Tesla (no longer applies in current versions, was removed).",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 260,
+        "hp": 3000,
+        "damagePerAttack": 468,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 290,
+        "hp": 3500,
+        "damagePerAttack": 522,
+        "upgradeCost": 1000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 43200,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 3,
+        "dps": 320,
+        "hp": 4000,
+        "damagePerAttack": 576,
+        "upgradeCost": 1800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 4,
+        "dps": 360,
+        "hp": 4500,
+        "damagePerAttack": 648,
+        "upgradeCost": 2800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 5,
+        "dps": 410,
+        "hp": 5000,
+        "damagePerAttack": 738,
+        "upgradeCost": 3200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 6,
+        "dps": 470,
+        "hp": 5500,
+        "damagePerAttack": 846,
+        "upgradeCost": 3600000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 7,
+        "dps": 540,
+        "hp": 5900,
+        "damagePerAttack": 972,
+        "upgradeCost": 4500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 8,
+        "dps": 610,
+        "hp": 6300,
+        "damagePerAttack": 1098,
+        "upgradeCost": 6200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 9,
+        "dps": 680,
+        "hp": 6700,
+        "damagePerAttack": 1224,
+        "upgradeCost": 7000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 518400,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 10,
+        "dps": 750,
+        "hp": 7200,
+        "damagePerAttack": 1350,
+        "upgradeCost": 12000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 604800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 11,
+        "dps": 810,
+        "hp": 7700,
+        "damagePerAttack": 1458,
+        "upgradeCost": 17000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 993600,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Baby Dragon": {
+    "name": "Baby Dragon",
+    "type": "elixir",
+    "housingSpace": 10,
+    "movementSpeed": 20,
+    "attackRange": 2.75,
+    "attackSpeed": 1.0,
+    "damageType": "areaSplash",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 11,
+    "thUnlock": 9,
+    "specialMechanics": "Tantrum ability: When no other allied air troops are within 4.5 tiles, the Baby Dragon becomes enraged, gaining 100% increased damage and 50% faster attack speed (effective 3x DPS).",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 75,
+        "hp": 1200,
+        "damagePerAttack": 75,
+        "enragedDps": 225,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 85,
+        "hp": 1300,
+        "damagePerAttack": 85,
+        "enragedDps": 255,
+        "upgradeCost": 1500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 108000,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 3,
+        "dps": 95,
+        "hp": 1400,
+        "damagePerAttack": 95,
+        "enragedDps": 285,
+        "upgradeCost": 2000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 4,
+        "dps": 105,
+        "hp": 1500,
+        "damagePerAttack": 105,
+        "enragedDps": 315,
+        "upgradeCost": 2800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 5,
+        "dps": 115,
+        "hp": 1600,
+        "damagePerAttack": 115,
+        "enragedDps": 345,
+        "upgradeCost": 3700000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 237600,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 6,
+        "dps": 125,
+        "hp": 1700,
+        "damagePerAttack": 125,
+        "enragedDps": 375,
+        "upgradeCost": 4800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 7,
+        "dps": 135,
+        "hp": 1800,
+        "damagePerAttack": 135,
+        "enragedDps": 405,
+        "upgradeCost": 6200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 8,
+        "dps": 145,
+        "hp": 1900,
+        "damagePerAttack": 145,
+        "enragedDps": 435,
+        "upgradeCost": 9500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 518400,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 9,
+        "dps": 155,
+        "hp": 2000,
+        "damagePerAttack": 155,
+        "enragedDps": 465,
+        "upgradeCost": 11000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 604800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 10,
+        "dps": 165,
+        "hp": 2100,
+        "damagePerAttack": 165,
+        "enragedDps": 495,
+        "upgradeCost": 13500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 626400,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 11,
+        "dps": 175,
+        "hp": 2200,
+        "damagePerAttack": 175,
+        "enragedDps": 525,
+        "upgradeCost": 16500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 864000,
+        "labLevelRequired": 15
+      }
+    ]
+  },
+  "Miner": {
+    "name": "Miner",
+    "type": "elixir",
+    "housingSpace": 6,
+    "movementSpeed": 32,
+    "attackRange": 0.5,
+    "attackSpeed": 1.7,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 12,
+    "thUnlock": 10,
+    "specialMechanics": "Burrows underground to move between buildings, passing under Walls and becoming invisible/untargetable while moving. Cannot be damaged or trigger Traps while underground.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 80,
+        "hp": 550,
+        "damagePerAttack": 136,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 88,
+        "hp": 610,
+        "damagePerAttack": 149.6,
+        "upgradeCost": 2500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 3,
+        "dps": 96,
+        "hp": 670,
+        "damagePerAttack": 163.2,
+        "upgradeCost": 3200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 4,
+        "dps": 104,
+        "hp": 730,
+        "damagePerAttack": 176.8,
+        "upgradeCost": 3800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 5,
+        "dps": 112,
+        "hp": 800,
+        "damagePerAttack": 190.4,
+        "upgradeCost": 4000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 6,
+        "dps": 120,
+        "hp": 900,
+        "damagePerAttack": 204,
+        "upgradeCost": 5500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 388800,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 7,
+        "dps": 128,
+        "hp": 1000,
+        "damagePerAttack": 217.6,
+        "upgradeCost": 6500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 8,
+        "dps": 136,
+        "hp": 1100,
+        "damagePerAttack": 231.2,
+        "upgradeCost": 9000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 691200,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 9,
+        "dps": 144,
+        "hp": 1250,
+        "damagePerAttack": 244.8,
+        "upgradeCost": 14000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 777600,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 10,
+        "dps": 152,
+        "hp": 1400,
+        "damagePerAttack": 258.4,
+        "upgradeCost": 16400000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Electro Dragon": {
+    "name": "Electro Dragon",
+    "type": "elixir",
+    "housingSpace": 30,
+    "movementSpeed": 12,
+    "attackRange": 3.0,
+    "attackSpeed": 3.5,
+    "damageType": "chainLightning",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 13,
+    "thUnlock": 11,
+    "specialMechanics": "Chain lightning attack that hits the primary target then bounces to up to 4 additional targets, with each successive bounce dealing 20% less damage. On death, releases chain lightning bolts that strike nearby ground randomly.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 240,
+        "hp": 3200,
+        "damagePerAttack": 840,
+        "deathDamage": 300,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 270,
+        "hp": 3700,
+        "damagePerAttack": 945,
+        "deathDamage": 330,
+        "upgradeCost": 6300000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 3,
+        "dps": 300,
+        "hp": 4200,
+        "damagePerAttack": 1050,
+        "deathDamage": 360,
+        "upgradeCost": 7000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 475200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 4,
+        "dps": 330,
+        "hp": 4500,
+        "damagePerAttack": 1155,
+        "deathDamage": 390,
+        "upgradeCost": 9000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 777600,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 5,
+        "dps": 360,
+        "hp": 4800,
+        "damagePerAttack": 1260,
+        "deathDamage": 420,
+        "upgradeCost": 11000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 864000,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 6,
+        "dps": 390,
+        "hp": 5200,
+        "damagePerAttack": 1365,
+        "deathDamage": 450,
+        "upgradeCost": 16000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 7,
+        "dps": 420,
+        "hp": 5500,
+        "damagePerAttack": 1470,
+        "deathDamage": 480,
+        "upgradeCost": 17600000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 8,
+        "dps": 450,
+        "hp": 5800,
+        "damagePerAttack": 1575,
+        "deathDamage": 510,
+        "upgradeCost": 23000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1296000,
+        "labLevelRequired": 15
+      }
+    ]
+  },
+  "Yeti": {
+    "name": "Yeti",
+    "type": "elixir",
+    "housingSpace": 18,
+    "movementSpeed": 12,
+    "attackRange": 0.8,
+    "attackSpeed": 1.0,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 14,
+    "thUnlock": 12,
+    "specialMechanics": "Spawns Yetimites when destroyed. Number of Yetimites increases with level (8 at level 1, increasing by 1 per level). Yetimites also spawn periodically as the Yeti takes damage (one per 600 damage accumulated). Yetimites deal high single-target damage then die after one hit.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 230,
+        "hp": 2900,
+        "damagePerAttack": 230,
+        "yetimitesSpawned": 8,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 250,
+        "hp": 3200,
+        "damagePerAttack": 250,
+        "yetimitesSpawned": 9,
+        "upgradeCost": 6000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 388800,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 3,
+        "dps": 270,
+        "hp": 3500,
+        "damagePerAttack": 270,
+        "yetimitesSpawned": 10,
+        "upgradeCost": 7000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 518400,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 4,
+        "dps": 290,
+        "hp": 3700,
+        "damagePerAttack": 290,
+        "yetimitesSpawned": 11,
+        "upgradeCost": 10000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 777600,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 5,
+        "dps": 310,
+        "hp": 3900,
+        "damagePerAttack": 310,
+        "yetimitesSpawned": 12,
+        "upgradeCost": 14000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 864000,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 6,
+        "dps": 330,
+        "hp": 4100,
+        "damagePerAttack": 330,
+        "yetimitesSpawned": 13,
+        "upgradeCost": 16800000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1080000,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Dragon Rider": {
+    "name": "Dragon Rider",
+    "type": "elixir",
+    "housingSpace": 25,
+    "movementSpeed": 20,
+    "attackRange": 3.5,
+    "attackSpeed": 1.2,
+    "damageType": "single",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": "Defenses",
+    "barracksLevelRequired": 15,
+    "thUnlock": 13,
+    "specialMechanics": "When the dragon is destroyed, it deals death damage in a 2-tile radius. The rider then dismounts and continues fighting on the ground with reduced stats.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 340,
+        "hp": 4100,
+        "damagePerAttack": 408,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 370,
+        "hp": 4400,
+        "damagePerAttack": 444,
+        "upgradeCost": 7500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 691200,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 3,
+        "dps": 400,
+        "hp": 4700,
+        "damagePerAttack": 480,
+        "upgradeCost": 12000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 907200,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 4,
+        "dps": 430,
+        "hp": 5000,
+        "damagePerAttack": 516,
+        "upgradeCost": 17200000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 5,
+        "dps": 460,
+        "hp": 5300,
+        "damagePerAttack": 552,
+        "upgradeCost": 22500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1339200,
+        "labLevelRequired": 15
+      }
+    ]
+  },
+  "Electro Titan": {
+    "name": "Electro Titan",
+    "type": "elixir",
+    "housingSpace": 32,
+    "movementSpeed": 16,
+    "attackRange": 1.25,
+    "attackSpeed": 1.5,
+    "damageType": "single",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 16,
+    "thUnlock": 14,
+    "specialMechanics": "Has a passive electrical aura that continuously damages all nearby buildings and troops within a 7-tile radius while the Electro Titan is alive. The aura deals damage to both ground and air targets.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 180,
+        "hp": 7200,
+        "damagePerAttack": 270,
+        "auraDps": 75,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 200,
+        "hp": 7700,
+        "damagePerAttack": 300,
+        "auraDps": 100,
+        "upgradeCost": 14000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 3,
+        "dps": 220,
+        "hp": 8200,
+        "damagePerAttack": 330,
+        "auraDps": 125,
+        "upgradeCost": 18000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 4,
+        "dps": 240,
+        "hp": 8400,
+        "damagePerAttack": 360,
+        "auraDps": 137.5,
+        "upgradeCost": 18500000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1166400,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Root Rider": {
+    "name": "Root Rider",
+    "type": "elixir",
+    "housingSpace": 20,
+    "movementSpeed": 12,
+    "attackRange": 1.0,
+    "attackSpeed": 2.2,
+    "damageType": "single",
+    "targetType": "ground",
+    "isFlying": false,
+    "favoriteTarget": "Defenses",
+    "barracksLevelRequired": 17,
+    "thUnlock": 15,
+    "specialMechanics": "Rides a large root that crashes through Walls, destroying them on contact. Wall destruction speed varies by Wall level: lower-level Walls are destroyed instantly, higher-level Walls take 0.4s to 1.2s. The root ignores Walls during movement.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 95,
+        "hp": 6200,
+        "damagePerAttack": 209,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 105,
+        "hp": 6350,
+        "damagePerAttack": 231,
+        "upgradeCost": 17000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1036800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 3,
+        "dps": 115,
+        "hp": 6500,
+        "damagePerAttack": 253,
+        "upgradeCost": 17600000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 14
+      }
+    ]
+  },
+  "Thrower": {
+    "name": "Thrower",
+    "type": "elixir",
+    "housingSpace": 16,
+    "movementSpeed": 18,
+    "attackRange": 6.0,
+    "attackSpeed": 2.5,
+    "damageType": "single",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": null,
+    "barracksLevelRequired": 18,
+    "thUnlock": 16,
+    "specialMechanics": "Hurls mighty spears from long range at enemies and Defenses. Has the longest attack range of any standard elixir troop at 6 tiles.",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 180,
+        "hp": 1800,
+        "damagePerAttack": 450,
+        "upgradeCost": 0,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "dps": 190,
+        "hp": 1950,
+        "damagePerAttack": 475,
+        "upgradeCost": 21000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1209600,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 3,
+        "dps": 200,
+        "hp": 2100,
+        "damagePerAttack": 500,
+        "upgradeCost": 23000000,
+        "upgradeResource": "Elixir",
+        "upgradeTime": 1382400,
+        "labLevelRequired": 15
+      }
+    ]
+  }
+}

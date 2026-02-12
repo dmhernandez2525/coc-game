@@ -1,0 +1,401 @@
+{
+  "metadata": {
+    "description": "Clash of Clans Resource Economy and Loot Mechanics",
+    "sources": [
+      "https://clashofclans.fandom.com/wiki/Multiplayer_Battles",
+      "https://clashofclans.fandom.com/wiki/Shield",
+      "https://clashofclans.fandom.com/wiki/Trophy_Leagues",
+      "https://clashofclans.fandom.com/wiki/Star_Bonus",
+      "https://clashofclans.fandom.com/wiki/Treasury"
+    ],
+    "lastUpdated": "Post-October 2025 Ranked Update"
+  },
+  "storageLoot": {
+    "description": "Percentage of resources that can be stolen from Gold Storages and Elixir Storages",
+    "goldElixir": [
+      { "townHallLevel": 1, "percentStealable": 20, "lootCap": 200000 },
+      { "townHallLevel": 2, "percentStealable": 20, "lootCap": 200000 },
+      { "townHallLevel": 3, "percentStealable": 20, "lootCap": 200000 },
+      { "townHallLevel": 4, "percentStealable": 20, "lootCap": 200000 },
+      { "townHallLevel": 5, "percentStealable": 20, "lootCap": 200000 },
+      { "townHallLevel": 6, "percentStealable": 20, "lootCap": 200000 },
+      { "townHallLevel": 7, "percentStealable": 18, "lootCap": 360000 },
+      { "townHallLevel": 8, "percentStealable": 16, "lootCap": 480000 },
+      { "townHallLevel": 9, "percentStealable": 14, "lootCap": 560000 },
+      { "townHallLevel": 10, "percentStealable": 14, "lootCap": 595000 },
+      { "townHallLevel": 11, "percentStealable": 14, "lootCap": 700000 },
+      { "townHallLevel": 12, "percentStealable": 14, "lootCap": 980000 },
+      { "townHallLevel": 13, "percentStealable": 14, "lootCap": 1260000 },
+      { "townHallLevel": 14, "percentStealable": 14, "lootCap": 1400000 },
+      { "townHallLevel": 15, "percentStealable": 14, "lootCap": 1540000 },
+      { "townHallLevel": 16, "percentStealable": 14, "lootCap": 1610000 },
+      { "townHallLevel": 17, "percentStealable": 14, "lootCap": 1680000 }
+    ],
+    "darkElixir": [
+      { "townHallLevel": 7, "percentStealable": 6, "lootCap": 2000, "note": "DE Storage becomes available at TH7" },
+      { "townHallLevel": 8, "percentStealable": 6, "lootCap": 2000 },
+      { "townHallLevel": 9, "percentStealable": 5, "lootCap": 4750 },
+      { "townHallLevel": 10, "percentStealable": 5, "lootCap": 5000 },
+      { "townHallLevel": 11, "percentStealable": 5, "lootCap": 5500 },
+      { "townHallLevel": 12, "percentStealable": 5, "lootCap": 6000 },
+      { "townHallLevel": 13, "percentStealable": 5, "lootCap": 7500 },
+      { "townHallLevel": 14, "percentStealable": 5, "lootCap": 8750 },
+      { "townHallLevel": 15, "percentStealable": 5, "lootCap": 9250 },
+      { "townHallLevel": 16, "percentStealable": 5, "lootCap": 9500 },
+      { "townHallLevel": 17, "percentStealable": 5, "lootCap": 9750 }
+    ]
+  },
+  "collectorLoot": {
+    "description": "Percentage of uncollected resources in collectors/mines/drills that can be stolen",
+    "goldMines": {
+      "percentStealable": 50,
+      "note": "Capped only by the mine's storage capacity. Dead bases with full collectors are high-value targets."
+    },
+    "elixirCollectors": {
+      "percentStealable": 50,
+      "note": "Capped only by the collector's storage capacity."
+    },
+    "darkElixirDrills": {
+      "percentStealable": 75,
+      "note": "Capped only by the drill's storage capacity. Higher steal rate than regular collectors."
+    }
+  },
+  "treasuryLoot": {
+    "description": "Loot from the Treasury (Clan Castle) when it is completely destroyed",
+    "percentStealable": 3,
+    "note": "Only 3% of Treasury contents can be stolen. Treasury holds loot from Clan Wars, Clan Games, Star Bonuses, and other bonus sources. Significantly more protected than regular storages."
+  },
+  "clanCastleLoot": {
+    "description": "Loot from the Clan Castle acting as a storage",
+    "percentStealable": 5,
+    "note": "5% of loot inside the Clan Castle can be stolen, regardless of Town Hall level. Only applies upon complete destruction of the Clan Castle."
+  },
+  "townHallLoot": {
+    "description": "The Town Hall acts as a storage of all three resource types. Loot is only given upon its complete destruction.",
+    "note": "The Town Hall holds a portion of your total resources; destroying it yields a percentage similar to storages."
+  },
+  "townHallLootPenalty": {
+    "description": "Loot multiplier applied based on the difference between the attacker's and defender's Town Hall levels. Penalties reduce loot when attacking lower TH levels; bonuses increase loot when attacking higher TH levels.",
+    "multipliers": [
+      { "thDifference": "4+ levels higher (attacking much lower TH)", "lootMultiplier": 5, "note": "Severe penalty" },
+      { "thDifference": "3 levels higher", "lootMultiplier": 25 },
+      { "thDifference": "2 levels higher", "lootMultiplier": 50 },
+      { "thDifference": "1 level higher", "lootMultiplier": 80 },
+      { "thDifference": "Same TH level", "lootMultiplier": 100 },
+      { "thDifference": "1 level lower (attacking higher TH)", "lootMultiplier": 120 },
+      { "thDifference": "2 levels lower", "lootMultiplier": 150 },
+      { "thDifference": "3 levels lower", "lootMultiplier": 175 },
+      { "thDifference": "4+ levels lower (attacking much higher TH)", "lootMultiplier": 200, "note": "Maximum bonus" }
+    ],
+    "notes": [
+      "The multiplier is applied to the calculated available loot from storages, collectors, and drills.",
+      "This penalty does NOT apply to the Treasury (Treasury always loses 3% regardless).",
+      "This penalty does NOT affect league bonuses or star bonuses.",
+      "All values are percentages (e.g., 80 means the attacker gets 80% of the normal available loot)."
+    ]
+  },
+  "shieldMechanics": {
+    "description": "Shield system as of the October 2025 Ranked Update. The old tiered shield system (12h/14h/16h based on destruction %) has been replaced by the Magic Shield.",
+    "magicShield": {
+      "triggerCondition": "At least 30% of available loot is stolen by the attacker in a Battle Mode attack",
+      "duration": "8 hours",
+      "notes": [
+        "Duration is fixed at 8 hours regardless of destruction percentage or loot amount taken.",
+        "Players can attack freely while shielded; the shield does not reduce when attacking.",
+        "While shielded, attackers face a shadow version of your base, so no actual loot is lost.",
+        "Shields do NOT trigger from Ranked Battles, Clan Wars, Friendly Challenges, Practice Mode, or Single Player Campaign.",
+        "1 Dark Elixir is considered equivalent to 100 Gold or Elixir for the 30% calculation."
+      ]
+    },
+    "legacyShieldSystem": {
+      "note": "Replaced by Magic Shield in October 2025. Listed here for historical reference.",
+      "thresholds": [
+        { "destructionPercent": 30, "shieldDuration": "12 hours", "additionalCondition": "Attacker used at least 1/3 of max army capacity" },
+        { "destructionPercent": 60, "shieldDuration": "14 hours" },
+        { "destructionPercent": 90, "shieldDuration": "16 hours" }
+      ]
+    },
+    "purchasedShields": [
+      { "duration": "1 day", "cooldown": "4 days" },
+      { "duration": "2 days", "cooldown": "7 days" },
+      { "duration": "7 days", "cooldown": "35 days" }
+    ],
+    "legendShield": {
+      "description": "Special shield for Legend League players in Ranked mode. Prevents trophy loss but blocks Legend League attacks. Takes effect for whole League Days only."
+    },
+    "villageGuard": {
+      "status": "Removed from the game as of the October 2025 update. Replaced by the Magic Shield system."
+    }
+  },
+  "leagueBonuses": {
+    "description": "Loot bonus awarded for each multiplayer victory in Battle Mode, based on the player's current league. The bonus is added on top of loot stolen from the defender. Maximum bonus is earned at 70%+ destruction.",
+    "bonusCalculation": "For every percentage point of destruction up to 50%, each % counts as 1.6% of the max bonus. After 50%, each % up to 70% counts as 1% of the max bonus. At 70%+ destruction, you receive the full (100%) league bonus.",
+    "leagues": [
+      {
+        "league": "Unranked",
+        "trophyRange": "0-399",
+        "maxBonusGold": 0,
+        "maxBonusElixir": 0,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Bronze III",
+        "trophyRange": "400-499",
+        "maxBonusGold": 700,
+        "maxBonusElixir": 700,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Bronze II",
+        "trophyRange": "500-599",
+        "maxBonusGold": 1000,
+        "maxBonusElixir": 1000,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Bronze I",
+        "trophyRange": "600-799",
+        "maxBonusGold": 1300,
+        "maxBonusElixir": 1300,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Silver III",
+        "trophyRange": "800-999",
+        "maxBonusGold": 2600,
+        "maxBonusElixir": 2600,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Silver II",
+        "trophyRange": "1000-1199",
+        "maxBonusGold": 3700,
+        "maxBonusElixir": 3700,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Silver I",
+        "trophyRange": "1200-1399",
+        "maxBonusGold": 4800,
+        "maxBonusElixir": 4800,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Gold III",
+        "trophyRange": "1400-1599",
+        "maxBonusGold": 10000,
+        "maxBonusElixir": 10000,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Gold II",
+        "trophyRange": "1600-1799",
+        "maxBonusGold": 13500,
+        "maxBonusElixir": 13500,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Gold I",
+        "trophyRange": "1800-1999",
+        "maxBonusGold": 17000,
+        "maxBonusElixir": 17000,
+        "maxBonusDarkElixir": 0
+      },
+      {
+        "league": "Crystal III",
+        "trophyRange": "2000-2199",
+        "maxBonusGold": 40000,
+        "maxBonusElixir": 40000,
+        "maxBonusDarkElixir": 120
+      },
+      {
+        "league": "Crystal II",
+        "trophyRange": "2200-2399",
+        "maxBonusGold": 55000,
+        "maxBonusElixir": 55000,
+        "maxBonusDarkElixir": 220
+      },
+      {
+        "league": "Crystal I",
+        "trophyRange": "2400-2599",
+        "maxBonusGold": 70000,
+        "maxBonusElixir": 70000,
+        "maxBonusDarkElixir": 320
+      },
+      {
+        "league": "Master III",
+        "trophyRange": "2600-2799",
+        "maxBonusGold": 110000,
+        "maxBonusElixir": 110000,
+        "maxBonusDarkElixir": 560
+      },
+      {
+        "league": "Master II",
+        "trophyRange": "2800-2999",
+        "maxBonusGold": 135000,
+        "maxBonusElixir": 135000,
+        "maxBonusDarkElixir": 740
+      },
+      {
+        "league": "Master I",
+        "trophyRange": "3000-3199",
+        "maxBonusGold": 160000,
+        "maxBonusElixir": 160000,
+        "maxBonusDarkElixir": 920
+      },
+      {
+        "league": "Champion III",
+        "trophyRange": "3200-3499",
+        "maxBonusGold": 200000,
+        "maxBonusElixir": 200000,
+        "maxBonusDarkElixir": 1220
+      },
+      {
+        "league": "Champion II",
+        "trophyRange": "3500-3799",
+        "maxBonusGold": 225000,
+        "maxBonusElixir": 225000,
+        "maxBonusDarkElixir": 1400
+      },
+      {
+        "league": "Champion I",
+        "trophyRange": "3800-4099",
+        "maxBonusGold": 250000,
+        "maxBonusElixir": 250000,
+        "maxBonusDarkElixir": 1580
+      },
+      {
+        "league": "Titan III",
+        "trophyRange": "4100-4399",
+        "maxBonusGold": 280000,
+        "maxBonusElixir": 280000,
+        "maxBonusDarkElixir": 1880
+      },
+      {
+        "league": "Titan II",
+        "trophyRange": "4400-4699",
+        "maxBonusGold": 300000,
+        "maxBonusElixir": 300000,
+        "maxBonusDarkElixir": 2060
+      },
+      {
+        "league": "Titan I",
+        "trophyRange": "4700-4999",
+        "maxBonusGold": 320000,
+        "maxBonusElixir": 320000,
+        "maxBonusDarkElixir": 2240
+      },
+      {
+        "league": "Legend",
+        "trophyRange": "5000+",
+        "maxBonusGold": 340000,
+        "maxBonusElixir": 340000,
+        "maxBonusDarkElixir": 2400
+      }
+    ]
+  },
+  "starBonus": {
+    "description": "Daily bonus earned by achieving 5 stars in multiplayer attacks. Stars can be earned in both Battle Mode and Ranked Mode. Rewards are deposited into the Treasury.",
+    "requirement": "5 stars from multiplayer attacks",
+    "bonusByLeague": [
+      { "league": "Unranked", "goldElixir": 50000, "darkElixir": 0 },
+      { "league": "Bronze III", "goldElixir": 100000, "darkElixir": 250 },
+      { "league": "Bronze II", "goldElixir": 150000, "darkElixir": 500 },
+      { "league": "Bronze I", "goldElixir": 200000, "darkElixir": 750 },
+      { "league": "Silver III", "goldElixir": 250000, "darkElixir": 1000 },
+      { "league": "Silver II", "goldElixir": 300000, "darkElixir": 1250 },
+      { "league": "Silver I", "goldElixir": 350000, "darkElixir": 1500 },
+      { "league": "Gold III", "goldElixir": 400000, "darkElixir": 1750 },
+      { "league": "Gold II", "goldElixir": 450000, "darkElixir": 2000 },
+      { "league": "Gold I", "goldElixir": 500000, "darkElixir": 2250 },
+      { "league": "Crystal III", "goldElixir": 550000, "darkElixir": 2500 },
+      { "league": "Crystal II", "goldElixir": 600000, "darkElixir": 2750 },
+      { "league": "Crystal I", "goldElixir": 650000, "darkElixir": 3000 },
+      { "league": "Master III", "goldElixir": 700000, "darkElixir": 3250 },
+      { "league": "Master II", "goldElixir": 750000, "darkElixir": 3500 },
+      { "league": "Master I", "goldElixir": 800000, "darkElixir": 3750 },
+      { "league": "Champion III", "goldElixir": 850000, "darkElixir": 4000 },
+      { "league": "Champion II", "goldElixir": 900000, "darkElixir": 4250 },
+      { "league": "Champion I", "goldElixir": 940000, "darkElixir": 4500 },
+      { "league": "Titan III", "goldElixir": 980000, "darkElixir": 4750 },
+      { "league": "Titan II", "goldElixir": 1020000, "darkElixir": 5000 },
+      { "league": "Titan I", "goldElixir": 1060000, "darkElixir": 5250 },
+      { "league": "Legend", "goldElixir": 1100000, "darkElixir": 5500 }
+    ],
+    "notes": [
+      "Star bonus rewards go directly to the Treasury.",
+      "The star bonus resets daily.",
+      "Stars from both Battle Mode and Ranked Mode count toward the daily star bonus."
+    ]
+  },
+  "rankedLeagues": {
+    "description": "New league system introduced in the October 2025 Ranked Update. 34 leagues total, with 33 divisions below Legend League. Each major league has 3 tiers (1, 2, 3).",
+    "leagueProgression": [
+      { "leagueNumber": 1, "name": "Skeleton 1" },
+      { "leagueNumber": 2, "name": "Skeleton 2" },
+      { "leagueNumber": 3, "name": "Skeleton 3" },
+      { "leagueNumber": 4, "name": "Barbarian 1" },
+      { "leagueNumber": 5, "name": "Barbarian 2" },
+      { "leagueNumber": 6, "name": "Barbarian 3" },
+      { "leagueNumber": 7, "name": "Archer 1" },
+      { "leagueNumber": 8, "name": "Archer 2" },
+      { "leagueNumber": 9, "name": "Archer 3" },
+      { "leagueNumber": 10, "name": "Wizard 1" },
+      { "leagueNumber": 11, "name": "Wizard 2" },
+      { "leagueNumber": 12, "name": "Wizard 3" },
+      { "leagueNumber": 13, "name": "Valkyrie 1" },
+      { "leagueNumber": 14, "name": "Valkyrie 2" },
+      { "leagueNumber": 15, "name": "Valkyrie 3" },
+      { "leagueNumber": 16, "name": "Witch 1" },
+      { "leagueNumber": 17, "name": "Witch 2" },
+      { "leagueNumber": 18, "name": "Witch 3" },
+      { "leagueNumber": 19, "name": "Golem 1" },
+      { "leagueNumber": 20, "name": "Golem 2" },
+      { "leagueNumber": 21, "name": "Golem 3" },
+      { "leagueNumber": 22, "name": "P.E.K.K.A 1" },
+      { "leagueNumber": 23, "name": "P.E.K.K.A 2" },
+      { "leagueNumber": 24, "name": "P.E.K.K.A 3" },
+      { "leagueNumber": 25, "name": "Titan 1" },
+      { "leagueNumber": 26, "name": "Titan 2" },
+      { "leagueNumber": 27, "name": "Titan 3" },
+      { "leagueNumber": 28, "name": "Dragon 1" },
+      { "leagueNumber": 29, "name": "Dragon 2" },
+      { "leagueNumber": 30, "name": "Dragon 3" },
+      { "leagueNumber": 31, "name": "Electro 1" },
+      { "leagueNumber": 32, "name": "Electro 2" },
+      { "leagueNumber": 33, "name": "Electro 3" },
+      { "leagueNumber": 34, "name": "Legend" }
+    ],
+    "notes": [
+      "Ranked Battles unlock at Town Hall 7.",
+      "Each Town Hall has a League Floor preventing demotion below a certain league.",
+      "Trophies are earned and lost only in Ranked Battles.",
+      "Limited number of Ranked Battle attacks/defenses per week, determined by league.",
+      "Higher leagues have difficulty modifiers applied.",
+      "Trophy scores reset after each League Tournament."
+    ]
+  },
+  "matchSearchCost": {
+    "description": "Gold cost to search for a new opponent in Battle Mode",
+    "note": "Cost increases with Town Hall level. Not applicable to Ranked Mode.",
+    "costs": [
+      { "townHallLevel": 1, "goldCost": 10 },
+      { "townHallLevel": 2, "goldCost": 50 },
+      { "townHallLevel": 3, "goldCost": 100 },
+      { "townHallLevel": 4, "goldCost": 150 },
+      { "townHallLevel": 5, "goldCost": 200 },
+      { "townHallLevel": 6, "goldCost": 250 },
+      { "townHallLevel": 7, "goldCost": 350 },
+      { "townHallLevel": 8, "goldCost": 450 },
+      { "townHallLevel": 9, "goldCost": 550 },
+      { "townHallLevel": 10, "goldCost": 700 },
+      { "townHallLevel": 11, "goldCost": 850 },
+      { "townHallLevel": 12, "goldCost": 1000 },
+      { "townHallLevel": 13, "goldCost": 1100 },
+      { "townHallLevel": 14, "goldCost": 1200 },
+      { "townHallLevel": 15, "goldCost": 1300 },
+      { "townHallLevel": 16, "goldCost": 1500 },
+      { "townHallLevel": 17, "goldCost": 1700 }
+    ]
+  }
+}

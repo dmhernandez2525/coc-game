@@ -1,0 +1,926 @@
+{
+  "metadata": {
+    "game": "Clash of Clans",
+    "category": "Gems, Magic Items, and Achievements",
+    "source": "clashofclans.fandom.com",
+    "lastUpdated": "2026-02-11",
+    "notes": "Gem mechanics, magic items, League Shop, Trader, achievements, and obstacle rewards"
+  },
+  "gemSpeedUpCosts": {
+    "description": "Gem costs for speeding up timers use linear interpolation between breakpoints. The cost per unit of time decreases significantly for longer durations.",
+    "breakpoints": [
+      { "duration": "1 minute",  "seconds": 60,     "gemCost": 1 },
+      { "duration": "1 hour",    "seconds": 3600,   "gemCost": 20 },
+      { "duration": "1 day",     "seconds": 86400,  "gemCost": 260 },
+      { "duration": "1 week",    "seconds": 604800, "gemCost": 1000 }
+    ],
+    "formula": {
+      "description": "Linear interpolation between breakpoints: y = ((y2-y1)/(x2-x1)) * (x-x1) + y1, where x is time in seconds and y is gem cost",
+      "examples": [
+        { "between": "1 min to 1 hour",  "ratePerMinute": "~0.32 gems/min (1 gem per ~3.1 minutes)" },
+        { "between": "1 hour to 1 day",  "ratePerMinute": "~0.17 gems/min (1 gem per ~5.75 minutes)" },
+        { "between": "1 day to 1 week",  "ratePerMinute": "~0.10 gems/min (1 gem per ~10.1 minutes)" }
+      ],
+      "discount": "Skipping 1 week costs roughly 90% less per second than skipping 1 minute"
+    }
+  },
+  "magicItems": {
+    "books": [
+      {
+        "name": "Book of Fighting",
+        "category": "book",
+        "effect": "Instantly completes any ongoing troop upgrade in the Laboratory",
+        "gemCostTrader": 925,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (925 gems)"],
+        "worksIn": "Both villages"
+      },
+      {
+        "name": "Book of Building",
+        "category": "book",
+        "effect": "Instantly completes any ongoing building upgrade or construction",
+        "gemCostTrader": 925,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (925 gems)"],
+        "worksIn": "Both villages"
+      },
+      {
+        "name": "Book of Spells",
+        "category": "book",
+        "effect": "Instantly completes any ongoing spell upgrade in the Laboratory",
+        "gemCostTrader": 925,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (925 gems)"],
+        "worksIn": "Home Village only"
+      },
+      {
+        "name": "Book of Heroes",
+        "category": "book",
+        "effect": "Instantly completes any ongoing hero or pet upgrade timer",
+        "gemCostTrader": 500,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (500 gems)"],
+        "worksIn": "Both villages"
+      },
+      {
+        "name": "Book of Everything",
+        "category": "book",
+        "effect": "Instantly completes any ongoing upgrade timer (building, troop, spell, or hero)",
+        "gemCostTrader": null,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Season Pass/Challenges", "Special events"],
+        "worksIn": "Both villages",
+        "notes": "Cannot be purchased with gems; only available through events and Season Pass"
+      }
+    ],
+    "potions": [
+      {
+        "name": "Power Potion",
+        "category": "potion",
+        "effect": "Boosts Troops, Spells, and Siege Machines to maximum level for the player's Town Hall for 1 hour",
+        "gemCostTrader": 300,
+        "leagueMedalCost": null,
+        "raidMedalCost": 150,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (300 gems)", "Raid Medal Shop (150 medals)"]
+      },
+      {
+        "name": "Resource Potion",
+        "category": "potion",
+        "effect": "Boosts all resource collectors to 2x production for 1 day",
+        "gemCostTrader": 115,
+        "leagueMedalCost": 10,
+        "raidMedalCost": 200,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "League Shop (10 medals)", "Raid Medal Shop (200 medals)", "Trader (115 gems)"]
+      },
+      {
+        "name": "Builder Potion",
+        "category": "potion",
+        "effect": "All builders work 10x faster for 1 hour (effectively skips 9 hours of build time per builder)",
+        "gemCostTrader": 285,
+        "leagueMedalCost": 30,
+        "raidMedalCost": null,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "League Shop (30 medals)", "Trader (285 gems)"]
+      },
+      {
+        "name": "Research Potion",
+        "category": "potion",
+        "effect": "Laboratory research runs 24x faster for 1 hour (effectively skips 23 hours of research time)",
+        "gemCostTrader": 120,
+        "leagueMedalCost": 20,
+        "raidMedalCost": 200,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "League Shop (20 medals)", "Raid Medal Shop (200 medals)", "Trader (120 gems)"]
+      },
+      {
+        "name": "Training Potion",
+        "category": "potion",
+        "effect": "Boosts Barracks, Spell Factory, and Hero regeneration speed for 1 hour",
+        "gemCostTrader": null,
+        "leagueMedalCost": 10,
+        "raidMedalCost": null,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "League Shop (10 medals)", "Special events"]
+      },
+      {
+        "name": "Hero Potion",
+        "category": "potion",
+        "effect": "Boosts all Heroes and Pets to maximum level for the player's Town Hall for 1 hour",
+        "gemCostTrader": 150,
+        "leagueMedalCost": null,
+        "raidMedalCost": 150,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Trader (150 gems)", "Raid Medal Shop (150 medals)"]
+      },
+      {
+        "name": "Super Potion",
+        "category": "potion",
+        "effect": "Converts any eligible troop into its Super Troop version for 3 days",
+        "gemCostTrader": 300,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Trader (300 gems)"]
+      },
+      {
+        "name": "Clock Tower Potion",
+        "category": "potion",
+        "effect": "Activates Clock Tower boost in Builder Base for 30 minutes",
+        "gemCostTrader": 75,
+        "leagueMedalCost": null,
+        "raidMedalCost": 100,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Trader (75 gems)", "Raid Medal Shop (100 medals)"]
+      },
+      {
+        "name": "Pet Potion",
+        "category": "potion",
+        "effect": "Pet House upgrades run 24x faster for 1 hour (effectively skips 23 hours of pet upgrade time)",
+        "gemCostTrader": 120,
+        "leagueMedalCost": null,
+        "raidMedalCost": 200,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Trader (120 gems)", "Raid Medal Shop (200 medals)"]
+      }
+    ],
+    "runes": [
+      {
+        "name": "Rune of Gold",
+        "category": "rune",
+        "effect": "Completely fills all Gold Storages in the Home Village",
+        "gemCostTrader": 1500,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (1,500 gems)"]
+      },
+      {
+        "name": "Rune of Elixir",
+        "category": "rune",
+        "effect": "Completely fills all Elixir Storages in the Home Village",
+        "gemCostTrader": 1500,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (1,500 gems)"]
+      },
+      {
+        "name": "Rune of Dark Elixir",
+        "category": "rune",
+        "effect": "Completely fills the Dark Elixir Storage in the Home Village",
+        "gemCostTrader": 3000,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (3,000 gems)"]
+      },
+      {
+        "name": "Rune of Builder Gold",
+        "category": "rune",
+        "effect": "Completely fills all Gold Storages in the Builder Base",
+        "gemCostTrader": 1500,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (1,500 gems)"]
+      },
+      {
+        "name": "Rune of Builder Elixir",
+        "category": "rune",
+        "effect": "Completely fills all Elixir Storages in the Builder Base",
+        "gemCostTrader": 1500,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 1,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Special events", "Trader (1,500 gems)"]
+      }
+    ],
+    "hammers": [
+      {
+        "name": "Hammer of Fighting",
+        "category": "hammer",
+        "effect": "Instantly starts and completes any troop upgrade at no resource cost",
+        "gemCostTrader": null,
+        "leagueMedalCost": 120,
+        "raidMedalCost": null,
+        "sellPrice": 100,
+        "maxCapacity": 1,
+        "howToObtain": ["League Shop (120 medals)"],
+        "notes": "League Shop exclusive; more powerful than Books because they skip the resource cost entirely"
+      },
+      {
+        "name": "Hammer of Building",
+        "category": "hammer",
+        "effect": "Instantly starts and completes any building upgrade at no resource cost",
+        "gemCostTrader": null,
+        "leagueMedalCost": 120,
+        "raidMedalCost": null,
+        "sellPrice": 100,
+        "maxCapacity": 1,
+        "howToObtain": ["League Shop (120 medals)"],
+        "notes": "League Shop exclusive"
+      },
+      {
+        "name": "Hammer of Spells",
+        "category": "hammer",
+        "effect": "Instantly starts and completes any spell upgrade at no resource cost",
+        "gemCostTrader": null,
+        "leagueMedalCost": 120,
+        "raidMedalCost": null,
+        "sellPrice": 100,
+        "maxCapacity": 1,
+        "howToObtain": ["League Shop (120 medals)"],
+        "notes": "League Shop exclusive"
+      },
+      {
+        "name": "Hammer of Heroes",
+        "category": "hammer",
+        "effect": "Instantly starts and completes any hero or pet upgrade at no resource cost",
+        "gemCostTrader": null,
+        "leagueMedalCost": 165,
+        "raidMedalCost": null,
+        "sellPrice": 100,
+        "maxCapacity": 1,
+        "howToObtain": ["League Shop (165 medals)"],
+        "notes": "League Shop exclusive; most expensive hammer due to hero upgrade value"
+      }
+    ],
+    "other": [
+      {
+        "name": "Wall Ring",
+        "category": "other",
+        "effect": "Upgrades walls without resource cost. Higher-level walls require more Wall Rings per segment.",
+        "gemCostTrader": 175,
+        "gemCostTraderNotes": "175 gems for 5 Wall Rings",
+        "leagueMedalCost": 50,
+        "leagueMedalCostNotes": "50 medals for 10 Wall Rings",
+        "raidMedalCost": null,
+        "sellPrice": 5,
+        "maxCapacity": 25,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "League Shop (50 medals for 10)", "Trader (175 gems for 5)"],
+        "notes": "Each Wall Ring is equivalent to 1,000,000 Gold/Elixir in the Home Village"
+      },
+      {
+        "name": "Shovel of Obstacles",
+        "category": "other",
+        "effect": "Makes a single obstacle permanently movable, allowing it to be relocated anywhere on the map",
+        "gemCostTrader": 500,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 50,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Trader (500 gems)"]
+      },
+      {
+        "name": "Builder Star Jar",
+        "category": "other",
+        "effect": "Makes Builder Base Star Bonus available instantly (does not need to wait for daily reset)",
+        "gemCostTrader": 100,
+        "leagueMedalCost": null,
+        "raidMedalCost": null,
+        "sellPrice": 10,
+        "maxCapacity": 5,
+        "howToObtain": ["Clan Games", "Season Pass/Challenges", "Trader (100 gems)"]
+      }
+    ]
+  },
+  "leagueShop": {
+    "description": "The League Shop sells items exclusively for League Medals earned from Clan War Leagues.",
+    "items": [
+      { "item": "2,500,000 Gold",       "medalCost": 25 },
+      { "item": "2,500,000 Elixir",     "medalCost": 25 },
+      { "item": "Training Potion",       "medalCost": 10 },
+      { "item": "Resource Potion",       "medalCost": 10 },
+      { "item": "Research Potion",       "medalCost": 20 },
+      { "item": "Builder Potion",        "medalCost": 30 },
+      { "item": "10x Wall Rings",        "medalCost": 50 },
+      { "item": "Hammer of Fighting",    "medalCost": 120 },
+      { "item": "Hammer of Building",    "medalCost": 120 },
+      { "item": "Hammer of Spells",      "medalCost": 120 },
+      { "item": "Hammer of Heroes",      "medalCost": 165 }
+    ],
+    "decorations": [
+      { "item": "The Warrior Statue",    "medalCost": 100 },
+      { "item": "The Challenger Statue",  "medalCost": 250,  "requirement": "Clan in Gold League I" },
+      { "item": "The Contender Statue",   "medalCost": 500,  "requirement": "Clan in Crystal League I" },
+      { "item": "The Master Statue",      "medalCost": 1000, "requirement": "Clan in Master League I" },
+      { "item": "The Champion Statue",    "medalCost": 2000, "requirement": "Clan in Champion League I" }
+    ],
+    "medalCap": 2500,
+    "medalCapNotes": "Excess medals above 2,500 automatically convert to Gems at a poor exchange rate. Spend regularly to stay under the cap."
+  },
+  "achievements": {
+    "description": "Achievements reward players with Gems for completing specific milestones. Most have 3 tiers with increasing requirements and rewards.",
+    "totalGemsFromAllAchievements": "Approximately 8,000+ gems if all achievements at all tiers are completed",
+    "homeVillage": [
+      {
+        "name": "Keep Your Account Safe!",
+        "description": "Link your village to a Supercell ID",
+        "tiers": [
+          { "tier": 1, "requirement": "Connect to Supercell ID", "gemReward": 100 },
+          { "tier": 2, "requirement": "Verify email", "gemReward": 50 },
+          { "tier": 3, "requirement": "Additional verification", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Bigger & Better",
+        "description": "Upgrade your Town Hall",
+        "tiers": [
+          { "tier": 1, "requirement": "Town Hall level 3", "gemReward": 5 },
+          { "tier": 2, "requirement": "Town Hall level 5", "gemReward": 10 },
+          { "tier": 3, "requirement": "Town Hall level 8", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Discover New Troops",
+        "description": "Upgrade your Barracks",
+        "tiers": [
+          { "tier": 1, "requirement": "Barracks level 2", "gemReward": 5 },
+          { "tier": 2, "requirement": "Barracks level 5", "gemReward": 10 },
+          { "tier": 3, "requirement": "Barracks level 9", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Bigger Coffers",
+        "description": "Upgrade your Gold Storage",
+        "tiers": [
+          { "tier": 1, "requirement": "Gold Storage level 2", "gemReward": 5 },
+          { "tier": 2, "requirement": "Gold Storage level 5", "gemReward": 5 },
+          { "tier": 3, "requirement": "Gold Storage level 10", "gemReward": 10 }
+        ]
+      },
+      {
+        "name": "Gold Grab",
+        "description": "Steal gold from other players",
+        "tiers": [
+          { "tier": 1, "requirement": "Loot 20,000 gold", "gemReward": 5 },
+          { "tier": 2, "requirement": "Loot 1,000,000 gold", "gemReward": 10 },
+          { "tier": 3, "requirement": "Loot 100,000,000 gold", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Elixir Escapade",
+        "description": "Steal elixir from other players",
+        "tiers": [
+          { "tier": 1, "requirement": "Loot 20,000 elixir", "gemReward": 5 },
+          { "tier": 2, "requirement": "Loot 1,000,000 elixir", "gemReward": 10 },
+          { "tier": 3, "requirement": "Loot 100,000,000 elixir", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Heroic Heist",
+        "description": "Steal Dark Elixir from other players",
+        "tiers": [
+          { "tier": 1, "requirement": "Loot 20,000 Dark Elixir", "gemReward": 5 },
+          { "tier": 2, "requirement": "Loot 250,000 Dark Elixir", "gemReward": 10 },
+          { "tier": 3, "requirement": "Loot 1,000,000 Dark Elixir", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Well Seasoned",
+        "description": "Earn Season/Starter Challenge points",
+        "tiers": [
+          { "tier": 1, "requirement": "Earn 5,000 points", "gemReward": 15 },
+          { "tier": 2, "requirement": "Earn 15,000 points", "gemReward": 100 },
+          { "tier": 3, "requirement": "Earn 50,000 points", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "Nice and Tidy",
+        "description": "Remove obstacles from your village",
+        "tiers": [
+          { "tier": 1, "requirement": "Remove 5 obstacles", "gemReward": 5 },
+          { "tier": 2, "requirement": "Remove 50 obstacles", "gemReward": 10 },
+          { "tier": 3, "requirement": "Remove 500 obstacles", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Empire Builder",
+        "description": "Upgrade your Clan Castle",
+        "tiers": [
+          { "tier": 1, "requirement": "Clan Castle level 1", "gemReward": 5 },
+          { "tier": 2, "requirement": "Clan Castle level 2", "gemReward": 10 },
+          { "tier": 3, "requirement": "Clan Castle level 4", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Clan War Wealth",
+        "description": "Collect gold from Treasury (war loot)",
+        "tiers": [
+          { "tier": 1, "requirement": "Collect 800,000 gold", "gemReward": 25 },
+          { "tier": 2, "requirement": "Collect 15,000,000 gold", "gemReward": 100 },
+          { "tier": 3, "requirement": "Collect 100,000,000 gold", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "Friend in Need",
+        "description": "Donate troops to clanmates",
+        "tiers": [
+          { "tier": 1, "requirement": "Donate 100 troop housing space", "gemReward": 5 },
+          { "tier": 2, "requirement": "Donate 5,000 troop housing space", "gemReward": 25 },
+          { "tier": 3, "requirement": "Donate 25,000 troop housing space", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "Sharing is Caring",
+        "description": "Donate spells to clanmates",
+        "tiers": [
+          { "tier": 1, "requirement": "Donate 100 spell housing space", "gemReward": 20 },
+          { "tier": 2, "requirement": "Donate 2,000 spell housing space", "gemReward": 100 },
+          { "tier": 3, "requirement": "Donate 10,000 spell housing space", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "Siege Sharer",
+        "description": "Donate Siege Machines to clanmates",
+        "tiers": [
+          { "tier": 1, "requirement": "Donate 50 Siege Machines", "gemReward": 20 },
+          { "tier": 2, "requirement": "Donate 1,000 Siege Machines", "gemReward": 100 },
+          { "tier": 3, "requirement": "Donate 5,000 Siege Machines", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "War Hero",
+        "description": "Win stars in Clan Wars",
+        "tiers": [
+          { "tier": 1, "requirement": "Win 10 stars", "gemReward": 50 },
+          { "tier": 2, "requirement": "Win 150 stars", "gemReward": 200 },
+          { "tier": 3, "requirement": "Win 1,000 stars", "gemReward": 1000 }
+        ]
+      },
+      {
+        "name": "War League Legend",
+        "description": "Win stars in Clan War Leagues",
+        "tiers": [
+          { "tier": 1, "requirement": "Win 20 stars", "gemReward": 20 },
+          { "tier": 2, "requirement": "Win 100 stars", "gemReward": 100 },
+          { "tier": 3, "requirement": "Win 250 stars", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "Games Champion",
+        "description": "Score points in Clan Games",
+        "tiers": [
+          { "tier": 1, "requirement": "Score 10,000 points", "gemReward": 50 },
+          { "tier": 2, "requirement": "Score 50,000 points", "gemReward": 100 },
+          { "tier": 3, "requirement": "Score 100,000 points", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "Unbreakable",
+        "description": "Successfully defend your village",
+        "tiers": [
+          { "tier": 1, "requirement": "Win 10 defenses", "gemReward": 5 },
+          { "tier": 2, "requirement": "Win 250 defenses", "gemReward": 50 },
+          { "tier": 3, "requirement": "Win 5,000 defenses", "gemReward": 100 }
+        ]
+      },
+      {
+        "name": "Sweet Victory!",
+        "description": "Earn trophies",
+        "tiers": [
+          { "tier": 1, "requirement": "Reach 75 trophies", "gemReward": 5 },
+          { "tier": 2, "requirement": "Reach 750 trophies", "gemReward": 10 },
+          { "tier": 3, "requirement": "Reach 1,250 trophies", "gemReward": 450 }
+        ]
+      },
+      {
+        "name": "Conqueror",
+        "description": "Win multiplayer battles",
+        "tiers": [
+          { "tier": 1, "requirement": "Win 25 battles", "gemReward": 5 },
+          { "tier": 2, "requirement": "Win 250 battles", "gemReward": 10 },
+          { "tier": 3, "requirement": "Win 5,000 battles", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Humiliator",
+        "description": "Destroy Town Halls",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 10 Town Halls", "gemReward": 5 },
+          { "tier": 2, "requirement": "Destroy 100 Town Halls", "gemReward": 10 },
+          { "tier": 3, "requirement": "Destroy 2,000 Town Halls", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Not So Easy This Time",
+        "description": "Destroy Weaponized Town Halls",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 10 Weaponized Town Halls", "gemReward": 20 },
+          { "tier": 2, "requirement": "Destroy 100 Weaponized Town Halls", "gemReward": 100 },
+          { "tier": 3, "requirement": "Destroy 2,000 Weaponized Town Halls", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "Union Buster",
+        "description": "Destroy Builder's Huts",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 25 Builder's Huts", "gemReward": 5 },
+          { "tier": 2, "requirement": "Destroy 250 Builder's Huts", "gemReward": 10 },
+          { "tier": 3, "requirement": "Destroy 2,500 Builder's Huts", "gemReward": 30 }
+        ]
+      },
+      {
+        "name": "Bust This!",
+        "description": "Destroy Weaponized Builder's Huts",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 25 Weaponized Builder's Huts", "gemReward": 10 },
+          { "tier": 2, "requirement": "Destroy 250 Weaponized Builder's Huts", "gemReward": 30 },
+          { "tier": 3, "requirement": "Destroy 2,500 Weaponized Builder's Huts", "gemReward": 100 }
+        ]
+      },
+      {
+        "name": "Wall Buster",
+        "description": "Destroy Walls",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 10 Walls", "gemReward": 5 },
+          { "tier": 2, "requirement": "Destroy 100 Walls", "gemReward": 10 },
+          { "tier": 3, "requirement": "Destroy 2,000 Walls", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Mortar Mauler",
+        "description": "Destroy Mortars",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 25 Mortars", "gemReward": 5 },
+          { "tier": 2, "requirement": "Destroy 500 Mortars", "gemReward": 10 },
+          { "tier": 3, "requirement": "Destroy 5,000 Mortars", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "X-Bow Exterminator",
+        "description": "Destroy X-Bows",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 1 X-Bow", "gemReward": 50 },
+          { "tier": 2, "requirement": "Destroy 250 X-Bows", "gemReward": 100 },
+          { "tier": 3, "requirement": "Destroy 2,500 X-Bows", "gemReward": 200 }
+        ]
+      },
+      {
+        "name": "Firefighter",
+        "description": "Destroy Inferno Towers",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 10 Inferno Towers", "gemReward": 100 },
+          { "tier": 2, "requirement": "Destroy 250 Inferno Towers", "gemReward": 200 },
+          { "tier": 3, "requirement": "Destroy 5,000 Inferno Towers", "gemReward": 1000 }
+        ]
+      },
+      {
+        "name": "Anti-Artillery",
+        "description": "Destroy Eagle Artilleries / Inferno Artilleries",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 20", "gemReward": 150 },
+          { "tier": 2, "requirement": "Destroy 200", "gemReward": 300 },
+          { "tier": 3, "requirement": "Destroy 2,000", "gemReward": 1000 }
+        ]
+      },
+      {
+        "name": "Shattered and Scattered",
+        "description": "Destroy Scattershots",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 40 Scattershots", "gemReward": 150 },
+          { "tier": 2, "requirement": "Destroy 400 Scattershots", "gemReward": 300 },
+          { "tier": 3, "requirement": "Destroy 4,000 Scattershots", "gemReward": 1000 }
+        ]
+      },
+      {
+        "name": "Counterspell",
+        "description": "Destroy Spell Towers",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 40 Spell Towers", "gemReward": 100 },
+          { "tier": 2, "requirement": "Destroy 400 Spell Towers", "gemReward": 250 },
+          { "tier": 3, "requirement": "Destroy 4,000 Spell Towers", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "Monolith Masher",
+        "description": "Destroy Monoliths",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 20 Monoliths", "gemReward": 100 },
+          { "tier": 2, "requirement": "Destroy 200 Monoliths", "gemReward": 250 },
+          { "tier": 3, "requirement": "Destroy 2,000 Monoliths", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "Multi-Archer Tower Terminator",
+        "description": "Destroy Multi-Archer Towers",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 50 Multi-Archer Towers", "gemReward": 25 },
+          { "tier": 2, "requirement": "Destroy 500 Multi-Archer Towers", "gemReward": 75 },
+          { "tier": 3, "requirement": "Destroy 5,000 Multi-Archer Towers", "gemReward": 200 }
+        ]
+      },
+      {
+        "name": "Ricochet Cannon Crusher",
+        "description": "Destroy Ricochet Cannons",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 50 Ricochet Cannons", "gemReward": 25 },
+          { "tier": 2, "requirement": "Destroy 500 Ricochet Cannons", "gemReward": 75 },
+          { "tier": 3, "requirement": "Destroy 5,000 Ricochet Cannons", "gemReward": 200 }
+        ]
+      },
+      {
+        "name": "Firespitter Finisher",
+        "description": "Destroy Firespitters",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 40 Firespitters", "gemReward": 25 },
+          { "tier": 2, "requirement": "Destroy 400 Firespitters", "gemReward": 75 },
+          { "tier": 3, "requirement": "Destroy 4,000 Firespitters", "gemReward": 200 }
+        ]
+      },
+      {
+        "name": "Multi-Gear Tower Trampler",
+        "description": "Destroy Multi-Gear Towers",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 20 Multi-Gear Towers", "gemReward": 25 },
+          { "tier": 2, "requirement": "Destroy 200 Multi-Gear Towers", "gemReward": 100 },
+          { "tier": 3, "requirement": "Destroy 2,000 Multi-Gear Towers", "gemReward": 200 }
+        ]
+      },
+      {
+        "name": "Crafter's Nightmare",
+        "description": "Destroy Crafted Defenses",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 20 Crafted Defenses", "gemReward": 25 },
+          { "tier": 2, "requirement": "Destroy 200 Crafted Defenses", "gemReward": 100 },
+          { "tier": 3, "requirement": "Destroy 2,000 Crafted Defenses", "gemReward": 200 }
+        ]
+      },
+      {
+        "name": "Get Those Goblins!",
+        "description": "Earn stars in Single Player Campaign",
+        "tiers": [
+          { "tier": 1, "requirement": "Earn 10 stars", "gemReward": 5 },
+          { "tier": 2, "requirement": "Earn 50 stars", "gemReward": 10 },
+          { "tier": 3, "requirement": "Earn 150 stars", "gemReward": 20 }
+        ]
+      },
+      {
+        "name": "Get Those Other Goblins!",
+        "description": "Earn more Campaign stars",
+        "tiers": [
+          { "tier": 1, "requirement": "Earn 175 stars", "gemReward": 20 },
+          { "tier": 2, "requirement": "Earn 200 stars", "gemReward": 50 },
+          { "tier": 3, "requirement": "Earn 225 stars", "gemReward": 100 }
+        ]
+      },
+      {
+        "name": "Get Even More Goblins!",
+        "description": "Earn even more Campaign stars",
+        "tiers": [
+          { "tier": 1, "requirement": "Earn 240 stars", "gemReward": 50 },
+          { "tier": 2, "requirement": "Earn 255 stars", "gemReward": 100 },
+          { "tier": 3, "requirement": "Earn 270 stars", "gemReward": 150 }
+        ]
+      },
+      {
+        "name": "Superb Work",
+        "description": "Use Super Troop boosts",
+        "tiers": [
+          { "tier": 1, "requirement": "Boost 20 times", "gemReward": 10 },
+          { "tier": 2, "requirement": "Boost 100 times", "gemReward": 30 },
+          { "tier": 3, "requirement": "Boost 250 times", "gemReward": 100 }
+        ]
+      },
+      {
+        "name": "Supercharger",
+        "description": "Apply Supercharges",
+        "tiers": [
+          { "tier": 1, "requirement": "Apply 5 Supercharges", "gemReward": 10 },
+          { "tier": 2, "requirement": "Apply 25 Supercharges", "gemReward": 30 },
+          { "tier": 3, "requirement": "Apply 75 Supercharges", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Crafting Connoisseur",
+        "description": "Upgrade Crafted Defenses",
+        "tiers": [
+          { "tier": 1, "requirement": "Upgrade 5 times", "gemReward": 10 },
+          { "tier": 2, "requirement": "Upgrade 25 times", "gemReward": 30 },
+          { "tier": 3, "requirement": "Upgrade 75 times", "gemReward": 50 }
+        ]
+      }
+    ],
+    "leagueAchievements": [
+      {
+        "name": "League Follower",
+        "description": "Reach higher trophy leagues",
+        "tiers": [
+          { "tier": 1, "requirement": "Barbarian League (League 6)", "gemReward": 50 },
+          { "tier": 2, "requirement": "Archer League (League 9)", "gemReward": 100 },
+          { "tier": 3, "requirement": "Wizard League (League 12)", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "League Enthusiast",
+        "description": "Reach higher trophy leagues",
+        "tiers": [
+          { "tier": 1, "requirement": "Valkyrie League (League 15)", "gemReward": 50 },
+          { "tier": 2, "requirement": "Witch League (League 18)", "gemReward": 100 },
+          { "tier": 3, "requirement": "Golem League (League 21)", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "League Superfan",
+        "description": "Reach higher trophy leagues",
+        "tiers": [
+          { "tier": 1, "requirement": "P.E.K.K.A League (League 24)", "gemReward": 100 },
+          { "tier": 2, "requirement": "Titan League (League 27)", "gemReward": 250 },
+          { "tier": 3, "requirement": "Dragon League (League 28)", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "League Fanatic",
+        "description": "Reach higher trophy leagues",
+        "tiers": [
+          { "tier": 1, "requirement": "Dragon League (League 29)", "gemReward": 100 },
+          { "tier": 2, "requirement": "Dragon League (League 30)", "gemReward": 250 },
+          { "tier": 3, "requirement": "Electro League (League 31)", "gemReward": 500 }
+        ]
+      },
+      {
+        "name": "League Master",
+        "description": "Reach the highest trophy leagues",
+        "tiers": [
+          { "tier": 1, "requirement": "Electro League (League 32)", "gemReward": 250 },
+          { "tier": 2, "requirement": "Electro League (League 33)", "gemReward": 350 },
+          { "tier": 3, "requirement": "Legend League", "gemReward": 500 }
+        ]
+      }
+    ],
+    "singleTierAchievements": [
+      {
+        "name": "Dragon Slayer",
+        "description": "Defeat the Giant Dragon in Single Player Campaign",
+        "gemReward": 20
+      },
+      {
+        "name": "Ungrateful Child",
+        "description": "Defeat M.O.M.M.A in Single Player Campaign",
+        "gemReward": 20
+      }
+    ],
+    "builderBase": [
+      {
+        "name": "Master Engineering",
+        "description": "Upgrade your Builder Hall",
+        "tiers": [
+          { "tier": 1, "requirement": "Builder Hall level 3", "gemReward": 10 },
+          { "tier": 2, "requirement": "Builder Hall level 5", "gemReward": 30 },
+          { "tier": 3, "requirement": "Builder Hall level 8", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Hidden Treasures",
+        "description": "Rebuild special buildings in Builder Base",
+        "tiers": [
+          { "tier": 1, "requirement": "Rebuild Gem Mine", "gemReward": 20 },
+          { "tier": 2, "requirement": "Rebuild Clock Tower", "gemReward": 30 },
+          { "tier": 3, "requirement": "Rebuild Battle Machine", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "High Gear",
+        "description": "Gear Up Home Village buildings",
+        "tiers": [
+          { "tier": 1, "requirement": "Gear Up 1 building", "gemReward": 10 },
+          { "tier": 2, "requirement": "Gear Up 2 buildings", "gemReward": 30 },
+          { "tier": 3, "requirement": "Gear Up 3 buildings", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Next Generation Model",
+        "description": "Upgrade your Builder Barracks",
+        "tiers": [
+          { "tier": 1, "requirement": "Builder Barracks level 2", "gemReward": 10 },
+          { "tier": 2, "requirement": "Builder Barracks level 7", "gemReward": 30 },
+          { "tier": 3, "requirement": "Builder Barracks level 10", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Un-Build It",
+        "description": "Destroy Builder Halls in versus battles",
+        "tiers": [
+          { "tier": 1, "requirement": "Destroy 5 Builder Halls", "gemReward": 10 },
+          { "tier": 2, "requirement": "Destroy 100 Builder Halls", "gemReward": 30 },
+          { "tier": 3, "requirement": "Destroy 2,000 Builder Halls", "gemReward": 50 }
+        ]
+      },
+      {
+        "name": "Champion Builder",
+        "description": "Earn Versus trophies",
+        "tiers": [
+          { "tier": 1, "requirement": "Reach 200 trophies", "gemReward": 10 },
+          { "tier": 2, "requirement": "Reach 1,000 trophies", "gemReward": 100 },
+          { "tier": 3, "requirement": "Reach 3,000 trophies", "gemReward": 1000 }
+        ]
+      }
+    ],
+    "clanCapital": [
+      {
+        "name": "Aggressive Capitalism",
+        "description": "Loot Capital Gold in Raid Weekends",
+        "tiers": [
+          { "tier": 1, "requirement": "Loot 20,000 Capital Gold", "gemReward": 50 },
+          { "tier": 2, "requirement": "Loot 250,000 Capital Gold", "gemReward": 100 },
+          { "tier": 3, "requirement": "Loot 1,000,000 Capital Gold", "gemReward": 250 }
+        ]
+      },
+      {
+        "name": "Most Valuable Clanmate",
+        "description": "Contribute Capital Gold to Clan Capital",
+        "tiers": [
+          { "tier": 1, "requirement": "Contribute 40,000 Capital Gold", "gemReward": 75 },
+          { "tier": 2, "requirement": "Contribute 500,000 Capital Gold", "gemReward": 150 },
+          { "tier": 3, "requirement": "Contribute 2,000,000 Capital Gold", "gemReward": 500 }
+        ]
+      }
+    ]
+  },
+  "obstacleGemRewards": {
+    "description": "Removing obstacles from your village rewards gems following specific repeating cycles. Different cycles apply to original (pre-placed) and spawned (naturally appearing) obstacles.",
+    "originalObstacleCycle": {
+      "description": "Cycle for obstacles present when the village is first created (rocks, stones, etc.)",
+      "pattern": [3, 0, 1, 2, 0, 1, 1, 0, 0, 3, 1, 0, 2, 2, 0, 0, 3, 0, 1, 0],
+      "averagePerObstacle": 1.0
+    },
+    "spawnedObstacleCycle": {
+      "description": "Cycle for obstacles that naturally respawn over time (trees, bushes, mushrooms, etc.)",
+      "pattern": [6, 0, 4, 5, 1, 3, 2, 0, 0, 5, 1, 0, 3, 4, 0, 0, 5, 0, 1, 0],
+      "averagePerObstacle": 2.0
+    },
+    "gemBox": {
+      "description": "Special rare obstacle that yields 25 gems when removed",
+      "gemReward": 25,
+      "spawnRate": "Approximately once per week",
+      "limit": "Only 1 Gem Box can exist at a time; new ones do not spawn until the current one is removed"
+    },
+    "obstacleLimit": {
+      "maxRegularObstacles": 45,
+      "notes": "If 45+ obstacles exist, regular obstacles stop spawning until some are removed. Gem Boxes and holiday obstacles ignore this limit."
+    },
+    "regularObstacles": [
+      { "name": "Mushroom",      "removalCost": 100,   "costType": "Elixir", "removalTime": "10s" },
+      { "name": "Bush",          "removalCost": 250,   "costType": "Elixir", "removalTime": "10s" },
+      { "name": "Trunk (1 & 2)", "removalCost": 1000,  "costType": "Elixir", "removalTime": "10s" },
+      { "name": "Fallen Trunk",  "removalCost": 1000,  "costType": "Elixir", "removalTime": "10s" },
+      { "name": "Small Tree",    "removalCost": 2000,  "costType": "Elixir", "removalTime": "10s" },
+      { "name": "Medium Tree",   "removalCost": 7500,  "costType": "Elixir", "removalTime": "15s" },
+      { "name": "Large Tree",    "removalCost": 10000, "costType": "Elixir", "removalTime": "15s" },
+      { "name": "Stone",         "removalCost": 500,   "costType": "Gold",   "removalTime": "10s", "respawns": false },
+      { "name": "Pillar",        "removalCost": 10000, "costType": "Gold",   "removalTime": "15s", "respawns": false },
+      { "name": "Large Stone",   "removalCost": 20000, "costType": "Gold",   "removalTime": "15s", "respawns": false }
+    ]
+  }
+}

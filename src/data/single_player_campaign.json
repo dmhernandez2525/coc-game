@@ -1,0 +1,764 @@
+{
+  "metadata": {
+    "description": "Clash of Clans Single Player Campaign (Goblin Maps)",
+    "source": "https://clashofclans.fandom.com/wiki/Single_Player_Campaign",
+    "totalLevels": 90,
+    "maxStarsPerLevel": 3,
+    "maxStarsTotal": 270,
+    "totalGold": 38884000,
+    "totalElixir": 39047000,
+    "totalDarkElixir": 324000,
+    "notes": [
+      "Resources from each level can only be collected once (first-time clear).",
+      "No trophies are awarded for single player attacks.",
+      "There is no time limit on single player attacks.",
+      "NPC goblin bases do not follow normal building count rules.",
+      "Attack army uses your currently trained troops.",
+      "Levels 1-50 are the original campaign; levels 51-90 were added in the October 2018 expansion.",
+      "Dark Elixir rewards begin at level 51."
+    ]
+  },
+  "achievements": {
+    "getThoseGoblins": {
+      "description": "Earn stars from Single Player Campaign levels",
+      "tiers": [
+        { "stars": 150, "gems": 35, "note": "10 gems at 45 stars, 10 more at 90 stars, 15 at 150 stars" }
+      ]
+    },
+    "totalStarRewards": [
+      { "stars": 150, "gems": 35 },
+      { "stars": 225, "gems": 170 },
+      { "stars": 270, "gems": 350 }
+    ],
+    "dragonSlayer": {
+      "description": "Defeat the Giant Dragon in Dragon's Lair (Level 75)",
+      "gems": 20
+    },
+    "ungratefulChild": {
+      "description": "Slay the M.O.M.M.A in M.O.M.M.A's Madhouse (Level 90)",
+      "gems": 20
+    }
+  },
+  "levels": [
+    {
+      "level": 1,
+      "name": "Payback",
+      "goldLoot": 500,
+      "elixirLoot": 500,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 2,
+      "name": "Goblin Forest",
+      "goldLoot": 500,
+      "elixirLoot": 500,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 3,
+      "name": "Goblin Outpost",
+      "goldLoot": 1500,
+      "elixirLoot": 1500,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 4,
+      "name": "Rocky Fort",
+      "goldLoot": 2500,
+      "elixirLoot": 2500,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 5,
+      "name": "Goblin Gauntlet",
+      "goldLoot": 3000,
+      "elixirLoot": 3000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 6,
+      "name": "Cannonball Run",
+      "goldLoot": 4000,
+      "elixirLoot": 4000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 7,
+      "name": "Two Smoking Barrels",
+      "goldLoot": 5000,
+      "elixirLoot": 5000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 8,
+      "name": "Gold Rush",
+      "goldLoot": 8000,
+      "elixirLoot": 4000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 9,
+      "name": "Maginot Line",
+      "goldLoot": 8000,
+      "elixirLoot": 8000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 10,
+      "name": "Rat Valley",
+      "goldLoot": 8000,
+      "elixirLoot": 12000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 11,
+      "name": "Brute Force",
+      "goldLoot": 10000,
+      "elixirLoot": 14000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 12,
+      "name": "Gobbotown",
+      "goldLoot": 20000,
+      "elixirLoot": 10000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 13,
+      "name": "M is for Mortar",
+      "goldLoot": 14000,
+      "elixirLoot": 14000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 14,
+      "name": "Megablaster",
+      "goldLoot": 20000,
+      "elixirLoot": 10000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 15,
+      "name": "Immovable Object",
+      "goldLoot": 16000,
+      "elixirLoot": 16000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 16,
+      "name": "Fort Knobs",
+      "goldLoot": 17000,
+      "elixirLoot": 17000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 17,
+      "name": "Watchtower",
+      "goldLoot": 16000,
+      "elixirLoot": 20000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 18,
+      "name": "Fool's Gold",
+      "goldLoot": 24000,
+      "elixirLoot": 14000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 19,
+      "name": "Thoroughfare",
+      "goldLoot": 20000,
+      "elixirLoot": 20000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 20,
+      "name": "Bouncy Castle",
+      "goldLoot": 15000,
+      "elixirLoot": 30000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 21,
+      "name": "Fikova",
+      "goldLoot": 24000,
+      "elixirLoot": 24000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 22,
+      "name": "Gobbo Campus",
+      "goldLoot": 25000,
+      "elixirLoot": 25000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 23,
+      "name": "Danny Boy",
+      "goldLoot": 30000,
+      "elixirLoot": 30000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 24,
+      "name": "Ommahha Beech",
+      "goldLoot": 35000,
+      "elixirLoot": 35000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 25,
+      "name": "Walls of Steel",
+      "goldLoot": 40000,
+      "elixirLoot": 40000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 26,
+      "name": "Sicilian Defense",
+      "goldLoot": 45000,
+      "elixirLoot": 45000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 27,
+      "name": "Obsidian Tower",
+      "goldLoot": 20000,
+      "elixirLoot": 80000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 28,
+      "name": "Arrow Head",
+      "goldLoot": 60000,
+      "elixirLoot": 60000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 29,
+      "name": "Red Carpet",
+      "goldLoot": 70000,
+      "elixirLoot": 70000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 30,
+      "name": "Natural Defense",
+      "goldLoot": 150000,
+      "elixirLoot": 2000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 31,
+      "name": "Steel Gauntlet",
+      "goldLoot": 80000,
+      "elixirLoot": 80000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 32,
+      "name": "Queen's Gambit",
+      "goldLoot": 90000,
+      "elixirLoot": 90000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 33,
+      "name": "Full Frontal",
+      "goldLoot": 50000,
+      "elixirLoot": 140000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 34,
+      "name": "Chimp in Armor",
+      "goldLoot": 150000,
+      "elixirLoot": 50000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 35,
+      "name": "Faulty Towers",
+      "goldLoot": 110000,
+      "elixirLoot": 110000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 36,
+      "name": "Point Man",
+      "goldLoot": 120000,
+      "elixirLoot": 120000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 37,
+      "name": "Triple A",
+      "goldLoot": 130000,
+      "elixirLoot": 130000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 38,
+      "name": "Goblin Picnic",
+      "goldLoot": 2000,
+      "elixirLoot": 270000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 39,
+      "name": "Bait 'n Switch",
+      "goldLoot": 140000,
+      "elixirLoot": 140000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 40,
+      "name": "Collateral Damage",
+      "goldLoot": 150000,
+      "elixirLoot": 150000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 41,
+      "name": "Choose Wisely",
+      "goldLoot": 150000,
+      "elixirLoot": 150000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 42,
+      "name": "Mega Evil",
+      "goldLoot": 150000,
+      "elixirLoot": 150000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 43,
+      "name": "Crystal Crust",
+      "goldLoot": 200000,
+      "elixirLoot": 200000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 44,
+      "name": "Cold as Ice",
+      "goldLoot": 250000,
+      "elixirLoot": 250000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 45,
+      "name": "Jump Around",
+      "goldLoot": 300000,
+      "elixirLoot": 300000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 46,
+      "name": "Kitchen Sink",
+      "goldLoot": 400000,
+      "elixirLoot": 400000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 47,
+      "name": "Rolling Terror",
+      "goldLoot": 500000,
+      "elixirLoot": 500000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 48,
+      "name": "Megamansion",
+      "goldLoot": 600000,
+      "elixirLoot": 600000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 49,
+      "name": "P.E.K.K.A's Playhouse",
+      "goldLoot": 700000,
+      "elixirLoot": 700000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 50,
+      "name": "Sherbet Towers",
+      "goldLoot": 800000,
+      "elixirLoot": 800000,
+      "darkElixirLoot": 0,
+      "maxStars": 3
+    },
+    {
+      "level": 51,
+      "name": "Invaders",
+      "goldLoot": 300000,
+      "elixirLoot": 300000,
+      "darkElixirLoot": 2000,
+      "maxStars": 3
+    },
+    {
+      "level": 52,
+      "name": "Cross and Bows",
+      "goldLoot": 350000,
+      "elixirLoot": 350000,
+      "darkElixirLoot": 2500,
+      "maxStars": 3
+    },
+    {
+      "level": 53,
+      "name": "Forest Outing",
+      "goldLoot": 350000,
+      "elixirLoot": 350000,
+      "darkElixirLoot": 3000,
+      "maxStars": 3
+    },
+    {
+      "level": 54,
+      "name": "Skeleton Run",
+      "goldLoot": 400000,
+      "elixirLoot": 400000,
+      "darkElixirLoot": 3500,
+      "maxStars": 3
+    },
+    {
+      "level": 55,
+      "name": "Magic Practice",
+      "goldLoot": 400000,
+      "elixirLoot": 400000,
+      "darkElixirLoot": 4000,
+      "maxStars": 3
+    },
+    {
+      "level": 56,
+      "name": "High Pressure",
+      "goldLoot": 450000,
+      "elixirLoot": 450000,
+      "darkElixirLoot": 4000,
+      "maxStars": 3
+    },
+    {
+      "level": 57,
+      "name": "No Flight Zone",
+      "goldLoot": 450000,
+      "elixirLoot": 450000,
+      "darkElixirLoot": 4500,
+      "maxStars": 3
+    },
+    {
+      "level": 58,
+      "name": "Graduation Ceremony",
+      "goldLoot": 500000,
+      "elixirLoot": 500000,
+      "darkElixirLoot": 4500,
+      "maxStars": 3
+    },
+    {
+      "level": 59,
+      "name": "Midnight Oil",
+      "goldLoot": 500000,
+      "elixirLoot": 500000,
+      "darkElixirLoot": 5000,
+      "maxStars": 3
+    },
+    {
+      "level": 60,
+      "name": "All Angle Attack",
+      "goldLoot": 550000,
+      "elixirLoot": 550000,
+      "darkElixirLoot": 5000,
+      "maxStars": 3
+    },
+    {
+      "level": 61,
+      "name": "Burning Sensation",
+      "goldLoot": 550000,
+      "elixirLoot": 550000,
+      "darkElixirLoot": 5500,
+      "maxStars": 3
+    },
+    {
+      "level": 62,
+      "name": "Underground Workaround",
+      "goldLoot": 600000,
+      "elixirLoot": 600000,
+      "darkElixirLoot": 5500,
+      "maxStars": 3
+    },
+    {
+      "level": 63,
+      "name": "Teamwork Opportunity",
+      "goldLoot": 600000,
+      "elixirLoot": 600000,
+      "darkElixirLoot": 6000,
+      "maxStars": 3
+    },
+    {
+      "level": 64,
+      "name": "Bowling Alley",
+      "goldLoot": 650000,
+      "elixirLoot": 650000,
+      "darkElixirLoot": 6000,
+      "maxStars": 3
+    },
+    {
+      "level": 65,
+      "name": "Keep Your Cool",
+      "goldLoot": 650000,
+      "elixirLoot": 650000,
+      "darkElixirLoot": 6500,
+      "maxStars": 3
+    },
+    {
+      "level": 66,
+      "name": "Where Eagles Dare",
+      "goldLoot": 700000,
+      "elixirLoot": 700000,
+      "darkElixirLoot": 6500,
+      "maxStars": 3
+    },
+    {
+      "level": 67,
+      "name": "Fireworks Inc.",
+      "goldLoot": 700000,
+      "elixirLoot": 700000,
+      "darkElixirLoot": 7000,
+      "maxStars": 3
+    },
+    {
+      "level": 68,
+      "name": "Goblin Capital",
+      "goldLoot": 750000,
+      "elixirLoot": 750000,
+      "darkElixirLoot": 7000,
+      "maxStars": 3
+    },
+    {
+      "level": 69,
+      "name": "Pick Your Poison",
+      "goldLoot": 750000,
+      "elixirLoot": 750000,
+      "darkElixirLoot": 7500,
+      "maxStars": 3
+    },
+    {
+      "level": 70,
+      "name": "The Arena",
+      "goldLoot": 800000,
+      "elixirLoot": 800000,
+      "darkElixirLoot": 7500,
+      "maxStars": 3
+    },
+    {
+      "level": 71,
+      "name": "Paper Map",
+      "goldLoot": 800000,
+      "elixirLoot": 800000,
+      "darkElixirLoot": 8000,
+      "maxStars": 3
+    },
+    {
+      "level": 72,
+      "name": "Flagged for Traps",
+      "goldLoot": 850000,
+      "elixirLoot": 850000,
+      "darkElixirLoot": 8500,
+      "maxStars": 3
+    },
+    {
+      "level": 73,
+      "name": "Grand Avenue",
+      "goldLoot": 1000000,
+      "elixirLoot": 1000000,
+      "darkElixirLoot": 10000,
+      "maxStars": 3
+    },
+    {
+      "level": 74,
+      "name": "Besieged",
+      "goldLoot": 1250000,
+      "elixirLoot": 1250000,
+      "darkElixirLoot": 12500,
+      "maxStars": 3
+    },
+    {
+      "level": 75,
+      "name": "Dragon's Lair",
+      "goldLoot": 2500000,
+      "elixirLoot": 2500000,
+      "darkElixirLoot": 25000,
+      "maxStars": 3
+    },
+    {
+      "level": 76,
+      "name": "Go to Bat",
+      "goldLoot": 800000,
+      "elixirLoot": 800000,
+      "darkElixirLoot": 8000,
+      "maxStars": 3
+    },
+    {
+      "level": 77,
+      "name": "Ring of Power",
+      "goldLoot": 820000,
+      "elixirLoot": 820000,
+      "darkElixirLoot": 8200,
+      "maxStars": 3
+    },
+    {
+      "level": 78,
+      "name": "Suspicious Gap",
+      "goldLoot": 840000,
+      "elixirLoot": 840000,
+      "darkElixirLoot": 8400,
+      "maxStars": 3
+    },
+    {
+      "level": 79,
+      "name": "Stay on Target",
+      "goldLoot": 860000,
+      "elixirLoot": 860000,
+      "darkElixirLoot": 8600,
+      "maxStars": 3
+    },
+    {
+      "level": 80,
+      "name": "Such a Tease",
+      "goldLoot": 880000,
+      "elixirLoot": 880000,
+      "darkElixirLoot": 8800,
+      "maxStars": 3
+    },
+    {
+      "level": 81,
+      "name": "Titanic",
+      "goldLoot": 900000,
+      "elixirLoot": 900000,
+      "darkElixirLoot": 9000,
+      "maxStars": 3
+    },
+    {
+      "level": 82,
+      "name": "Cold Flame",
+      "goldLoot": 920000,
+      "elixirLoot": 920000,
+      "darkElixirLoot": 9200,
+      "maxStars": 3
+    },
+    {
+      "level": 83,
+      "name": "Corner Case",
+      "goldLoot": 940000,
+      "elixirLoot": 940000,
+      "darkElixirLoot": 9400,
+      "maxStars": 3
+    },
+    {
+      "level": 84,
+      "name": "Path to Pain",
+      "goldLoot": 960000,
+      "elixirLoot": 960000,
+      "darkElixirLoot": 9600,
+      "maxStars": 3
+    },
+    {
+      "level": 85,
+      "name": "Builderopolis",
+      "goldLoot": 980000,
+      "elixirLoot": 980000,
+      "darkElixirLoot": 9800,
+      "maxStars": 3
+    },
+    {
+      "level": 86,
+      "name": "Monolithic",
+      "goldLoot": 1000000,
+      "elixirLoot": 1000000,
+      "darkElixirLoot": 10000,
+      "maxStars": 3
+    },
+    {
+      "level": 87,
+      "name": "Raging Headache",
+      "goldLoot": 1050000,
+      "elixirLoot": 1050000,
+      "darkElixirLoot": 10500,
+      "maxStars": 3
+    },
+    {
+      "level": 88,
+      "name": "Toxic Town Square",
+      "goldLoot": 1100000,
+      "elixirLoot": 1100000,
+      "darkElixirLoot": 11000,
+      "maxStars": 3
+    },
+    {
+      "level": 89,
+      "name": "Disappearing Dilemma",
+      "goldLoot": 1150000,
+      "elixirLoot": 1150000,
+      "darkElixirLoot": 11500,
+      "maxStars": 3
+    },
+    {
+      "level": 90,
+      "name": "M.O.M.M.A's Madhouse",
+      "goldLoot": 2500000,
+      "elixirLoot": 2500000,
+      "darkElixirLoot": 25000,
+      "maxStars": 3
+    }
+  ]
+}

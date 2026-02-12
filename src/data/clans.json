@@ -1,0 +1,551 @@
+{
+  "metadata": {
+    "game": "Clash of Clans",
+    "category": "Clan System",
+    "source": "clashofclans.fandom.com",
+    "lastUpdated": "2026-02-11",
+    "notes": "Clan perks, Clan Wars, Clan War Leagues, Clan Games, and Clan Capital data"
+  },
+  "clanPerks": {
+    "description": "Clan perks are bonuses unlocked by leveling up the clan through XP. All perks unlock by level 10; levels beyond 10 grant no new perks.",
+    "perkTypes": [
+      "Donation Limit (troop/spell/siege capacity per request)",
+      "Donation Upgrade (donated troops automatically upgraded by +1 or +2 levels)",
+      "Treasury Extra Storage (percentage increase to Treasury capacity)",
+      "War Bonus Extra Loot (percentage increase to Clan War win bonus)"
+    ],
+    "removedPerks": [
+      {
+        "name": "Donation Refund",
+        "removedDate": "June 2022",
+        "notes": "Previously refunded a percentage of troop cost when donating"
+      },
+      {
+        "name": "Request Wait Time Reduction",
+        "removedDate": "March 2025",
+        "notes": "Request wait time standardized to 10 minutes for all clans"
+      }
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "xpRequired": 0,
+        "totalXPToReach": 0,
+        "perksUnlocked": "Base level: 6 troop donation capacity, 1 spell donation capacity",
+        "troopDonationCapacity": 6,
+        "spellDonationCapacity": 1,
+        "siegeMachineDonationCapacity": 1,
+        "donationUpgradeBonus": 0,
+        "treasuryStorageBonus": "0%",
+        "warBonusLootBonus": "0%"
+      },
+      {
+        "level": 2,
+        "xpRequired": 500,
+        "totalXPToReach": 500,
+        "perksUnlocked": "+10% Treasury storage; troop donation capacity increases to 10",
+        "troopDonationCapacity": 10,
+        "spellDonationCapacity": 1,
+        "siegeMachineDonationCapacity": 1,
+        "donationUpgradeBonus": 0,
+        "treasuryStorageBonus": "10%",
+        "warBonusLootBonus": "0%"
+      },
+      {
+        "level": 3,
+        "xpRequired": 1200,
+        "totalXPToReach": 1700,
+        "perksUnlocked": "+10% war bonus loot; spell donation capacity increases to 2",
+        "troopDonationCapacity": 10,
+        "spellDonationCapacity": 2,
+        "siegeMachineDonationCapacity": 1,
+        "donationUpgradeBonus": 0,
+        "treasuryStorageBonus": "10%",
+        "warBonusLootBonus": "10%"
+      },
+      {
+        "level": 4,
+        "xpRequired": 1900,
+        "totalXPToReach": 3600,
+        "perksUnlocked": "+20% Treasury storage; troop donation capacity increases to 15",
+        "troopDonationCapacity": 15,
+        "spellDonationCapacity": 2,
+        "siegeMachineDonationCapacity": 1,
+        "donationUpgradeBonus": 0,
+        "treasuryStorageBonus": "20%",
+        "warBonusLootBonus": "10%"
+      },
+      {
+        "level": 5,
+        "xpRequired": 3100,
+        "totalXPToReach": 6700,
+        "perksUnlocked": "Donated troops upgrade +1 level; +15% war bonus loot; spell donation capacity increases to 3",
+        "troopDonationCapacity": 15,
+        "spellDonationCapacity": 3,
+        "siegeMachineDonationCapacity": 1,
+        "donationUpgradeBonus": 1,
+        "treasuryStorageBonus": "20%",
+        "warBonusLootBonus": "15%"
+      },
+      {
+        "level": 6,
+        "xpRequired": 3800,
+        "totalXPToReach": 10500,
+        "perksUnlocked": "+30% Treasury storage; troop donation capacity increases to 25; siege machine donation capacity increases to 2",
+        "troopDonationCapacity": 25,
+        "spellDonationCapacity": 3,
+        "siegeMachineDonationCapacity": 2,
+        "donationUpgradeBonus": 1,
+        "treasuryStorageBonus": "30%",
+        "warBonusLootBonus": "15%"
+      },
+      {
+        "level": 7,
+        "xpRequired": 4500,
+        "totalXPToReach": 15000,
+        "perksUnlocked": "+20% war bonus loot; spell donation capacity increases to 4",
+        "troopDonationCapacity": 25,
+        "spellDonationCapacity": 4,
+        "siegeMachineDonationCapacity": 2,
+        "donationUpgradeBonus": 1,
+        "treasuryStorageBonus": "30%",
+        "warBonusLootBonus": "20%"
+      },
+      {
+        "level": 8,
+        "xpRequired": 5200,
+        "totalXPToReach": 20200,
+        "perksUnlocked": "+40% Treasury storage; troop donation capacity increases to 40",
+        "troopDonationCapacity": 40,
+        "spellDonationCapacity": 4,
+        "siegeMachineDonationCapacity": 2,
+        "donationUpgradeBonus": 1,
+        "treasuryStorageBonus": "40%",
+        "warBonusLootBonus": "20%"
+      },
+      {
+        "level": 9,
+        "xpRequired": 5900,
+        "totalXPToReach": 26100,
+        "perksUnlocked": "+25% war bonus loot; troop donation capacity increases to 55",
+        "troopDonationCapacity": 55,
+        "spellDonationCapacity": 4,
+        "siegeMachineDonationCapacity": 2,
+        "donationUpgradeBonus": 1,
+        "treasuryStorageBonus": "40%",
+        "warBonusLootBonus": "25%"
+      },
+      {
+        "level": 10,
+        "xpRequired": 7900,
+        "totalXPToReach": 34000,
+        "perksUnlocked": "Donated troops upgrade +2 levels; +50% Treasury storage (final perk tier)",
+        "troopDonationCapacity": 55,
+        "spellDonationCapacity": 4,
+        "siegeMachineDonationCapacity": 2,
+        "donationUpgradeBonus": 2,
+        "treasuryStorageBonus": "50%",
+        "warBonusLootBonus": "25%"
+      },
+      {
+        "level": 11,
+        "xpRequired": 8600,
+        "totalXPToReach": 42600,
+        "perksUnlocked": "No new perks",
+        "notes": "Levels beyond 10 grant no additional perks"
+      },
+      {
+        "level": 12,
+        "xpRequired": 9300,
+        "totalXPToReach": 51900,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 13,
+        "xpRequired": 10000,
+        "totalXPToReach": 61900,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 14,
+        "xpRequired": 10700,
+        "totalXPToReach": 72600,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 15,
+        "xpRequired": 11400,
+        "totalXPToReach": 84000,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 16,
+        "xpRequired": 12100,
+        "totalXPToReach": 96100,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 17,
+        "xpRequired": 12800,
+        "totalXPToReach": 108900,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 18,
+        "xpRequired": 13500,
+        "totalXPToReach": 122400,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 19,
+        "xpRequired": 14200,
+        "totalXPToReach": 136600,
+        "perksUnlocked": "No new perks"
+      },
+      {
+        "level": 20,
+        "xpRequired": 15600,
+        "totalXPToReach": 152200,
+        "perksUnlocked": "No new perks"
+      }
+    ],
+    "notes": "Clans can be upgraded beyond level 20+. No new perks unlock after level 10. XP is earned through Clan Wars, Clan War Leagues, and Clan Games."
+  },
+  "clanWars": {
+    "description": "Clan Wars pit two clans of equal size against each other in a 47-hour event.",
+    "warSizes": [5, 10, 15, 20, 25, 30, 40, 50],
+    "timing": {
+      "preparationDay": "23 hours",
+      "battleDay": "24 hours",
+      "totalDuration": "47 hours"
+    },
+    "attacksPerMember": 2,
+    "attackRules": "Players cannot use both attacks on the same base. Any opponent can be attacked regardless of recommended target.",
+    "matchmaking": {
+      "description": "System pairs clans of similar offensive and defensive strength, and of the same size.",
+      "factorsThatMatter": [
+        "Offensive strength (troop levels, heroes, etc.)",
+        "Defensive strength (defense levels, layout weight)"
+      ],
+      "factorsThatDontMatter": [
+        "Experience level",
+        "Trophies",
+        "War record (wins/losses)",
+        "Clan level"
+      ]
+    },
+    "starScoring": "Only the best attack against each enemy base counts. Highest star result per base is taken; ties broken by destruction percentage.",
+    "loot": {
+      "warWinBonus": "Equals approximately 7x the available loot from a base. Enhanced by clan level war bonus perk.",
+      "outcomes": {
+        "victory": "Full war win bonus awarded",
+        "draw": "50% of full bonus",
+        "defeat": "50% of full bonus lost; remaining distributed to participants",
+        "zeroStars": "Reduced bonus equal to destruction percentage achieved"
+      },
+      "maxBaseLootByTownHall": {
+        "description": "Maximum Gold/Elixir available per base in war loot (approximate ranges)",
+        "TH3-6": "6,250 - 30,000",
+        "TH7-9": "40,000 - 70,000",
+        "TH10-13": "90,000 - 130,000",
+        "TH14-18": "140,000 - 180,000"
+      }
+    },
+    "clanXPByWarSize": {
+      "description": "XP earned for winning wars of different sizes",
+      "notes": "Larger wars yield more Clan XP"
+    }
+  },
+  "clanWarLeagues": {
+    "description": "Clan War Leagues (CWL) is a competitive monthly event where 8 clans are grouped together in a round-robin format over 7 wars in 8 days.",
+    "format": {
+      "clansPerGroup": 8,
+      "warsPerSeason": 7,
+      "duration": "8 days (7 battle days)",
+      "attacksPerPlayerPerWar": 1,
+      "rosterSize": {
+        "minimum": 15,
+        "maximum": 50
+      }
+    },
+    "leagueTiers": [
+      "Bronze III", "Bronze II", "Bronze I",
+      "Silver III", "Silver II", "Silver I",
+      "Gold III", "Gold II", "Gold I",
+      "Crystal III", "Crystal II", "Crystal I",
+      "Master III", "Master II", "Master I",
+      "Champion III", "Champion II", "Champion I"
+    ],
+    "medalRewardsByPlacement": {
+      "description": "League Medals earned based on clan placement (1st through 8th) in each league tier",
+      "Bronze_III":    { "1st": 34,  "2nd": 32,  "3rd": 30,  "4th": 28,  "5th": 26,  "6th": 24,  "7th": 22,  "8th": 20 },
+      "Bronze_II":     { "1st": 46,  "2nd": 44,  "3rd": 42,  "4th": 40,  "5th": 38,  "6th": 36,  "7th": 34,  "8th": 32 },
+      "Bronze_I":      { "1st": 58,  "2nd": 56,  "3rd": 54,  "4th": 52,  "5th": 50,  "6th": 48,  "7th": 46,  "8th": 44 },
+      "Silver_III":    { "1st": 76,  "2nd": 73,  "3rd": 70,  "4th": 67,  "5th": 64,  "6th": 61,  "7th": 58,  "8th": 55 },
+      "Silver_II":     { "1st": 94,  "2nd": 91,  "3rd": 88,  "4th": 85,  "5th": 82,  "6th": 79,  "7th": 76,  "8th": 73 },
+      "Silver_I":      { "1st": 112, "2nd": 109, "3rd": 106, "4th": 103, "5th": 100, "6th": 97,  "7th": 94,  "8th": 91 },
+      "Gold_III":      { "1st": 136, "2nd": 132, "3rd": 128, "4th": 124, "5th": 120, "6th": 116, "7th": 112, "8th": 108 },
+      "Gold_II":       { "1st": 160, "2nd": 156, "3rd": 152, "4th": 148, "5th": 144, "6th": 140, "7th": 136, "8th": 132 },
+      "Gold_I":        { "1st": 184, "2nd": 180, "3rd": 176, "4th": 172, "5th": 168, "6th": 164, "7th": 160, "8th": 156 },
+      "Crystal_III":   { "1st": 214, "2nd": 209, "3rd": 204, "4th": 199, "5th": 194, "6th": 189, "7th": 184, "8th": 179 },
+      "Crystal_II":    { "1st": 244, "2nd": 239, "3rd": 234, "4th": 229, "5th": 224, "6th": 219, "7th": 214, "8th": 209 },
+      "Crystal_I":     { "1st": 274, "2nd": 269, "3rd": 264, "4th": 259, "5th": 254, "6th": 249, "7th": 244, "8th": 239 },
+      "Master_III":    { "1st": 310, "2nd": 304, "3rd": 298, "4th": 292, "5th": 286, "6th": 280, "7th": 274, "8th": 268 },
+      "Master_II":     { "1st": 346, "2nd": 340, "3rd": 334, "4th": 328, "5th": 322, "6th": 316, "7th": 310, "8th": 304 },
+      "Master_I":      { "1st": 382, "2nd": 376, "3rd": 370, "4th": 364, "5th": 358, "6th": 352, "7th": 346, "8th": 340 },
+      "Champion_III":  { "1st": 424, "2nd": 417, "3rd": 410, "4th": 403, "5th": 396, "6th": 389, "7th": 382, "8th": 375 },
+      "Champion_II":   { "1st": 466, "2nd": 459, "3rd": 452, "4th": 445, "5th": 438, "6th": 431, "7th": 424, "8th": 417 },
+      "Champion_I":    { "1st": 508, "2nd": 501, "3rd": 494, "4th": 487, "5th": 480, "6th": 473, "7th": 466, "8th": 459 }
+    },
+    "starBasedRewardPercentage": {
+      "description": "Players earn a percentage of the full medal reward based on how many stars they scored across the season",
+      "0_stars": "20%",
+      "1_star": "30%",
+      "2_stars": "40%",
+      "3_stars": "50%",
+      "4_stars": "60%",
+      "5_stars": "70%",
+      "6_stars": "80%",
+      "7_stars": "90%",
+      "8_plus_stars": "100%"
+    },
+    "bonusMedals": {
+      "description": "Leaders/Co-leaders can award bonus medals to top performers. Number of bonuses available depends on league tier and war wins.",
+      "bonusMedalAmountByLeague": {
+        "Bronze_III": 35,
+        "Bronze_II": 35,
+        "Bronze_I": 35,
+        "Silver_III": 35,
+        "Silver_II": 40,
+        "Silver_I": 45,
+        "Gold_III": 50,
+        "Gold_II": 55,
+        "Gold_I": 60,
+        "Crystal_III": 65,
+        "Crystal_II": 70,
+        "Crystal_I": 75,
+        "Master_III": 80,
+        "Master_II": 85,
+        "Master_I": 90,
+        "Champion_III": 95,
+        "Champion_II": 100,
+        "Champion_I": 105
+      },
+      "distributionDeadline": "21 days after war week ends"
+    },
+    "promotionDemotion": {
+      "general": "Clans ranked by total stars (including bonus stars from war wins). Destruction percentage is the tiebreaker.",
+      "Bronze_through_Crystal": "Top 2 clans promoted, bottom 2 demoted",
+      "Master_and_above": "Top 1 clan promoted, bottom 2 demoted",
+      "exceptions": [
+        "Bronze III: cannot be demoted",
+        "Champion I: cannot be promoted"
+      ]
+    },
+    "warLoot": "War loot from CWL attacks is double regular Clan War amounts"
+  },
+  "clanGames": {
+    "description": "Clan Games is a cooperative event where clan members complete challenges to earn points and unlock reward tiers.",
+    "duration": "7 days",
+    "minimumTownHall": 6,
+    "availableChallenges": {
+      "total": 12,
+      "homeVillage": 8,
+      "builderBase": 4
+    },
+    "individualPointCap": {
+      "standard": 4000,
+      "specialEvents": "Can increase to 10,000 during special Clan Games events"
+    },
+    "rewardTiers": [
+      { "tier": 1, "pointsRequired": 3000,  "clanXP": 20 },
+      { "tier": 2, "pointsRequired": 7500,  "clanXP": 60 },
+      { "tier": 3, "pointsRequired": 12000, "clanXP": 120 },
+      { "tier": 4, "pointsRequired": 18000, "clanXP": 200 },
+      { "tier": 5, "pointsRequired": 30000, "clanXP": 300 },
+      { "tier": 6, "pointsRequired": 50000, "clanXP": 420 }
+    ],
+    "rewardTypes": "Each tier typically offers 3 reward choices combining resources (Gold, Elixir, Dark Elixir as Treasury percentages), Magic Items, and Gems.",
+    "notes": "Point thresholds are cumulative across all clan members. Special events may modify rules (different caps, fewer players needed for max tier, etc.)."
+  },
+  "clanCapital": {
+    "description": "The Clan Capital is a cooperative gamemode unlocked at Clan Level 2, available to players with Town Hall 6+. Clans build and defend a shared mountain base with a Capital Peak and multiple districts.",
+    "requirements": {
+      "clanLevel": 2,
+      "minimumTownHall": 6
+    },
+    "resources": {
+      "capitalGold": {
+        "description": "Primary building resource for the Clan Capital",
+        "maxStorage": 35000,
+        "sources": [
+          "Forge production (converting Home Village resources)",
+          "Raid Weekend loot",
+          "Season Challenges",
+          "Attack Challenges"
+        ]
+      },
+      "raidMedals": {
+        "description": "Reward currency earned from Raid Weekends",
+        "maxStorage": 5000,
+        "overflowConversion": "1 Gem per 100 excess Raid Medals",
+        "uses": [
+          "Trader purchases (magic items and resources)",
+          "Clan Castle reinforcement requests (troops at max level)"
+        ]
+      }
+    },
+    "capitalHall": {
+      "description": "The central building of the Capital Peak. Upgrading it unlocks new districts and increases defensive capability.",
+      "levels": [
+        {
+          "level": 1,
+          "capitalGoldCost": 0,
+          "capitalUpgradesRequired": 0,
+          "hitpoints": 10000,
+          "damagePerSecond": null,
+          "damagePerShot": null,
+          "districtsUnlocked": "Capital Peak only"
+        },
+        {
+          "level": 2,
+          "capitalGoldCost": 50000,
+          "capitalUpgradesRequired": 15,
+          "hitpoints": 14000,
+          "damagePerSecond": 80,
+          "damagePerShot": 640,
+          "districtsUnlocked": "Barbarian Camp (District Hall 1)"
+        },
+        {
+          "level": 3,
+          "capitalGoldCost": 75000,
+          "capitalUpgradesRequired": 65,
+          "hitpoints": 18000,
+          "damagePerSecond": 100,
+          "damagePerShot": 800,
+          "districtsUnlocked": "Wizard Valley (District Hall 1), Barbarian Camp upgrades to DH 2"
+        },
+        {
+          "level": 4,
+          "capitalGoldCost": 100000,
+          "capitalUpgradesRequired": 165,
+          "hitpoints": 22000,
+          "damagePerSecond": 120,
+          "damagePerShot": 960,
+          "districtsUnlocked": "Balloon Lagoon (District Hall 1), Wizard Valley upgrades to DH 2"
+        },
+        {
+          "level": 5,
+          "capitalGoldCost": 150000,
+          "capitalUpgradesRequired": 285,
+          "hitpoints": 25000,
+          "damagePerSecond": 140,
+          "damagePerShot": 1120,
+          "districtsUnlocked": "Builder's Workshop (District Hall 1), Balloon Lagoon upgrades to DH 2, Barbarian Camp to DH 3"
+        },
+        {
+          "level": 6,
+          "capitalGoldCost": 200000,
+          "capitalUpgradesRequired": 480,
+          "hitpoints": 28000,
+          "damagePerSecond": 160,
+          "damagePerShot": 1280,
+          "districtsUnlocked": "Dragon Cliffs (District Hall 1), Builder's Workshop upgrades to DH 2, Wizard Valley to DH 3, Barbarian Camp to DH 3"
+        },
+        {
+          "level": 7,
+          "capitalGoldCost": 400000,
+          "capitalUpgradesRequired": 670,
+          "hitpoints": 31000,
+          "damagePerSecond": 190,
+          "damagePerShot": 1520,
+          "districtsUnlocked": "Golem Quarry (District Hall 2), Dragon Cliffs to DH 2, multiple districts upgrade"
+        },
+        {
+          "level": 8,
+          "capitalGoldCost": 600000,
+          "capitalUpgradesRequired": 1090,
+          "hitpoints": 34000,
+          "damagePerSecond": 220,
+          "damagePerShot": 1760,
+          "districtsUnlocked": "Skeleton Park (District Hall 2), multiple districts upgrade"
+        },
+        {
+          "level": 9,
+          "capitalGoldCost": 800000,
+          "capitalUpgradesRequired": 1500,
+          "hitpoints": 37000,
+          "damagePerSecond": 250,
+          "damagePerShot": 2000,
+          "districtsUnlocked": "Goblin Mines (District Hall 2), Skeleton Park to DH 3, multiple districts upgrade"
+        },
+        {
+          "level": 10,
+          "capitalGoldCost": 1000000,
+          "capitalUpgradesRequired": 2000,
+          "hitpoints": 40000,
+          "damagePerSecond": 280,
+          "damagePerShot": 2240,
+          "districtsUnlocked": "All districts reach max District Hall levels"
+        }
+      ],
+      "defenseStats": {
+        "range": 15,
+        "attackSpeed": "8 seconds",
+        "damageType": "Area Splash",
+        "targets": "Ground & Air",
+        "size": "6x6 tiles"
+      }
+    },
+    "districts": [
+      { "name": "Capital Peak",        "unlockCapitalHallLevel": 1, "theme": "Central hub with Capital Hall" },
+      { "name": "Barbarian Camp",       "unlockCapitalHallLevel": 2, "theme": "Barbarian-themed troops" },
+      { "name": "Wizard Valley",        "unlockCapitalHallLevel": 3, "theme": "Wizard/magic spells" },
+      { "name": "Balloon Lagoon",       "unlockCapitalHallLevel": 4, "theme": "Balloon units" },
+      { "name": "Builder's Workshop",   "unlockCapitalHallLevel": 5, "theme": "Builder-themed troops" },
+      { "name": "Dragon Cliffs",        "unlockCapitalHallLevel": 6, "theme": "Dragon/flying units" },
+      { "name": "Golem Quarry",         "unlockCapitalHallLevel": 7, "theme": "Golem troops" },
+      { "name": "Skeleton Park",        "unlockCapitalHallLevel": 8, "theme": "Skeleton-themed units" },
+      { "name": "Goblin Mines",         "unlockCapitalHallLevel": 9, "theme": "Goblin-themed troops" }
+    ],
+    "districtHallProgression": {
+      "description": "Maximum District Hall level for each district at each Capital Hall level",
+      "table": {
+        "Capital_Hall_2":  { "Barbarian_Camp": 1 },
+        "Capital_Hall_3":  { "Barbarian_Camp": 2, "Wizard_Valley": 1 },
+        "Capital_Hall_4":  { "Barbarian_Camp": 2, "Wizard_Valley": 2, "Balloon_Lagoon": 1 },
+        "Capital_Hall_5":  { "Barbarian_Camp": 3, "Wizard_Valley": 2, "Balloon_Lagoon": 2, "Builders_Workshop": 1 },
+        "Capital_Hall_6":  { "Barbarian_Camp": 3, "Wizard_Valley": 3, "Balloon_Lagoon": 2, "Builders_Workshop": 2, "Dragon_Cliffs": 1 },
+        "Capital_Hall_7":  { "Barbarian_Camp": 4, "Wizard_Valley": 3, "Balloon_Lagoon": 3, "Builders_Workshop": 3, "Dragon_Cliffs": 2, "Golem_Quarry": 2 },
+        "Capital_Hall_8":  { "Barbarian_Camp": 4, "Wizard_Valley": 4, "Balloon_Lagoon": 4, "Builders_Workshop": 3, "Dragon_Cliffs": 3, "Golem_Quarry": 3, "Skeleton_Park": 2 },
+        "Capital_Hall_9":  { "Barbarian_Camp": 5, "Wizard_Valley": 4, "Balloon_Lagoon": 4, "Builders_Workshop": 4, "Dragon_Cliffs": 4, "Golem_Quarry": 4, "Skeleton_Park": 3, "Goblin_Mines": 2 },
+        "Capital_Hall_10": { "Barbarian_Camp": 5, "Wizard_Valley": 5, "Balloon_Lagoon": 5, "Builders_Workshop": 5, "Dragon_Cliffs": 5, "Golem_Quarry": 5, "Skeleton_Park": 4, "Goblin_Mines": 4 }
+      }
+    },
+    "raidWeekend": {
+      "description": "Raid Weekends allow clans to attack other clans' Capital bases for loot and Raid Medals. Available once Capital Hall reaches level 2.",
+      "attacksPerMember": {
+        "base": 5,
+        "bonus": "1 additional attack upon first destroying a district (subsequent destructions do not grant more)",
+        "maximum": 6
+      },
+      "maxParticipants": 50,
+      "capitalGoldLoot": {
+        "earnedFrom": "Destroying buildings (defensive structures worth more than non-defensive)",
+        "survivorBonus": "3 Capital Gold per surviving troop housing space at end of attack",
+        "partialDamage": "Partial building damage yields no Capital Gold"
+      },
+      "raidMedalRewards": {
+        "offensive": {
+          "description": "Based on districts destroyed and attacks used by the clan",
+          "formula": "Total clan medals (fixed per district level) / total attacks used = baseline medals per attack. Each player earns baseline * their attacks used."
+        },
+        "defensive": {
+          "description": "One medal earned for every 25 housing space destroyed on defense",
+          "requirement": "Clan must destroy at least one enemy district to qualify for defensive medals",
+          "calculation": "Highest medal total from a single defensive raid is taken as the defensive reward"
+        }
+      }
+    }
+  }
+}
