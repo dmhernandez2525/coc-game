@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import type { VillageState, PlacedBuilding } from '../types/village.ts';
 import type { PlacementMode } from '../components/VillageGrid.tsx';
@@ -56,8 +57,13 @@ function lookupUpgradeCost(building: PlacedBuilding) {
 
 let instanceCounter = 100;
 
-export function useVillage() {
-  const [state, setState] = useState<VillageState>(createStarterVillage);
+export function useVillage(
+  externalState?: VillageState,
+  externalSetState?: React.Dispatch<React.SetStateAction<VillageState>>,
+) {
+  const [internalState, internalSetState] = useState<VillageState>(createStarterVillage);
+  const state = externalState ?? internalState;
+  const setState = externalSetState ?? internalSetState;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placementMode, setPlacementMode] = useState<PlacementMode | null>(null);
   const [placementType, setPlacementType] = useState<PlacedBuilding['buildingType']>('other');
