@@ -615,3 +615,518 @@ describe('isBattleOver', () => {
     expect(isBattleOver(state)).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// initBattleState: special defense properties
+// ---------------------------------------------------------------------------
+
+describe('initBattleState - special defense properties', () => {
+  it('sets infernoMode, infernoRampTime, and infernoMaxTargets for Inferno Tower', () => {
+    const buildings = [
+      makePlacedBuilding('Inferno Tower', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const inferno = state.defenses.find((d) => d.name === 'Inferno Tower');
+    expect(inferno).toBeDefined();
+    expect(inferno!.infernoMode).toBe('single');
+    expect(inferno!.infernoRampTime).toBe(0);
+    expect(inferno!.infernoMaxTargets).toBe(5);
+  });
+
+  it('sets isHidden and revealTriggerRange for Hidden Tesla', () => {
+    const buildings = [
+      makePlacedBuilding('Hidden Tesla', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const tesla = state.defenses.find((d) => d.name === 'Hidden Tesla');
+    expect(tesla).toBeDefined();
+    expect(tesla!.isHidden).toBe(true);
+    expect(tesla!.revealTriggerRange).toBe(6);
+  });
+
+  it('sets eagleActivated, eagleActivationThreshold, and custom range for Eagle Artillery', () => {
+    const buildings = [
+      makePlacedBuilding('Eagle Artillery', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const eagle = state.defenses.find((d) => d.name === 'Eagle Artillery');
+    expect(eagle).toBeDefined();
+    expect(eagle!.eagleActivated).toBe(false);
+    expect(eagle!.eagleActivationThreshold).toBe(200);
+    expect(eagle!.range.min).toBe(7);
+    expect(eagle!.range.max).toBe(50);
+  });
+
+  it('sets min range of 4 and splashRadius for Mortar', () => {
+    const buildings = [
+      makePlacedBuilding('Mortar', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const mortar = state.defenses.find((d) => d.name === 'Mortar');
+    expect(mortar).toBeDefined();
+    expect(mortar!.range.min).toBe(4);
+    expect(mortar!.splashRadius).toBe(1.5);
+  });
+
+  it('sets pushbackStrength and pushbackArc for Air Sweeper', () => {
+    const buildings = [
+      makePlacedBuilding('Air Sweeper', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const sweeper = state.defenses.find((d) => d.name === 'Air Sweeper');
+    expect(sweeper).toBeDefined();
+    expect(sweeper!.pushbackStrength).toBe(3);
+    expect(sweeper!.pushbackArc).toBe(120);
+  });
+
+  it('sets splashRadius, deathDamage, and deathDamageRadius for Bomb Tower', () => {
+    const buildings = [
+      makePlacedBuilding('Bomb Tower', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const bombTower = state.defenses.find((d) => d.name === 'Bomb Tower');
+    expect(bombTower).toBeDefined();
+    expect(bombTower!.splashRadius).toBe(1.5);
+    expect(bombTower!.deathDamage).toBe(bombTower!.dps * 3);
+    expect(bombTower!.deathDamageRadius).toBe(3);
+  });
+
+  it('sets splashRadius for Wizard Tower', () => {
+    const buildings = [
+      makePlacedBuilding('Wizard Tower', 'defense', 1),
+    ];
+    const state = initBattleState({ buildings }, [], []);
+
+    const wizTower = state.defenses.find((d) => d.name === 'Wizard Tower');
+    expect(wizTower).toBeDefined();
+    expect(wizTower!.splashRadius).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// deployTroop: special troop properties
+// ---------------------------------------------------------------------------
+
+describe('deployTroop - special troop properties', () => {
+  it('sets selfDestructs and wallDamageMultiplier for Wall Breaker', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Wall Breaker', level: 1, count: 5 }],
+    });
+    const result = deployTroop(state, 'Wall Breaker', 0, 0);
+
+    expect(result).not.toBeNull();
+    const wb = result!.deployedTroops.find((t) => t.name === 'Wall Breaker');
+    expect(wb).toBeDefined();
+    expect(wb!.selfDestructs).toBe(true);
+    expect(wb!.wallDamageMultiplier).toBe(40);
+  });
+
+  it('sets resourceDamageMultiplier for Goblin', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Goblin', level: 1, count: 5 }],
+    });
+    const result = deployTroop(state, 'Goblin', 0, 0);
+
+    expect(result).not.toBeNull();
+    const goblin = result!.deployedTroops.find((t) => t.name === 'Goblin');
+    expect(goblin).toBeDefined();
+    expect(goblin!.resourceDamageMultiplier).toBe(2);
+  });
+
+  it('sets healPerSecond, healRadius, and zeroes dps for Healer', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Healer', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Healer', 5, 5);
+
+    expect(result).not.toBeNull();
+    const healer = result!.deployedTroops.find((t) => t.name === 'Healer');
+    expect(healer).toBeDefined();
+    // healPerSecond is set from levelStats.dps (which is null for Healer in the JSON)
+    expect('healPerSecond' in healer!).toBe(true);
+    expect(healer!.healRadius).toBe(5);
+    expect(healer!.dps).toBe(0);
+    expect(healer!.baseDps).toBe(0);
+  });
+
+  it('sets chainTargets and chainDamageDecay for Electro Dragon', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Electro Dragon', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Electro Dragon', 0, 0);
+
+    expect(result).not.toBeNull();
+    const eDrag = result!.deployedTroops.find((t) => t.name === 'Electro Dragon');
+    expect(eDrag).toBeDefined();
+    expect(eDrag!.chainTargets).toBe(4);
+    expect(eDrag!.chainDamageDecay).toBe(0.75);
+  });
+
+  it('sets deathSpawnName and deathSpawnCount for Golem', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Golem', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Golem', 10, 10);
+
+    expect(result).not.toBeNull();
+    const golem = result!.deployedTroops.find((t) => t.name === 'Golem');
+    expect(golem).toBeDefined();
+    expect(golem!.deathSpawnName).toBe('Golemite');
+    expect(golem!.deathSpawnCount).toBe(2);
+  });
+
+  it('sets deathSpawnName and deathSpawnCount for Lava Hound', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Lava Hound', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Lava Hound', 10, 10);
+
+    expect(result).not.toBeNull();
+    const lavaHound = result!.deployedTroops.find((t) => t.name === 'Lava Hound');
+    expect(lavaHound).toBeDefined();
+    expect(lavaHound!.deathSpawnName).toBe('Lava Pup');
+    expect(lavaHound!.deathSpawnCount).toBe(6);
+  });
+
+  it('sets deathDamage and deathDamageRadius for Balloon', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Balloon', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Balloon', 0, 0);
+
+    expect(result).not.toBeNull();
+    const balloon = result!.deployedTroops.find((t) => t.name === 'Balloon');
+    expect(balloon).toBeDefined();
+    expect(balloon!.deathDamage).toBeDefined();
+    expect(balloon!.deathDamage).toBeGreaterThan(0);
+    expect(balloon!.deathDamageRadius).toBe(1.5);
+  });
+
+  it('sets splashRadius for Valkyrie', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Valkyrie', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Valkyrie', 0, 0);
+
+    expect(result).not.toBeNull();
+    const valk = result!.deployedTroops.find((t) => t.name === 'Valkyrie');
+    expect(valk).toBeDefined();
+    expect(valk!.splashRadius).toBe(1);
+  });
+
+  it('sets canJumpWalls for Hog Rider', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Hog Rider', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Hog Rider', 0, 0);
+
+    expect(result).not.toBeNull();
+    const hogRider = result!.deployedTroops.find((t) => t.name === 'Hog Rider');
+    expect(hogRider).toBeDefined();
+    expect(hogRider!.canJumpWalls).toBe(true);
+  });
+
+  it('sets isBurrowed to false for Miner', () => {
+    const state = makeBattleState({
+      availableTroops: [{ name: 'Miner', level: 1, count: 1 }],
+    });
+    const result = deployTroop(state, 'Miner', 3, 3);
+
+    expect(result).not.toBeNull();
+    const miner = result!.deployedTroops.find((t) => t.name === 'Miner');
+    expect(miner).toBeDefined();
+    expect(miner!.isBurrowed).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickBattle: death effects
+// ---------------------------------------------------------------------------
+
+describe('tickBattle - death effects', () => {
+  it('processes death spawns when a Golem dies (spawns Golemites)', () => {
+    const deadGolem = makeDeployedTroop({
+      name: 'Golem',
+      state: 'dead',
+      currentHp: 0,
+      maxHp: 5100,
+      baseDps: 35,
+      dps: 35,
+      x: 20,
+      y: 20,
+      deathSpawnName: 'Golemite',
+      deathSpawnCount: 2,
+      attackRange: 1,
+      movementSpeed: 12,
+      isFlying: false,
+    });
+    const state = makeBattleState({
+      deployedTroops: [deadGolem],
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 1 }],
+    });
+    const result = tickBattle(state, 100);
+
+    // The dead Golem should have spawned 2 Golemites
+    const golemites = result.deployedTroops.filter((t) => t.name === 'Golemite');
+    expect(golemites).toHaveLength(2);
+    for (const g of golemites) {
+      expect(g.state).toBe('idle');
+      expect(g.maxHp).toBe(Math.floor(5100 * 0.2));
+      expect(g.baseDps).toBe(Math.floor(35 * 0.3));
+    }
+  });
+
+  it('processes death damage when a Balloon dies', () => {
+    const deadBalloon = makeDeployedTroop({
+      name: 'Balloon',
+      state: 'dead',
+      currentHp: 0,
+      maxHp: 150,
+      baseDps: 25,
+      dps: 25,
+      x: 20,
+      y: 20,
+      deathDamage: 50,
+      deathDamageRadius: 1.5,
+      isFlying: true,
+    });
+    // Place a building right at the Balloon's death location
+    const nearBuilding = makeBuilding('Gold Mine', {
+      instanceId: 'gm_near',
+      x: 20,
+      y: 20,
+      currentHp: 100,
+      maxHp: 500,
+    });
+    // Place a building far away (should not be hit)
+    const farBuilding = makeBuilding('Elixir Collector', {
+      instanceId: 'ec_far',
+      x: 50,
+      y: 50,
+      currentHp: 100,
+      maxHp: 500,
+    });
+    const state = makeBattleState({
+      deployedTroops: [deadBalloon],
+      buildings: [nearBuilding, farBuilding],
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 1 }],
+    });
+    const result = tickBattle(state, 100);
+
+    // The nearby building should have taken death damage
+    const nearResult = result.buildings.find((b) => b.instanceId === 'gm_near');
+    expect(nearResult!.currentHp).toBeLessThan(100);
+    // The far building should be untouched
+    const farResult = result.buildings.find((b) => b.instanceId === 'ec_far');
+    expect(farResult!.currentHp).toBe(100);
+  });
+
+  it('only spawns death units once (deathSpawnName cleared after first tick)', () => {
+    const deadGolem = makeDeployedTroop({
+      name: 'Golem',
+      state: 'dead',
+      currentHp: 0,
+      maxHp: 5100,
+      baseDps: 35,
+      dps: 35,
+      x: 20,
+      y: 20,
+      deathSpawnName: 'Golemite',
+      deathSpawnCount: 2,
+      attackRange: 1,
+      movementSpeed: 12,
+      isFlying: false,
+    });
+    const state = makeBattleState({
+      deployedTroops: [deadGolem],
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 1 }],
+    });
+    const afterFirst = tickBattle(state, 100);
+    const afterSecond = tickBattle(afterFirst, 100);
+
+    // Should still only have 2 Golemites (not 4)
+    const golemites = afterSecond.deployedTroops.filter((t) => t.name === 'Golemite');
+    expect(golemites).toHaveLength(2);
+  });
+
+  it('ends battle when all deployed troops are dead and none remain available', () => {
+    const deadTroop = makeDeployedTroop({
+      state: 'dead',
+      currentHp: 0,
+    });
+    const state = makeBattleState({
+      deployedTroops: [deadTroop],
+      availableTroops: [],
+      buildings: [
+        makeBuilding('Town Hall', { instanceId: 'th_1' }),
+        makeBuilding('Cannon', { instanceId: 'cn_1' }),
+      ],
+    });
+    const result = tickBattle(state, 100);
+
+    expect(result.phase).toBe('ended');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickBattle: wall collision
+// ---------------------------------------------------------------------------
+
+describe('tickBattle - wall collision', () => {
+  it('ground troop attacks a blocking wall instead of its target', () => {
+    // Place a wall directly between the troop and a target building
+    const wall = makeBuilding('Wall', {
+      instanceId: 'wall_1',
+      x: 10,
+      y: 10,
+      currentHp: 300,
+      maxHp: 300,
+    });
+    const targetBuilding = makeBuilding('Gold Mine', {
+      instanceId: 'gm_1',
+      x: 20,
+      y: 20,
+      currentHp: 500,
+      maxHp: 500,
+    });
+    // Place the troop right next to the wall (within attack range)
+    const troop = makeDeployedTroop({
+      name: 'Barbarian',
+      x: 10,
+      y: 9.5,
+      dps: 100,
+      baseDps: 100,
+      attackRange: 0.6,
+      movementSpeed: 16,
+      isFlying: false,
+      state: 'idle',
+      targetId: null,
+    });
+    const state = makeBattleState({
+      deployedTroops: [troop],
+      buildings: [wall, targetBuilding],
+      defenses: [],
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 1 }],
+    });
+    const result = tickBattle(state, 1000);
+
+    // The wall should have taken damage since the troop is blocked
+    const wallAfter = result.buildings.find((b) => b.instanceId === 'wall_1');
+    // Either the wall took damage or the troop is trying to path around it
+    // The troop should not have been idle
+    const troopAfter = result.deployedTroops.find((t) => t.name === 'Barbarian');
+    expect(troopAfter).toBeDefined();
+    expect(troopAfter!.state).not.toBe('idle');
+  });
+
+  it('flying troop skips wall collision and targets a building beyond the wall', () => {
+    // Wall between the troop and target. For a ground troop this would block,
+    // but a flying troop passes right over it.
+    const wall = makeBuilding('Wall', {
+      instanceId: 'wall_1',
+      x: 15,
+      y: 15,
+      currentHp: 300,
+      maxHp: 300,
+    });
+    const targetBuilding = makeBuilding('Cannon', {
+      instanceId: 'cn_1',
+      x: 20,
+      y: 20,
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const cannon = makeDefense({
+      buildingInstanceId: 'cn_1',
+      name: 'Cannon',
+      x: 20,
+      y: 20,
+      currentHp: 500,
+      maxHp: 500,
+    });
+    // Place flying troop beyond attack range of the wall but moving toward the cannon
+    const troop = makeDeployedTroop({
+      name: 'Dragon',
+      x: 10,
+      y: 10,
+      dps: 100,
+      baseDps: 100,
+      attackRange: 3,
+      movementSpeed: 16,
+      isFlying: true,
+      state: 'idle',
+      targetId: null,
+    });
+    const state = makeBattleState({
+      deployedTroops: [troop],
+      buildings: [wall, targetBuilding],
+      defenses: [cannon],
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 1 }],
+    });
+    const result = tickBattle(state, 500);
+
+    // Flying troop should move toward the Cannon, NOT stop at the wall
+    const troopAfter = result.deployedTroops.find((t) => t.name === 'Dragon');
+    expect(troopAfter).toBeDefined();
+    // The troop should be moving (toward its target, not stopped at the wall)
+    expect(troopAfter!.state).toBe('moving');
+    // Wall should NOT have taken damage from the flying troop
+    const wallAfter = result.buildings.find((b) => b.instanceId === 'wall_1');
+    expect(wallAfter!.currentHp).toBe(300);
+  });
+
+  it('Hog Rider with canJumpWalls bypasses wall collision', () => {
+    const wall = makeBuilding('Wall', {
+      instanceId: 'wall_1',
+      x: 10,
+      y: 10,
+      currentHp: 300,
+      maxHp: 300,
+    });
+    const targetBuilding = makeBuilding('Cannon', {
+      instanceId: 'cn_1',
+      x: 10,
+      y: 11,
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const cannon = makeDefense({
+      buildingInstanceId: 'cn_1',
+      name: 'Cannon',
+      x: 10,
+      y: 11,
+      currentHp: 500,
+      maxHp: 500,
+    });
+    const troop = makeDeployedTroop({
+      name: 'Hog Rider',
+      x: 10,
+      y: 9.5,
+      dps: 60,
+      baseDps: 60,
+      attackRange: 0.6,
+      movementSpeed: 24,
+      isFlying: false,
+      canJumpWalls: true,
+      state: 'idle',
+      targetId: null,
+    });
+    const state = makeBattleState({
+      deployedTroops: [troop],
+      buildings: [wall, targetBuilding],
+      defenses: [cannon],
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 1 }],
+    });
+    const result = tickBattle(state, 1000);
+
+    // The wall should NOT have taken damage since Hog Rider jumps walls
+    const wallAfter = result.buildings.find((b) => b.instanceId === 'wall_1');
+    expect(wallAfter!.currentHp).toBe(300);
+  });
+});

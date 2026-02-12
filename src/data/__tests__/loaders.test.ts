@@ -2,9 +2,11 @@ import {
   townhalls,
   getTownHall,
   getMaxBuildingCount,
+  getMaxStorageCapacity,
   defenses,
   getDefense,
   getDefenseAtLevel,
+  getDefenseMaxCount,
   getAllDefenseNames,
   getTroop,
   getAllTroops,
@@ -15,6 +17,8 @@ import {
   getAllSpells,
   getHero,
   getPet,
+  getArmyBuilding,
+  getAllArmyBuildingNames,
 } from '../loaders';
 
 // ---------------------------------------------------------------------------
@@ -169,5 +173,94 @@ describe('hero-loader', () => {
     expect(lassi).toBeDefined();
     expect(lassi!.name).toBe('L.A.S.S.I');
     expect(lassi!.levels.length).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Defense loader: additional coverage
+// ---------------------------------------------------------------------------
+
+describe('defense-loader - additional coverage', () => {
+  it('getDefenseAtLevel returns undefined for non-existent defense name', () => {
+    expect(getDefenseAtLevel('FakeDefense', 1)).toBeUndefined();
+  });
+
+  it('getDefenseAtLevel returns undefined for non-existent level', () => {
+    expect(getDefenseAtLevel('Cannon', 999)).toBeUndefined();
+  });
+
+  it('getDefenseMaxCount returns the count for a valid defense and TH level', () => {
+    const count = getDefenseMaxCount('Cannon', 1);
+    expect(count).toBeDefined();
+    expect(typeof count).toBe('number');
+    expect(count).toBeGreaterThan(0);
+  });
+
+  it('getDefenseMaxCount returns undefined for a non-existent defense name', () => {
+    expect(getDefenseMaxCount('FakeDefense', 1)).toBeUndefined();
+  });
+
+  it('getDefenseMaxCount returns undefined for a non-existent TH level', () => {
+    expect(getDefenseMaxCount('Cannon', 999)).toBeUndefined();
+  });
+
+  it('getAllDefenseNames includes expected defense types', () => {
+    const names = getAllDefenseNames();
+    expect(names).toContain('Cannon');
+    expect(names).toContain('Archer Tower');
+    expect(names).toContain('Mortar');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Townhall loader: additional coverage
+// ---------------------------------------------------------------------------
+
+describe('townhall-loader - additional coverage', () => {
+  it('getMaxBuildingCount returns undefined for non-existent TH level', () => {
+    expect(getMaxBuildingCount(999, 'Cannon')).toBeUndefined();
+  });
+
+  it('getMaxBuildingCount returns undefined for non-existent building name', () => {
+    expect(getMaxBuildingCount(1, 'FakeBuilding')).toBeUndefined();
+  });
+
+  it('getMaxStorageCapacity returns gold, elixir, and darkElixir for a valid TH level', () => {
+    const cap = getMaxStorageCapacity(5);
+    expect(cap).toBeDefined();
+    expect(typeof cap!.gold).toBe('number');
+    expect(typeof cap!.elixir).toBe('number');
+    expect(typeof cap!.darkElixir).toBe('number');
+    expect(cap!.gold).toBeGreaterThan(0);
+  });
+
+  it('getMaxStorageCapacity returns undefined for non-existent TH level', () => {
+    expect(getMaxStorageCapacity(999)).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Army building loader
+// ---------------------------------------------------------------------------
+
+describe('army-building-loader', () => {
+  it('getArmyBuilding("Barracks") returns valid army building data', () => {
+    const barracks = getArmyBuilding('Barracks');
+    expect(barracks).toBeDefined();
+    expect(barracks!.name).toBe('Barracks');
+    expect(barracks!.levels.length).toBeGreaterThan(0);
+  });
+
+  it('getArmyBuilding returns undefined for a non-existent building', () => {
+    expect(getArmyBuilding('FakeBuilding')).toBeUndefined();
+  });
+
+  it('getAllArmyBuildingNames returns an array of strings including known buildings', () => {
+    const names = getAllArmyBuildingNames();
+    expect(names.length).toBeGreaterThan(0);
+    expect(names).toContain('Barracks');
+    expect(names).toContain('Army Camp');
+    expect(names).toContain('Laboratory');
+    names.forEach((n) => expect(typeof n).toBe('string'));
   });
 });
