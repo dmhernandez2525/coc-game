@@ -1,0 +1,486 @@
+[
+  {
+    "name": "Poison Spell",
+    "type": "dark_elixir",
+    "housingSpace": 1,
+    "darkSpellFactoryLevelRequired": 1,
+    "thUnlock": 8,
+    "radius": 4,
+    "duration": 16,
+    "damageType": "Area Splash",
+    "targets": "Ground & Air",
+    "lingerDuration": 6,
+    "mechanics": "Creates a poison cloud that slows and damages enemy troops within the radius. Damage ramps up over time the longer a unit stays in the cloud, similar to a single-target Inferno Tower. Poison continues to deal damage for 6 seconds after a unit leaves the radius. Speed and attack rate of affected troops are reduced.",
+    "levels": [
+      {
+        "level": 1,
+        "maxDamagePerSecond": 90,
+        "speedDecrease": 26,
+        "attackRateDecrease": 35,
+        "upgradeCost": 0,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "maxDamagePerSecond": 115,
+        "speedDecrease": 30,
+        "attackRateDecrease": 40,
+        "upgradeCost": 5000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 21600,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 3,
+        "maxDamagePerSecond": 145,
+        "speedDecrease": 34,
+        "attackRateDecrease": 45,
+        "upgradeCost": 10000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 64800,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 4,
+        "maxDamagePerSecond": 180,
+        "speedDecrease": 38,
+        "attackRateDecrease": 50,
+        "upgradeCost": 21500,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 5,
+        "maxDamagePerSecond": 220,
+        "speedDecrease": 40,
+        "attackRateDecrease": 55,
+        "upgradeCost": 35000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 6,
+        "maxDamagePerSecond": 260,
+        "speedDecrease": 42,
+        "attackRateDecrease": 60,
+        "upgradeCost": 55000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 7,
+        "maxDamagePerSecond": 280,
+        "speedDecrease": 44,
+        "attackRateDecrease": 65,
+        "upgradeCost": 77500,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 8,
+        "maxDamagePerSecond": 300,
+        "speedDecrease": 46,
+        "attackRateDecrease": 68,
+        "upgradeCost": 100000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 561600,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 9,
+        "maxDamagePerSecond": 320,
+        "speedDecrease": 48,
+        "attackRateDecrease": 70,
+        "upgradeCost": 135000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 604800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 10,
+        "maxDamagePerSecond": 340,
+        "speedDecrease": 50,
+        "attackRateDecrease": 72,
+        "upgradeCost": 175000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 691200,
+        "labLevelRequired": 14
+      },
+      {
+        "level": 11,
+        "maxDamagePerSecond": 360,
+        "speedDecrease": 51,
+        "attackRateDecrease": 73,
+        "upgradeCost": 230000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 835200,
+        "labLevelRequired": 15
+      },
+      {
+        "level": 12,
+        "maxDamagePerSecond": 380,
+        "speedDecrease": 52,
+        "attackRateDecrease": 74,
+        "upgradeCost": 350000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 1252800,
+        "labLevelRequired": 16
+      }
+    ]
+  },
+  {
+    "name": "Earthquake Spell",
+    "type": "dark_elixir",
+    "housingSpace": 1,
+    "darkSpellFactoryLevelRequired": 2,
+    "thUnlock": 8,
+    "damageType": "Area Splash",
+    "targets": "Buildings & Walls",
+    "favoriteTarget": "Walls",
+    "mechanics": "Deals percentage-based damage to all buildings within its radius. Successive Earthquake Spells on the same building deal diminishing damage: 1st = full, 2nd = 1/3, 3rd = 1/5, 4th = 1/7. For Walls, the nth spell deals 1/n damage plus 5(n-1)^2 additional percentage of wall max HP. Four Earthquake Spells of any level will always destroy Walls of any level. Three can never destroy a Wall of any level.",
+    "levels": [
+      {
+        "level": 1,
+        "damagePercent": 14.5,
+        "radius": 3.5,
+        "upgradeCost": 0,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "damagePercent": 17,
+        "radius": 3.8,
+        "upgradeCost": 15000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 64800,
+        "labLevelRequired": 6
+      },
+      {
+        "level": 3,
+        "damagePercent": 21,
+        "radius": 4.1,
+        "upgradeCost": 30000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 4,
+        "damagePercent": 25,
+        "radius": 4.4,
+        "upgradeCost": 60000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 432000,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 5,
+        "damagePercent": 29,
+        "radius": 4.7,
+        "upgradeCost": 75000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 302400,
+        "labLevelRequired": 9
+      }
+    ]
+  },
+  {
+    "name": "Haste Spell",
+    "type": "dark_elixir",
+    "housingSpace": 1,
+    "darkSpellFactoryLevelRequired": 3,
+    "thUnlock": 9,
+    "targets": "Ground & Air",
+    "mechanics": "Boosts movement speed of troops within its radius. Unlike the Rage Spell, it provides no damage boost, only speed. Takes only 1 housing space compared to Rage Spell's 2. At level 7, the radius increases from 4 to 5 tiles.",
+    "levels": [
+      {
+        "level": 1,
+        "speedIncrease": 28,
+        "duration": 10,
+        "radius": 4,
+        "upgradeCost": 0,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "speedIncrease": 34,
+        "duration": 15,
+        "radius": 4,
+        "upgradeCost": 8000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 7
+      },
+      {
+        "level": 3,
+        "speedIncrease": 40,
+        "duration": 20,
+        "radius": 4,
+        "upgradeCost": 17000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 4,
+        "speedIncrease": 46,
+        "duration": 25,
+        "radius": 4,
+        "upgradeCost": 30000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 5,
+        "speedIncrease": 52,
+        "duration": 30,
+        "radius": 4,
+        "upgradeCost": 38500,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 6,
+        "speedIncrease": 56,
+        "duration": 30,
+        "radius": 4,
+        "upgradeCost": 200000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 777600,
+        "labLevelRequired": 15
+      },
+      {
+        "level": 7,
+        "speedIncrease": 56,
+        "duration": 30,
+        "radius": 5,
+        "upgradeCost": 320000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 1080000,
+        "labLevelRequired": 16
+      }
+    ]
+  },
+  {
+    "name": "Skeleton Spell",
+    "type": "dark_elixir",
+    "housingSpace": 1,
+    "darkSpellFactoryLevelRequired": 4,
+    "thUnlock": 9,
+    "radius": 3.5,
+    "skeletonHitpoints": 30,
+    "skeletonArmorHitpoints": 30,
+    "skeletonDamagePerSecond": 25,
+    "skeletonAttackSpeed": 1,
+    "skeletonMovementSpeed": 24,
+    "skeletonRange": 0.4,
+    "skeletonAttackType": "Melee (Ground Only)",
+    "mechanics": "Spawns Skeletons that attack nearby buildings and troops. Skeletons spawn in waves: an initial burst followed by 1 skeleton per second. Skeletons are ground-only melee units. They target any building or troop with no preferred target.",
+    "levels": [
+      {
+        "level": 1,
+        "skeletonsSpawned": 12,
+        "upgradeCost": 0,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "skeletonsSpawned": 13,
+        "upgradeCost": 11000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 3,
+        "skeletonsSpawned": 14,
+        "upgradeCost": 17000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 129600,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 4,
+        "skeletonsSpawned": 15,
+        "upgradeCost": 25000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 5,
+        "skeletonsSpawned": 16,
+        "upgradeCost": 40000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 216000,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 6,
+        "skeletonsSpawned": 17,
+        "upgradeCost": 50000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 259200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 7,
+        "skeletonsSpawned": 18,
+        "upgradeCost": 75000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 367200,
+        "labLevelRequired": 11
+      },
+      {
+        "level": 8,
+        "skeletonsSpawned": 19,
+        "upgradeCost": 135000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 561600,
+        "labLevelRequired": 13
+      }
+    ]
+  },
+  {
+    "name": "Bat Spell",
+    "type": "dark_elixir",
+    "housingSpace": 1,
+    "darkSpellFactoryLevelRequired": 5,
+    "thUnlock": 10,
+    "radius": 3.5,
+    "batPreferredTarget": "Defenses",
+    "batAttackType": "Air",
+    "batMovementSpeed": 56,
+    "batAttackSpeed": 2,
+    "batRange": 0.8,
+    "batDamagePerSecond": 30,
+    "batDamageVsResources": 0.4,
+    "batHitpoints": 20,
+    "mechanics": "Spawns Bats that target defenses. Bats spawn in waves over time, similar to the Skeleton Spell. Bats are flying units that prioritize defensive buildings. They deal reduced damage (40%) to resource buildings. Each bat has 20 HP and deals 30 DPS.",
+    "levels": [
+      {
+        "level": 1,
+        "batsSpawned": 7,
+        "upgradeCost": 0,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "batsSpawned": 9,
+        "upgradeCost": 13000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 86400,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 3,
+        "batsSpawned": 11,
+        "upgradeCost": 25500,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 172800,
+        "labLevelRequired": 8
+      },
+      {
+        "level": 4,
+        "batsSpawned": 16,
+        "upgradeCost": 35000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 194400,
+        "labLevelRequired": 9
+      },
+      {
+        "level": 5,
+        "batsSpawned": 21,
+        "upgradeCost": 47500,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 345600,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 6,
+        "batsSpawned": 22,
+        "upgradeCost": 140000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 604800,
+        "labLevelRequired": 13
+      },
+      {
+        "level": 7,
+        "batsSpawned": 23,
+        "upgradeCost": 220000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 734400,
+        "labLevelRequired": 15
+      },
+      {
+        "level": 8,
+        "batsSpawned": 25,
+        "upgradeCost": 300000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 1123200,
+        "labLevelRequired": 16
+      }
+    ]
+  },
+  {
+    "name": "Overgrowth Spell",
+    "type": "dark_elixir",
+    "housingSpace": 2,
+    "darkSpellFactoryLevelRequired": 6,
+    "thUnlock": 12,
+    "radius": 6,
+    "damageType": "Area Splash",
+    "targets": "Ground & Air",
+    "mechanics": "Traps nearby buildings in tough roots, disabling defenses from attacking for the spell's duration. Troops ignore trapped buildings, meaning they will not target or attack disabled buildings while the spell is active. The spell does not deal damage; it temporarily disables and makes affected buildings invisible and invulnerable.",
+    "levels": [
+      {
+        "level": 1,
+        "duration": 22,
+        "upgradeCost": 0,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 0,
+        "labLevelRequired": null
+      },
+      {
+        "level": 2,
+        "duration": 23,
+        "upgradeCost": 62500,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 475200,
+        "labLevelRequired": 10
+      },
+      {
+        "level": 3,
+        "duration": 24,
+        "upgradeCost": 125000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 734400,
+        "labLevelRequired": 12
+      },
+      {
+        "level": 4,
+        "duration": 25,
+        "upgradeCost": 175000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 864000,
+        "labLevelRequired": 14
+      }
+    ]
+  }
+]

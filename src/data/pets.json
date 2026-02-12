@@ -1,0 +1,1358 @@
+{
+  "L.A.S.S.I": {
+    "name": "L.A.S.S.I",
+    "petHouseLevelRequired": 1,
+    "thUnlock": 14,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 32,
+    "isFlying": false,
+    "ability": "High Jumper: Jumps over Walls to attack buildings and ground troops positioned behind them",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 160,
+        "hp": 2800,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 2,
+        "dps": 170,
+        "hp": 2900,
+        "upgradeCost": 20000,
+        "upgradeTime": 86400,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 3,
+        "dps": 180,
+        "hp": 3000,
+        "upgradeCost": 30000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 4,
+        "dps": 190,
+        "hp": 3100,
+        "upgradeCost": 40000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 5,
+        "dps": 200,
+        "hp": 3200,
+        "upgradeCost": 50000,
+        "upgradeTime": 216000,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 6,
+        "dps": 210,
+        "hp": 3300,
+        "upgradeCost": 60000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 7,
+        "dps": 220,
+        "hp": 3400,
+        "upgradeCost": 70000,
+        "upgradeTime": 302400,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 8,
+        "dps": 230,
+        "hp": 3500,
+        "upgradeCost": 80000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 9,
+        "dps": 240,
+        "hp": 3600,
+        "upgradeCost": 90000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 10,
+        "dps": 260,
+        "hp": 3700,
+        "upgradeCost": 100000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 1
+      },
+      {
+        "level": 11,
+        "dps": 290,
+        "hp": 3850,
+        "upgradeCost": 110000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 12,
+        "dps": 310,
+        "hp": 3950,
+        "upgradeCost": 120000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 13,
+        "dps": 330,
+        "hp": 4100,
+        "upgradeCost": 130000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 14,
+        "dps": 360,
+        "hp": 4300,
+        "upgradeCost": 140000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 15,
+        "dps": 400,
+        "hp": 4500,
+        "upgradeCost": 150000,
+        "upgradeTime": 648000,
+        "petHouseLevel": 5
+      }
+    ]
+  },
+  "Electro Owl": {
+    "name": "Electro Owl",
+    "petHouseLevelRequired": 2,
+    "thUnlock": 14,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 20,
+    "isFlying": true,
+    "ability": "High Voltage: Chain lightning attack hitting up to 2 targets, dealing 80% of primary target damage to the second target",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 100,
+        "hp": 1600,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 2,
+        "dps": 105,
+        "hp": 1700,
+        "upgradeCost": 30000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 3,
+        "dps": 110,
+        "hp": 1800,
+        "upgradeCost": 45000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 4,
+        "dps": 115,
+        "hp": 1900,
+        "upgradeCost": 60000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 5,
+        "dps": 120,
+        "hp": 2000,
+        "upgradeCost": 75000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 6,
+        "dps": 125,
+        "hp": 2100,
+        "upgradeCost": 90000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 7,
+        "dps": 130,
+        "hp": 2200,
+        "upgradeCost": 105000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 8,
+        "dps": 135,
+        "hp": 2300,
+        "upgradeCost": 120000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 9,
+        "dps": 140,
+        "hp": 2400,
+        "upgradeCost": 135000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 10,
+        "dps": 145,
+        "hp": 2500,
+        "upgradeCost": 150000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 2
+      },
+      {
+        "level": 11,
+        "dps": 150,
+        "hp": 2600,
+        "upgradeCost": 165000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 12,
+        "dps": 155,
+        "hp": 2700,
+        "upgradeCost": 180000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 13,
+        "dps": 160,
+        "hp": 2800,
+        "upgradeCost": 195000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 14,
+        "dps": 165,
+        "hp": 2900,
+        "upgradeCost": 210000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 15,
+        "dps": 170,
+        "hp": 3000,
+        "upgradeCost": 225000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 9
+      }
+    ]
+  },
+  "Mighty Yak": {
+    "name": "Mighty Yak",
+    "petHouseLevelRequired": 3,
+    "thUnlock": 14,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 20,
+    "isFlying": false,
+    "ability": "Wall Buster: Deals 20x damage to Walls; enters 8-second rage (16% speed increase, 70% damage increase) when paired Hero is knocked out",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 60,
+        "hp": 3750,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 2,
+        "dps": 64,
+        "hp": 4000,
+        "upgradeCost": 40000,
+        "upgradeTime": 86400,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 3,
+        "dps": 68,
+        "hp": 4250,
+        "upgradeCost": 50000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 4,
+        "dps": 72,
+        "hp": 4500,
+        "upgradeCost": 60000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 5,
+        "dps": 76,
+        "hp": 4750,
+        "upgradeCost": 70000,
+        "upgradeTime": 216000,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 6,
+        "dps": 80,
+        "hp": 4950,
+        "upgradeCost": 80000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 7,
+        "dps": 84,
+        "hp": 5100,
+        "upgradeCost": 90000,
+        "upgradeTime": 302400,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 8,
+        "dps": 88,
+        "hp": 5250,
+        "upgradeCost": 100000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 9,
+        "dps": 92,
+        "hp": 5400,
+        "upgradeCost": 110000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 10,
+        "dps": 96,
+        "hp": 5550,
+        "upgradeCost": 120000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 3
+      },
+      {
+        "level": 11,
+        "dps": 100,
+        "hp": 5700,
+        "upgradeCost": 130000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 12,
+        "dps": 104,
+        "hp": 5850,
+        "upgradeCost": 140000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 13,
+        "dps": 108,
+        "hp": 6000,
+        "upgradeCost": 150000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 14,
+        "dps": 112,
+        "hp": 6150,
+        "upgradeCost": 160000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 15,
+        "dps": 116,
+        "hp": 6300,
+        "upgradeCost": 170000,
+        "upgradeTime": 648000,
+        "petHouseLevel": 7
+      }
+    ]
+  },
+  "Unicorn": {
+    "name": "Unicorn",
+    "petHouseLevelRequired": 4,
+    "thUnlock": 14,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 16,
+    "isFlying": false,
+    "ability": "Personal Healer: Follows the paired Hero and heals them continuously; unlike Healers, can target both ground and air Heroes",
+    "levels": [
+      {
+        "level": 1,
+        "healingPerSecond": 50,
+        "hp": 1400,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 2,
+        "healingPerSecond": 53,
+        "hp": 1450,
+        "upgradeCost": 50000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 3,
+        "healingPerSecond": 56,
+        "hp": 1500,
+        "upgradeCost": 65000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 4,
+        "healingPerSecond": 58,
+        "hp": 1550,
+        "upgradeCost": 80000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 5,
+        "healingPerSecond": 60,
+        "hp": 1600,
+        "upgradeCost": 95000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 6,
+        "healingPerSecond": 62,
+        "hp": 1675,
+        "upgradeCost": 110000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 7,
+        "healingPerSecond": 64,
+        "hp": 1725,
+        "upgradeCost": 125000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 8,
+        "healingPerSecond": 66,
+        "hp": 1800,
+        "upgradeCost": 140000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 9,
+        "healingPerSecond": 68,
+        "hp": 1875,
+        "upgradeCost": 155000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 10,
+        "healingPerSecond": 70,
+        "hp": 1950,
+        "upgradeCost": 170000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 4
+      },
+      {
+        "level": 11,
+        "healingPerSecond": 71,
+        "hp": 2025,
+        "upgradeCost": 200000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 12,
+        "healingPerSecond": 72,
+        "hp": 2100,
+        "upgradeCost": 230000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 13,
+        "healingPerSecond": 73,
+        "hp": 2175,
+        "upgradeCost": 260000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 14,
+        "healingPerSecond": 74,
+        "hp": 2250,
+        "upgradeCost": 290000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 15,
+        "healingPerSecond": 75,
+        "hp": 2325,
+        "upgradeCost": 320000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      }
+    ]
+  },
+  "Frosty": {
+    "name": "Frosty",
+    "petHouseLevelRequired": 5,
+    "thUnlock": 15,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 24,
+    "isFlying": false,
+    "ability": "Freezy Friends: Periodically spawns Frostmites that deal low damage but inflict frost effect on targets, causing them to slow down",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 94,
+        "hp": 2350,
+        "frostmitesPerSummon": 1,
+        "maxFrostmites": 4,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 2,
+        "dps": 98,
+        "hp": 2450,
+        "frostmitesPerSummon": 1,
+        "maxFrostmites": 4,
+        "upgradeCost": 70000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 3,
+        "dps": 102,
+        "hp": 2550,
+        "frostmitesPerSummon": 1,
+        "maxFrostmites": 4,
+        "upgradeCost": 85000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 4,
+        "dps": 106,
+        "hp": 2650,
+        "frostmitesPerSummon": 1,
+        "maxFrostmites": 4,
+        "upgradeCost": 100000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 5,
+        "dps": 110,
+        "hp": 2800,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 8,
+        "upgradeCost": 115000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 6,
+        "dps": 114,
+        "hp": 2900,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 8,
+        "upgradeCost": 130000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 7,
+        "dps": 118,
+        "hp": 3000,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 8,
+        "upgradeCost": 145000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 8,
+        "dps": 122,
+        "hp": 3100,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 8,
+        "upgradeCost": 160000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 9,
+        "dps": 126,
+        "hp": 3200,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 8,
+        "upgradeCost": 170000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 10,
+        "dps": 130,
+        "hp": 3300,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 10,
+        "upgradeCost": 180000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 5
+      },
+      {
+        "level": 11,
+        "dps": 134,
+        "hp": 3400,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 10,
+        "upgradeCost": 200000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 12,
+        "dps": 138,
+        "hp": 3500,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 10,
+        "upgradeCost": 230000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 13,
+        "dps": 142,
+        "hp": 3600,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 10,
+        "upgradeCost": 260000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 14,
+        "dps": 146,
+        "hp": 3700,
+        "frostmitesPerSummon": 2,
+        "maxFrostmites": 10,
+        "upgradeCost": 290000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 15,
+        "dps": 150,
+        "hp": 3800,
+        "frostmitesPerSummon": 3,
+        "maxFrostmites": 12,
+        "upgradeCost": 320000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      }
+    ]
+  },
+  "Diggy": {
+    "name": "Diggy",
+    "petHouseLevelRequired": 6,
+    "thUnlock": 15,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 32,
+    "isFlying": false,
+    "ability": "Stunning Surprise: Burrows underground and stuns targets when surfacing, temporarily disabling defenses",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 105,
+        "hp": 3650,
+        "stunDuration": 2.0,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 2,
+        "dps": 110,
+        "hp": 3800,
+        "stunDuration": 2.0,
+        "upgradeCost": 90000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 3,
+        "dps": 115,
+        "hp": 3950,
+        "stunDuration": 2.0,
+        "upgradeCost": 105000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 4,
+        "dps": 120,
+        "hp": 4100,
+        "stunDuration": 2.0,
+        "upgradeCost": 120000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 5,
+        "dps": 125,
+        "hp": 4250,
+        "stunDuration": 2.5,
+        "upgradeCost": 130000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 6,
+        "dps": 130,
+        "hp": 4400,
+        "stunDuration": 2.5,
+        "upgradeCost": 140000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 7,
+        "dps": 135,
+        "hp": 4550,
+        "stunDuration": 2.5,
+        "upgradeCost": 150000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 8,
+        "dps": 140,
+        "hp": 4700,
+        "stunDuration": 2.5,
+        "upgradeCost": 160000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 9,
+        "dps": 145,
+        "hp": 4850,
+        "stunDuration": 2.5,
+        "upgradeCost": 170000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 6
+      },
+      {
+        "level": 10,
+        "dps": 150,
+        "hp": 5000,
+        "stunDuration": 3.0,
+        "upgradeCost": 180000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 6
+      }
+    ]
+  },
+  "Poison Lizard": {
+    "name": "Poison Lizard",
+    "petHouseLevelRequired": 7,
+    "thUnlock": 15,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 36,
+    "isFlying": false,
+    "ability": "Bad Breath: Poisoned spit that slows affected troops and heroes, causing additional damage over time similar to a Poison Spell",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 181,
+        "hp": 1400,
+        "poisonDps": 80,
+        "speedDecrease": "26%",
+        "attackDecrease": "35%",
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 2,
+        "dps": 192,
+        "hp": 1450,
+        "poisonDps": 80,
+        "speedDecrease": "26%",
+        "attackDecrease": "35%",
+        "upgradeCost": 60000,
+        "upgradeTime": 86400,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 3,
+        "dps": 203,
+        "hp": 1500,
+        "poisonDps": 80,
+        "speedDecrease": "26%",
+        "attackDecrease": "35%",
+        "upgradeCost": 75000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 4,
+        "dps": 214,
+        "hp": 1550,
+        "poisonDps": 80,
+        "speedDecrease": "26%",
+        "attackDecrease": "35%",
+        "upgradeCost": 90000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 5,
+        "dps": 225,
+        "hp": 1600,
+        "poisonDps": 100,
+        "speedDecrease": "34%",
+        "attackDecrease": "45%",
+        "upgradeCost": 100000,
+        "upgradeTime": 216000,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 6,
+        "dps": 236,
+        "hp": 1650,
+        "poisonDps": 100,
+        "speedDecrease": "34%",
+        "attackDecrease": "45%",
+        "upgradeCost": 110000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 7,
+        "dps": 247,
+        "hp": 1700,
+        "poisonDps": 100,
+        "speedDecrease": "34%",
+        "attackDecrease": "45%",
+        "upgradeCost": 120000,
+        "upgradeTime": 302400,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 8,
+        "dps": 258,
+        "hp": 1800,
+        "poisonDps": 100,
+        "speedDecrease": "34%",
+        "attackDecrease": "45%",
+        "upgradeCost": 130000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 9,
+        "dps": 269,
+        "hp": 1900,
+        "poisonDps": 100,
+        "speedDecrease": "34%",
+        "attackDecrease": "45%",
+        "upgradeCost": 140000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 10,
+        "dps": 280,
+        "hp": 2050,
+        "poisonDps": 120,
+        "speedDecrease": "38%",
+        "attackDecrease": "50%",
+        "upgradeCost": 150000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 7
+      },
+      {
+        "level": 11,
+        "dps": 291,
+        "hp": 2100,
+        "poisonDps": 120,
+        "speedDecrease": "38%",
+        "attackDecrease": "50%",
+        "upgradeCost": 180000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 12,
+        "dps": 302,
+        "hp": 2150,
+        "poisonDps": 120,
+        "speedDecrease": "38%",
+        "attackDecrease": "50%",
+        "upgradeCost": 200000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 13,
+        "dps": 313,
+        "hp": 2200,
+        "poisonDps": 120,
+        "speedDecrease": "38%",
+        "attackDecrease": "50%",
+        "upgradeCost": 220000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 14,
+        "dps": 324,
+        "hp": 2250,
+        "poisonDps": 120,
+        "speedDecrease": "38%",
+        "attackDecrease": "50%",
+        "upgradeCost": 240000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 15,
+        "dps": 335,
+        "hp": 2300,
+        "poisonDps": 140,
+        "speedDecrease": "42%",
+        "attackDecrease": "55%",
+        "upgradeCost": 260000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      }
+    ]
+  },
+  "Phoenix": {
+    "name": "Phoenix",
+    "petHouseLevelRequired": 8,
+    "thUnlock": 15,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 16,
+    "isFlying": true,
+    "ability": "Fiery Finale: When Phoenix is defeated, it transforms into an egg that revives the paired Hero with temporary invulnerability",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 178,
+        "hp": 3120,
+        "reviveDuration": 6.0,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 2,
+        "dps": 186,
+        "hp": 3240,
+        "reviveDuration": 6.0,
+        "upgradeCost": 80000,
+        "upgradeTime": 129600,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 3,
+        "dps": 194,
+        "hp": 3360,
+        "reviveDuration": 6.0,
+        "upgradeCost": 95000,
+        "upgradeTime": 172800,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 4,
+        "dps": 202,
+        "hp": 3480,
+        "reviveDuration": 6.0,
+        "upgradeCost": 110000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 5,
+        "dps": 210,
+        "hp": 3600,
+        "reviveDuration": 7.0,
+        "upgradeCost": 125000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 6,
+        "dps": 218,
+        "hp": 3720,
+        "reviveDuration": 7.0,
+        "upgradeCost": 140000,
+        "upgradeTime": 388800,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 7,
+        "dps": 226,
+        "hp": 3840,
+        "reviveDuration": 7.0,
+        "upgradeCost": 155000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 8,
+        "dps": 234,
+        "hp": 3960,
+        "reviveDuration": 7.0,
+        "upgradeCost": 170000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 9,
+        "dps": 242,
+        "hp": 4080,
+        "reviveDuration": 7.0,
+        "upgradeCost": 180000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 8
+      },
+      {
+        "level": 10,
+        "dps": 250,
+        "hp": 4200,
+        "reviveDuration": 8.0,
+        "upgradeCost": 190000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 8
+      }
+    ]
+  },
+  "Spirit Fox": {
+    "name": "Spirit Fox",
+    "petHouseLevelRequired": 9,
+    "thUnlock": 16,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 24,
+    "isFlying": false,
+    "ability": "Spirit Walk: Makes both Spirit Fox and paired Hero invisible for a short duration, with a 6-second cooldown between activations",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 108,
+        "hp": 1900,
+        "invisibilityDuration": 3.0,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 2,
+        "dps": 116,
+        "hp": 2000,
+        "invisibilityDuration": 3.0,
+        "upgradeCost": 150000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 3,
+        "dps": 124,
+        "hp": 2100,
+        "invisibilityDuration": 3.0,
+        "upgradeCost": 160000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 4,
+        "dps": 132,
+        "hp": 2200,
+        "invisibilityDuration": 3.0,
+        "upgradeCost": 170000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 5,
+        "dps": 140,
+        "hp": 2300,
+        "invisibilityDuration": 3.5,
+        "upgradeCost": 180000,
+        "upgradeTime": 475200,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 6,
+        "dps": 148,
+        "hp": 2400,
+        "invisibilityDuration": 3.5,
+        "upgradeCost": 190000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 7,
+        "dps": 156,
+        "hp": 2500,
+        "invisibilityDuration": 3.5,
+        "upgradeCost": 200000,
+        "upgradeTime": 561600,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 8,
+        "dps": 164,
+        "hp": 2600,
+        "invisibilityDuration": 3.5,
+        "upgradeCost": 210000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 9,
+        "dps": 172,
+        "hp": 2700,
+        "invisibilityDuration": 3.5,
+        "upgradeCost": 220000,
+        "upgradeTime": 648000,
+        "petHouseLevel": 9
+      },
+      {
+        "level": 10,
+        "dps": 180,
+        "hp": 2800,
+        "invisibilityDuration": 4.0,
+        "upgradeCost": 230000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 9
+      }
+    ]
+  },
+  "Angry Jelly": {
+    "name": "Angry Jelly",
+    "petHouseLevelRequired": 10,
+    "thUnlock": 16,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 16,
+    "isFlying": true,
+    "ability": "Brainwash: Temporarily makes the paired Hero prioritize targeting defenses",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 112,
+        "hp": 1450,
+        "brainwashDuration": 25.0,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 2,
+        "dps": 121,
+        "hp": 1525,
+        "brainwashDuration": 25.0,
+        "upgradeCost": 150000,
+        "upgradeTime": 259200,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 3,
+        "dps": 130,
+        "hp": 1600,
+        "brainwashDuration": 25.0,
+        "upgradeCost": 160000,
+        "upgradeTime": 345600,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 4,
+        "dps": 139,
+        "hp": 1675,
+        "brainwashDuration": 25.0,
+        "upgradeCost": 170000,
+        "upgradeTime": 432000,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 5,
+        "dps": 148,
+        "hp": 1750,
+        "brainwashDuration": 30.0,
+        "upgradeCost": 180000,
+        "upgradeTime": 518400,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 6,
+        "dps": 157,
+        "hp": 1825,
+        "brainwashDuration": 30.0,
+        "upgradeCost": 190000,
+        "upgradeTime": 604800,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 7,
+        "dps": 166,
+        "hp": 1900,
+        "brainwashDuration": 30.0,
+        "upgradeCost": 200000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 8,
+        "dps": 175,
+        "hp": 1975,
+        "brainwashDuration": 30.0,
+        "upgradeCost": 210000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 9,
+        "dps": 184,
+        "hp": 2050,
+        "brainwashDuration": 30.0,
+        "upgradeCost": 220000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 10
+      },
+      {
+        "level": 10,
+        "dps": 193,
+        "hp": 2125,
+        "brainwashDuration": 35.0,
+        "upgradeCost": 230000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 10
+      }
+    ]
+  },
+  "Sneezy": {
+    "name": "Sneezy",
+    "petHouseLevelRequired": 11,
+    "thUnlock": 17,
+    "upgradeResource": "Dark Elixir",
+    "movementSpeed": 24,
+    "isFlying": true,
+    "ability": "ACHOO!: Spawns Boogers that target buildings; when paired Hero is knocked out, Sneezy becomes enraged with increased damage at close range",
+    "levels": [
+      {
+        "level": 1,
+        "dps": 270,
+        "hp": 3300,
+        "upgradeCost": 0,
+        "upgradeTime": 0,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 2,
+        "dps": 290,
+        "hp": 3450,
+        "upgradeCost": 200000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 3,
+        "dps": 310,
+        "hp": 3600,
+        "upgradeCost": 220000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 4,
+        "dps": 330,
+        "hp": 3750,
+        "upgradeCost": 240000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 5,
+        "dps": 350,
+        "hp": 3900,
+        "upgradeCost": 260000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 6,
+        "dps": 370,
+        "hp": 4050,
+        "upgradeCost": 280000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 7,
+        "dps": 390,
+        "hp": 4200,
+        "upgradeCost": 300000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 8,
+        "dps": 410,
+        "hp": 4350,
+        "upgradeCost": 320000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 9,
+        "dps": 430,
+        "hp": 4500,
+        "upgradeCost": 340000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      },
+      {
+        "level": 10,
+        "dps": 450,
+        "hp": 4650,
+        "upgradeCost": 360000,
+        "upgradeTime": 691200,
+        "petHouseLevel": 11
+      }
+    ]
+  }
+}

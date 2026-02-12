@@ -1,0 +1,685 @@
+{
+  "meta": {
+    "title": "Clash of Clans UI/Visual Reference",
+    "purpose": "Descriptive reference for building a browser game UI inspired by Clash of Clans visual design language",
+    "sources": [
+      "https://clashofclans.fandom.com/wiki/Clash_of_Clans_Wiki",
+      "https://clashofclans.fandom.com/wiki/Town_Hall/Gallery",
+      "https://clashofclans.fandom.com/wiki/Loading_Screen_Hints"
+    ],
+    "note": "All values are descriptive approximations based on in-game observation, not extracted from game source files"
+  },
+
+  "colorPalette": {
+    "terrain": {
+      "grassLight": "#6BBF4E",
+      "grassDark": "#4CAF50",
+      "grassShadow": "#3E8E41",
+      "dirtPath": "#C8A96E",
+      "water": "#4FC3F7",
+      "sand": "#F5DEB3",
+      "snow": "#F0F8FF",
+      "riverBlue": "#2196F3",
+      "treeGreen": "#2E7D32",
+      "rockGray": "#9E9E9E",
+      "description": "The village base sits on a bright green grassy field. Terrain colors vary slightly depending on obstacles (trees, rocks, bushes). The outer edges of the map show sand/beach transitioning to water."
+    },
+    "uiPanels": {
+      "darkNavyPrimary": "#1A1A2E",
+      "darkCharcoal": "#2D2D44",
+      "panelBackground": "#1E1E32",
+      "tooltipBackground": "rgba(20, 20, 40, 0.92)",
+      "panelBorder": "#4A4A6A",
+      "goldBorder": "#DAA520",
+      "goldBorderHighlight": "#FFD700",
+      "description": "UI panels use a dark navy/charcoal background with gold or bronze borders. The panels are semi-transparent, allowing the village to show through slightly. Corners are typically rounded with a beveled or embossed look."
+    },
+    "resources": {
+      "gold": "#FFD700",
+      "goldDark": "#DAA520",
+      "goldShine": "#FFF8DC",
+      "elixirPurple": "#B044FF",
+      "elixirPink": "#9B30FF",
+      "elixirGlow": "#D68FFF",
+      "darkElixir": "#2D0A4E",
+      "darkElixirDrip": "#1A0033",
+      "darkElixirGlow": "#5C2D91",
+      "gems": "#00E676",
+      "gemsShine": "#69F0AE",
+      "description": "Gold is a rich yellow-gold with occasional shine highlights. Elixir is a vibrant pink-purple with a glowing effect. Dark Elixir is a deep purple-black, almost tar-like. Gems are bright green crystals. Each resource icon in the HUD has a distinct shape: gold is a coin stack, elixir is a flask/drop, dark elixir is a drop with a darker hue, gems are a green diamond."
+    },
+    "healthBars": {
+      "full": "#00FF00",
+      "high": "#66FF00",
+      "medium": "#FFFF00",
+      "low": "#FF6600",
+      "critical": "#FF0000",
+      "background": "#333333",
+      "border": "#000000",
+      "description": "Health bars appear above buildings and troops during attacks. They transition from green (full health) through yellow (medium) to red (critical). The bar sits on a dark background with a thin black border. The bar width is proportional to the unit or building size."
+    },
+    "buttons": {
+      "upgradeGreen": "#4CAF50",
+      "upgradeGreenHover": "#66BB6A",
+      "upgradeGreenBorder": "#388E3C",
+      "buyOrange": "#FF9800",
+      "buyOrangeHover": "#FFB74D",
+      "buyOrangeBorder": "#E65100",
+      "trainBlue": "#2196F3",
+      "trainBlueBorder": "#1565C0",
+      "cancelRed": "#F44336",
+      "cancelRedBorder": "#C62828",
+      "gemPurchaseGreen": "#00C853",
+      "infoBlue": "#42A5F5",
+      "disabledGray": "#757575",
+      "description": "Buttons use a bold, 3D beveled style with darker borders on the bottom and right to create a raised appearance. Upgrade buttons are bright green. Purchase/buy buttons are orange. Train buttons are blue. Cancel buttons are red. Disabled buttons are grayed out. All buttons have white text with a slight shadow."
+    },
+    "text": {
+      "primary": "#FFFFFF",
+      "secondary": "#B0BEC5",
+      "resourceGold": "#FFD700",
+      "resourceElixir": "#E040FB",
+      "resourceDarkElixir": "#CE93D8",
+      "insufficient": "#FF0000",
+      "levelBadge": "#FFD700",
+      "timerText": "#FFFFFF",
+      "damageNumbers": "#FF0000",
+      "healNumbers": "#00FF00",
+      "xpGreen": "#76FF03",
+      "clanBadgeText": "#FFFFFF",
+      "description": "Primary text is white with a subtle dark outline/shadow for readability over the game background. Resource numbers use the color of their respective resource. Insufficient resource amounts turn red. Level badges use gold text inside a gold circle. Floating damage numbers during attacks appear in red, healing in green."
+    },
+    "backgrounds": {
+      "loadingScreen": "#1A237E",
+      "menuOverlay": "rgba(0, 0, 0, 0.7)",
+      "chatBackground": "#263238",
+      "clanBackground": "#1B2631",
+      "leagueGold": "#FFD54F",
+      "leagueSilver": "#B0BEC5",
+      "leagueBronze": "#A1887F",
+      "description": "Loading screens use a deep blue background with the Supercell logo and game art. Menu overlays darken the background. Chat panels use a dark blue-gray. League badges use metallic colors corresponding to their tier."
+    }
+  },
+
+  "grid": {
+    "dimensions": "44x44",
+    "totalTiles": 1936,
+    "perspective": "isometric pseudo-3D",
+    "tileShape": "Diamond/rhombus when viewed from the isometric angle",
+    "viewAngle": "Approximately 30-degree top-down isometric angle, looking from the south-southwest",
+    "rotation": "The camera angle is fixed; players cannot rotate the view",
+    "zoom": "Players can pinch-to-zoom between a close-up view and a full village overview",
+    "edgeBuffer": "A border of impassable terrain (trees, rocks, water) surrounds the buildable area",
+    "description": "The village sits on an isometric grid where each tile appears as a diamond shape. Buildings snap to grid positions. The grid is not visible by default but becomes apparent when moving buildings in edit mode, where green/red tile highlights show valid/invalid placement."
+  },
+
+  "buildingSizes": {
+    "1x1": {
+      "examples": ["Wall segment"],
+      "description": "Walls occupy a single tile and connect visually to adjacent wall segments, forming continuous lines or enclosures."
+    },
+    "2x2": {
+      "examples": [
+        "Spring Trap", "Bomb", "Seeking Air Mine", "Air Bomb",
+        "Giant Bomb", "Skeleton Trap", "Tornado Trap", "Builder's Hut"
+      ],
+      "description": "Traps and small utility buildings. Many traps are hidden from attackers until triggered."
+    },
+    "3x3": {
+      "examples": [
+        "Cannon", "Archer Tower", "Mortar", "Air Defense",
+        "Wizard Tower", "Hidden Tesla", "X-Bow", "Inferno Tower",
+        "Bomb Tower", "Air Sweeper",
+        "Gold Mine", "Elixir Collector", "Dark Elixir Drill",
+        "Gold Storage", "Elixir Storage", "Dark Elixir Storage",
+        "Barracks", "Dark Barracks", "Army Camp", "Laboratory",
+        "Spell Factory", "Dark Spell Factory", "Workshop",
+        "Clan Castle"
+      ],
+      "description": "The most common building footprint. Most defenses, resource buildings, and army buildings use this size. They have enough visual real estate to show detailed artwork and level-specific decoration."
+    },
+    "4x4": {
+      "examples": [
+        "Town Hall", "Eagle Artillery", "Scattershot",
+        "Monolith", "Spell Tower"
+      ],
+      "description": "The largest buildings. The Town Hall is the centerpiece of the village and visually the most elaborate. These buildings command visual attention and are typically placed centrally or in protected positions."
+    },
+    "5x5": {
+      "examples": ["Army Camp (visual footprint)"],
+      "description": "Army Camps have a slightly larger visual footprint showing tents and resting troops, though their placement grid may differ."
+    }
+  },
+
+  "hud": {
+    "topBar": {
+      "layout": "Horizontal bar across the top of the screen, left to right",
+      "background": "Semi-transparent dark gradient, darker at top fading to transparent",
+      "elements": [
+        {
+          "id": "shield_timer",
+          "position": "Far left",
+          "icon": "Blue shield icon with clock overlay",
+          "display": "Remaining shield/guard time (e.g., '3h 22m')",
+          "interaction": "Tap to see shield details, Personal Break Timer info"
+        },
+        {
+          "id": "star_bonus",
+          "position": "Left of center",
+          "icon": "Gold star with treasure chest",
+          "display": "Star count progress (e.g., '2/5 stars')",
+          "interaction": "Tap to view star bonus reward details"
+        },
+        {
+          "id": "trophy_count",
+          "position": "Below shield, left area",
+          "icon": "Gold/silver trophy",
+          "display": "Current trophy count number",
+          "interaction": "Tap to view league standings"
+        },
+        {
+          "id": "gem_count",
+          "position": "Right of center, before resources",
+          "icon": "Green diamond/gem crystal",
+          "display": "Current gem count (white text)",
+          "interaction": "Tap to open gem shop",
+          "plusButton": "Small green '+' circle to buy more gems"
+        },
+        {
+          "id": "gold_counter",
+          "position": "Right side, first resource bar",
+          "icon": "Gold coin stack icon",
+          "display": "Current/Max gold (e.g., '1,245,000/6,000,000')",
+          "barColor": "Gold/yellow fill bar",
+          "interaction": "Tap to view gold details"
+        },
+        {
+          "id": "elixir_counter",
+          "position": "Right side, below gold",
+          "icon": "Pink-purple elixir flask/drop",
+          "display": "Current/Max elixir (e.g., '3,500,000/6,000,000')",
+          "barColor": "Purple/pink fill bar",
+          "interaction": "Tap to view elixir details"
+        },
+        {
+          "id": "dark_elixir_counter",
+          "position": "Right side, below elixir",
+          "icon": "Dark purple drop icon",
+          "display": "Current/Max dark elixir (e.g., '120,000/200,000')",
+          "barColor": "Dark purple fill bar",
+          "interaction": "Tap to view dark elixir details",
+          "availability": "Unlocked at Town Hall 7"
+        },
+        {
+          "id": "builder_count",
+          "position": "Far right or right area",
+          "icon": "Builder's hammer icon",
+          "display": "Idle/Total builders (e.g., '2/5')",
+          "interaction": "Tap to cycle through active builder tasks",
+          "gemOption": "Option to gem (speed up) builder tasks"
+        }
+      ]
+    },
+    "bottomBar": {
+      "layout": "Horizontal bar across the bottom of the screen",
+      "background": "Semi-transparent dark panel",
+      "elements": [
+        {
+          "id": "attack_button",
+          "position": "Bottom left or center-left",
+          "icon": "Crossed swords on a red/orange shield",
+          "display": "Large prominent button",
+          "interaction": "Tap to search for a multiplayer opponent",
+          "description": "The primary action button, visually the most prominent element in the bottom bar. Uses a bold red/orange color to attract attention."
+        },
+        {
+          "id": "army_overview",
+          "position": "Bottom center or center-right",
+          "icon": "Troop silhouettes or army camp icon",
+          "display": "Shows trained troop capacity",
+          "interaction": "Tap to open army training/management screen"
+        },
+        {
+          "id": "clan_chat",
+          "position": "Bottom right",
+          "icon": "Chat bubble with clan badge",
+          "display": "Notification badge for unread messages",
+          "interaction": "Tap to open clan chat panel (slides in from right)"
+        },
+        {
+          "id": "settings_gear",
+          "position": "Bottom right corner",
+          "icon": "Gear/cog icon",
+          "display": "Small icon",
+          "interaction": "Tap to open settings menu"
+        }
+      ]
+    },
+    "contextualElements": {
+      "builderTimers": "When builders are active, small countdown timers appear near the bottom showing remaining upgrade/build time for each active builder",
+      "eventBanner": "Seasonal or special event banners occasionally appear at the top of the screen with animated effects",
+      "notificationBadges": "Red circles with white numbers appear on buttons when actions are available (e.g., troops ready, upgrade complete)"
+    }
+  },
+
+  "typography": {
+    "primaryFont": {
+      "name": "Supercell Magic",
+      "style": "Bold, rounded, slightly cartoonish sans-serif",
+      "usage": "Headers, button text, building names, resource numbers",
+      "description": "Supercell's proprietary font family. Characters are thick, rounded, and highly readable even at small sizes. The font has a playful, hand-drawn quality that matches the game's cartoon aesthetic. All caps is common for headers and buttons."
+    },
+    "numberFormatting": {
+      "standard": "Comma-separated thousands (e.g., '1,245,000')",
+      "abbreviated": "K for thousands, M for millions (e.g., '1.2M', '500K')",
+      "abbreviated_usage": "Used in resource counters when numbers get large, in loot displays during attacks, and in upgrade cost previews",
+      "timer_format": "Days:Hours:Minutes (e.g., '2d 14h', '8h 30m', '45m', '30s')",
+      "description": "Numbers use a slightly condensed variant of the main font. Large numbers are typically abbreviated. Timer countdowns show the two most significant units."
+    },
+    "levelBadge": {
+      "shape": "Small circle or rounded square",
+      "background": "#FFD700 gold fill",
+      "border": "#DAA520 darker gold border",
+      "text": "White number with dark outline",
+      "position": "Bottom-left or bottom-right corner of the building sprite",
+      "description": "Every building displays its current level in a small gold badge. The badge uses a bold white number with a dark outline for contrast against the gold background."
+    },
+    "buildingNames": {
+      "style": "Bold, white, centered above building info panel",
+      "shadow": "Dark text shadow or outline for readability",
+      "size": "Medium-large, prominent in the info popup"
+    },
+    "tooltipText": {
+      "style": "Regular weight, white or light gray",
+      "size": "Smaller than headers",
+      "usage": "Stat descriptions, info text, help text"
+    },
+    "damageNumbers": {
+      "style": "Bold, floating upward with fade-out animation",
+      "color": "Red for damage, green for healing",
+      "animation": "Pops up from the point of impact and drifts upward while fading out over about 1 second"
+    }
+  },
+
+  "uiPanels": {
+    "buildingInfoPopup": {
+      "trigger": "Tap on any building in your own village",
+      "appearance": {
+        "background": "Dark semi-transparent panel (navy/charcoal), roughly 60-70% of screen width",
+        "border": "Gold/bronze ornamental border with corner flourishes",
+        "position": "Appears above or below the selected building, connected by a small triangular pointer",
+        "animation": "Pops in with a slight scale-up bounce effect"
+      },
+      "content": {
+        "header": "Building name in bold white text, centered",
+        "levelIndicator": "Level number displayed below the name (e.g., 'Level 12')",
+        "statsSection": [
+          {
+            "label": "Damage Per Second",
+            "icon": "Sword/crosshair icon",
+            "value": "White number text"
+          },
+          {
+            "label": "Hitpoints",
+            "icon": "Heart/shield icon",
+            "value": "White number text"
+          },
+          {
+            "label": "Range",
+            "icon": "Target/range icon",
+            "value": "Number in tiles"
+          },
+          {
+            "label": "Damage Type",
+            "icon": "Varies (single target vs splash)",
+            "value": "Text description"
+          },
+          {
+            "label": "Targets",
+            "icon": "Ground/air icons",
+            "value": "Ground, Air, or Ground & Air"
+          }
+        ],
+        "upgradeButton": {
+          "color": "Bright green (#4CAF50)",
+          "text": "UPGRADE",
+          "costDisplay": "Resource icon + amount (e.g., gold coin icon + '3,500,000')",
+          "timeDisplay": "Clock icon + duration (e.g., '5d 12h')",
+          "disabledState": "Grayed out if insufficient resources or no available builder",
+          "description": "Large, prominent button at the bottom of the info popup. Shows the resource cost and upgrade time. If the player lacks resources, the cost text turns red."
+        },
+        "infoButton": {
+          "icon": "Blue 'i' circle icon",
+          "position": "Upper right of the popup or alongside upgrade button",
+          "action": "Opens a detailed stats page showing all levels and stats progression"
+        }
+      },
+      "actionButtons": {
+        "description": "Below or around the info panel, contextual action buttons appear",
+        "examples": [
+          "Boost (for resource collectors, uses gems or magic items)",
+          "Cancel (if upgrade is in progress)",
+          "Finish Now (gem cost to instantly complete)"
+        ]
+      }
+    },
+    "upgradeConfirmation": {
+      "trigger": "After tapping the upgrade button",
+      "content": "Shows before/after stats comparison, cost, and time. Requires confirmation tap.",
+      "description": "A secondary confirmation panel showing the stat improvements from upgrading."
+    },
+    "shopPanel": {
+      "trigger": "Tap the shop button (usually accessed from builder or main menu)",
+      "layout": "Full-screen overlay with category tabs across the top",
+      "categories": [
+        {
+          "name": "Defenses",
+          "icon": "Shield/cannon icon",
+          "items": "Defensive buildings available to build at current TH level"
+        },
+        {
+          "name": "Army",
+          "icon": "Sword/troop icon",
+          "items": "Army camps, barracks, spell factories, hero altars"
+        },
+        {
+          "name": "Resources",
+          "icon": "Gold coin icon",
+          "items": "Gold mines, elixir collectors, storages, drills"
+        },
+        {
+          "name": "Traps",
+          "icon": "Bomb/spring icon",
+          "items": "All trap types"
+        },
+        {
+          "name": "Decorations",
+          "icon": "Flower/flag icon",
+          "items": "Decorative items and special event items"
+        }
+      ],
+      "itemDisplay": {
+        "thumbnail": "Building preview image",
+        "name": "Building name below thumbnail",
+        "cost": "Resource icon + amount, or gem icon for special items",
+        "available": "Green highlight if buildable, grayed if max count reached or TH requirement not met",
+        "thRequirement": "Shows required Town Hall level if locked"
+      }
+    },
+    "armyOverview": {
+      "trigger": "Tap the army button in the bottom bar",
+      "layout": "Full-screen panel with sections for troops, spells, siege machines, and heroes",
+      "sections": [
+        {
+          "name": "Troops",
+          "display": "Grid of troop icons with trained count overlay, organized by barracks type (regular and dark)",
+          "capacity": "Shows current/max housing space (e.g., '200/200')"
+        },
+        {
+          "name": "Spells",
+          "display": "Grid of spell icons with brew count, organized by regular and dark spells",
+          "capacity": "Shows current/max spell slots (e.g., '11/11')"
+        },
+        {
+          "name": "Siege Machines",
+          "display": "Grid of siege machine icons",
+          "capacity": "Shows current/max siege slots (e.g., '1/1')"
+        },
+        {
+          "name": "Heroes",
+          "display": "Hero portraits with level badge and ability level",
+          "status": "Shows if hero is upgrading, sleeping, or ready"
+        }
+      ],
+      "trainButton": {
+        "color": "Blue (#2196F3)",
+        "text": "TRAIN",
+        "action": "Opens the troop training queue interface"
+      },
+      "quickTrain": {
+        "description": "Preset army compositions that can be trained with a single tap. Three customizable slots."
+      }
+    },
+    "laboratoryPanel": {
+      "trigger": "Tap on the Laboratory building",
+      "layout": "Grid of troop and spell icons showing upgrade availability",
+      "itemDisplay": {
+        "available": "Full color icon with green arrow indicator",
+        "maxLevel": "Icon with gold star or checkmark",
+        "locked": "Grayed out or silhouetted icon",
+        "inProgress": "Timer overlay showing remaining research time"
+      },
+      "upgradeInfo": "Shows current level, next level stats, cost (elixir or dark elixir), and research time"
+    },
+    "clanCastlePanel": {
+      "trigger": "Tap on the Clan Castle",
+      "content": "Shows donated troops stored inside with icons and levels",
+      "requestButton": "Button to request troops from clanmates with a text field for the request message"
+    }
+  },
+
+  "attackUI": {
+    "preAttack": {
+      "scoutView": {
+        "description": "Before deploying troops, the player can scout the enemy base. The base is shown with all buildings visible (except hidden traps). A 30-second scout timer counts down before the battle timer starts.",
+        "elements": [
+          "Enemy player name and clan at top",
+          "Trophy offer (gain/loss) displayed",
+          "Available loot (gold, elixir, dark elixir) shown with icons",
+          "Scout timer countdown",
+          "'Next' button to skip to another opponent (costs gold)"
+        ]
+      },
+      "troopSwap": {
+        "description": "Before attacking, players can tap green arrows to rearrange the order of troops in the deployment bar"
+      }
+    },
+    "duringAttack": {
+      "topBar": {
+        "elements": [
+          {
+            "id": "destruction_percentage",
+            "position": "Top left",
+            "display": "Percentage number with % sign (e.g., '47%')",
+            "style": "Large white text, updates in real-time as buildings are destroyed"
+          },
+          {
+            "id": "star_count",
+            "position": "Top center",
+            "display": "Three star outlines that fill in gold as earned (1 star = 50% destruction or Town Hall, 2 stars = Town Hall + 50%, 3 stars = 100%)",
+            "style": "Gold filled stars vs gray empty star outlines"
+          },
+          {
+            "id": "battle_timer",
+            "position": "Top center, below stars",
+            "display": "Countdown from 3:00 (three minutes)",
+            "style": "White text, turns red in the final 60 seconds",
+            "format": "M:SS format"
+          },
+          {
+            "id": "loot_gained",
+            "position": "Top right area",
+            "display": "Running total of gold, elixir, and dark elixir looted so far",
+            "style": "Resource icons with white numbers"
+          }
+        ]
+      },
+      "deploymentBar": {
+        "position": "Bottom of screen, horizontal scrollable bar",
+        "background": "Dark semi-transparent panel",
+        "troopSlots": {
+          "display": "Square icons showing troop portrait",
+          "countBadge": "Small number in corner showing remaining count of that troop type",
+          "levelBadge": "Small level indicator on the troop icon",
+          "selectedState": "Highlighted border/glow when selected for deployment",
+          "emptyState": "Grayed out or removed after all units of that type are deployed",
+          "description": "Troops are displayed as square icons in the bottom bar. Tapping a troop selects it (highlighted), then tapping on the battlefield deploys it. The remaining count decreases with each deployment."
+        },
+        "heroSlots": {
+          "display": "Larger portrait icons for heroes",
+          "abilityIndicator": "Glowing border or special icon when ability is ready to activate",
+          "abilityActivation": "Tap the hero portrait during battle to trigger their special ability",
+          "cooldown": "After ability use, portrait dims or shows cooldown state",
+          "description": "Heroes have larger icons than regular troops. Their ability can be activated by tapping their portrait once they are deployed. An iron fist (Barbarian King), golden arrow (Archer Queen), or similar icon indicates the ability is ready."
+        },
+        "spellSlots": {
+          "display": "Circular icons showing spell image, positioned after or alongside troop slots",
+          "countBadge": "Number of available casts",
+          "selectedState": "Highlighted when selected, then tap on battlefield to place",
+          "rangeIndicator": "When selected, a radius circle may appear on the battlefield showing the spell's area of effect",
+          "description": "Spells are displayed as circular icons. Selecting a spell and tapping the battlefield places it at that location. Spells affect a circular area."
+        },
+        "siegeSlot": {
+          "display": "Larger icon for the siege machine",
+          "position": "Typically at one end of the deployment bar",
+          "description": "The siege machine slot shows the selected siege machine. It must be deployed with or after Clan Castle troops."
+        }
+      },
+      "endBattleButton": {
+        "position": "Top right or upper right corner of the screen",
+        "icon": "White flag / surrender flag icon",
+        "color": "Red background with white flag icon",
+        "confirmation": "Tapping triggers a confirmation dialog ('End Battle?' with Yes/No)",
+        "description": "Allows the player to end the battle early, forfeiting remaining deployment time but keeping any loot and stars already earned."
+      },
+      "pauseNote": "There is no pause button during multiplayer attacks; the timer runs continuously"
+    },
+    "postAttack": {
+      "resultsScreen": {
+        "background": "Dark overlay with results panel",
+        "elements": [
+          "Stars earned (1-3, displayed prominently with animation)",
+          "Destruction percentage",
+          "Loot gained (gold, elixir, dark elixir amounts)",
+          "Trophy change (+/- trophies)",
+          "Bonus loot (if star bonus completed)",
+          "XP gained"
+        ],
+        "buttons": [
+          {
+            "label": "Return Home",
+            "color": "Green",
+            "action": "Returns to village"
+          },
+          {
+            "label": "Watch Replay",
+            "color": "Blue",
+            "action": "Replays the attack"
+          },
+          {
+            "label": "Share Replay",
+            "color": "Orange/yellow",
+            "action": "Shares replay to clan chat"
+          }
+        ]
+      },
+      "replayControls": {
+        "description": "During replay playback, controls appear for play/pause, speed (1x, 2x, 4x), and a timeline scrubber bar",
+        "elements": ["Play/Pause button", "Speed toggle (1x/2x/4x)", "Timeline progress bar", "Exit replay button"]
+      }
+    }
+  },
+
+  "villageEditing": {
+    "enterEditMode": "Long-press on any building, or tap the edit mode button (pencil/wrench icon)",
+    "editModeUI": {
+      "gridOverlay": "Faint grid lines become visible on the terrain, showing tile boundaries",
+      "validPlacement": "Green highlighted tiles indicate the building can be placed here",
+      "invalidPlacement": "Red highlighted tiles indicate the building cannot be placed here (occupied or out of bounds)",
+      "wallTool": "Special wall placement mode allows rapid sequential wall placement by dragging",
+      "selectAll": "Button to select all buildings of a certain type",
+      "confirmButton": "Green checkmark to confirm the new layout",
+      "cancelButton": "Red X to revert changes and exit edit mode",
+      "stashButton": "A 'stash' area to temporarily store buildings off the grid while rearranging"
+    }
+  },
+
+  "animations": {
+    "buildingUpgrade": {
+      "description": "During upgrade, the building is covered by a builder's scaffolding (wooden frame with tarp). A builder character hammers at the building. A timer and progress bar appear above."
+    },
+    "resourceCollection": {
+      "description": "Resource collectors show animated elements: gold mines have spinning gears, elixir collectors have bubbling liquid, dark elixir drills have pumping motion. When resources are ready to collect, a resource icon floats above the building and can be tapped."
+    },
+    "troopDeployment": {
+      "description": "Troops appear with a small poof/smoke animation at the deployment point. They then begin their AI-driven movement toward targets."
+    },
+    "defenseFireing": {
+      "description": "Each defense has a unique firing animation: cannons show a muzzle flash and cannonball trajectory, archer towers show arrow flight, wizard towers show magical bolts, inferno towers show continuous beam or multi-target beams, eagle artillery shows long-range explosive shells with a targeting reticle on the impact point."
+    },
+    "destruction": {
+      "description": "Destroyed buildings collapse with debris particles, dust clouds, and a brief fire effect. The rubble remains for the duration of the attack."
+    },
+    "starEarned": {
+      "description": "When a star is earned during attack, it flies into position at the top of the screen with a golden burst animation and sparkle effect."
+    },
+    "lootCollection": {
+      "description": "After an attack, loot numbers fly upward from storage buildings as they are destroyed, with gold coins, elixir drops, or dark elixir drops scattering visually."
+    }
+  },
+
+  "specialScreens": {
+    "loadingScreen": {
+      "background": "Deep blue gradient background",
+      "elements": [
+        "Clash of Clans logo (bold, 3D metallic text with sword crossing through)",
+        "Loading bar at bottom (gold fill on dark background)",
+        "Gameplay tip/hint text in white below the loading bar",
+        "Character art (varies by season/update)",
+        "Supercell logo"
+      ]
+    },
+    "warScreen": {
+      "layout": "Split view showing your clan (left) vs enemy clan (right)",
+      "elements": [
+        "Clan badges and names at top",
+        "Star count comparison",
+        "Member list with attack status indicators",
+        "War timer (preparation/battle/war ended phases)",
+        "War map showing individual bases"
+      ]
+    },
+    "clanCapital": {
+      "description": "A separate village view with a different terrain aesthetic (mountainous/elevated). Uses the same isometric perspective but with a different color palette (more earthy, stone textures). The HUD adapts to show capital-specific resources (Capital Gold, Raid Medals)."
+    },
+    "seasonPass": {
+      "layout": "Horizontal scrolling reward track with free and gold tiers",
+      "elements": [
+        "Reward nodes connected by a path",
+        "Free tier (top row) and Gold tier (bottom row)",
+        "Current progress indicator",
+        "Challenge list for earning points"
+      ]
+    }
+  },
+
+  "iconography": {
+    "resourceIcons": {
+      "gold": "Stack of gold coins, circular, warm yellow-gold tone",
+      "elixir": "Pink-purple flask or elongated drop shape with a glow effect",
+      "darkElixir": "Dark purple-black drop shape, denser and darker than regular elixir",
+      "gems": "Green faceted diamond/crystal shape with a shine highlight",
+      "capitalGold": "Golden gear or specialized coin with a star emblem"
+    },
+    "statusIcons": {
+      "shield": "Blue rounded shield shape",
+      "guard": "Blue shield with swords crossed behind it",
+      "clock": "Analog clock face for timers",
+      "builder": "Yellow hard hat or hammer icon",
+      "star": "Five-pointed star, gold filled when earned, gray outline when not",
+      "trophy": "Golden cup trophy for rankings",
+      "sword": "Crossed swords for attack/combat contexts"
+    },
+    "targetingIcons": {
+      "ground": "Boot or ground symbol indicating ground-targeting",
+      "air": "Wing or cloud symbol indicating air-targeting",
+      "groundAndAir": "Combined boot+wing symbol"
+    }
+  },
+
+  "responsiveLayout": {
+    "tabletVsPhone": "The same layout scales proportionally. On tablets, more of the village is visible at any zoom level. On phones, the HUD elements are proportionally larger to remain tappable.",
+    "landscapeOrientation": "The game is played exclusively in landscape orientation.",
+    "safeAreas": "UI elements respect device safe areas (notches, rounded corners) on modern devices."
+  }
+}

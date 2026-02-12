@@ -1,0 +1,355 @@
+[
+  {
+    "name": "Scattershot",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "area_splash",
+    "thUnlock": 13,
+    "range": { "min": 3, "max": 10 },
+    "attackSpeed": 3.2,
+    "tileSize": "3x3",
+    "specialMechanics": "Projectiles create a cone-shaped splash behind the target in a 90-degree arc. Troops behind the initial target take splash damage while those next to or in front remain unharmed. Can only damage ground or air per shot, not both simultaneously. Has 90 rounds of ammunition.",
+    "maxCountByTH": {
+      "13": 2,
+      "14": 2,
+      "15": 2,
+      "16": 2,
+      "17": 2,
+      "18": 2
+    },
+    "levels": [
+      { "level": 1, "dps": 125, "damagePerShot": 400, "splashDamage": 300, "hitpoints": 3600, "upgradeCost": 8000000, "upgradeResource": "Gold", "upgradeTime": 518400, "thRequired": 13 },
+      { "level": 2, "dps": 150, "damagePerShot": 480, "splashDamage": 360, "hitpoints": 4200, "upgradeCost": 9000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 13 },
+      { "level": 3, "dps": 170, "damagePerShot": 544, "splashDamage": 380, "hitpoints": 4800, "upgradeCost": 11000000, "upgradeResource": "Gold", "upgradeTime": 648000, "thRequired": 14 },
+      { "level": 4, "dps": 175, "damagePerShot": 560, "splashDamage": 400, "hitpoints": 5100, "upgradeCost": 11500000, "upgradeResource": "Gold", "upgradeTime": 691200, "thRequired": 15 },
+      { "level": 5, "dps": 180, "damagePerShot": 576, "splashDamage": 420, "hitpoints": 5410, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 734400, "thRequired": 16 },
+      { "level": 6, "dps": 185, "damagePerShot": 592, "splashDamage": 440, "hitpoints": 5600, "upgradeCost": 16500000, "upgradeResource": "Gold", "upgradeTime": 907200, "thRequired": 17 }
+    ]
+  },
+  {
+    "name": "Spell Tower",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "spell_based",
+    "thUnlock": 15,
+    "range": 9,
+    "attackSpeed": null,
+    "tileSize": "2x2",
+    "specialMechanics": "Each level unlocks a new selectable spell mode. Upgrading does not improve existing spell power, only unlocks new options. Modes: Rage (level 1), Poison (level 2), Invisibility (level 3).",
+    "spellModes": {
+      "rage": {
+        "unlockedAtLevel": 1,
+        "spellRadius": 5,
+        "duration": 18,
+        "damageIncrease": 0.60,
+        "rechargeTime": 70
+      },
+      "poison": {
+        "unlockedAtLevel": 2,
+        "spellRadius": 5,
+        "duration": 12,
+        "maxDPS": 60,
+        "speedDecrease": 0.35,
+        "attackRateDecrease": 0.25,
+        "rechargeTime": 70
+      },
+      "invisibility": {
+        "unlockedAtLevel": 3,
+        "spellRadius": 4.5,
+        "duration": 4.5,
+        "rechargeTime": 50
+      }
+    },
+    "maxCountByTH": {
+      "15": 2,
+      "16": 2,
+      "17": 2,
+      "18": 2
+    },
+    "levels": [
+      { "level": 1, "hitpoints": 2500, "upgradeCost": 9000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 15 },
+      { "level": 2, "hitpoints": 2800, "upgradeCost": 11000000, "upgradeResource": "Gold", "upgradeTime": 691200, "thRequired": 15 },
+      { "level": 3, "hitpoints": 3100, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 734400, "thRequired": 15 }
+    ]
+  },
+  {
+    "name": "Monolith",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "single_target",
+    "thUnlock": 15,
+    "range": 11,
+    "attackSpeed": 1.5,
+    "tileSize": "3x3",
+    "specialMechanics": "Deals flat DPS plus additional damage equal to a percentage of the target's maximum hitpoints per hit. Stronger targets take proportionally more damage. Hitpoints are always multiples of 101. Projectile color changes based on target HP: dark teal for low, indigo for medium, dark purple for high.",
+    "maxCountByTH": {
+      "15": 1,
+      "16": 1,
+      "17": 1,
+      "18": 1
+    },
+    "levels": [
+      { "level": 1, "dps": 150, "damagePerShot": 225, "hpDamagePercent": 0.11, "hitpoints": 4747, "upgradeCost": 200000, "upgradeResource": "Dark Elixir", "upgradeTime": 604800, "thRequired": 15 },
+      { "level": 2, "dps": 175, "damagePerShot": 262.5, "hpDamagePercent": 0.12, "hitpoints": 5050, "upgradeCost": 250000, "upgradeResource": "Dark Elixir", "upgradeTime": 691200, "thRequired": 15 },
+      { "level": 3, "dps": 193, "damagePerShot": 289.5, "hpDamagePercent": 0.13, "hitpoints": 5353, "upgradeCost": 260000, "upgradeResource": "Dark Elixir", "upgradeTime": 777600, "thRequired": 16 },
+      { "level": 4, "dps": 209, "damagePerShot": 313.5, "hpDamagePercent": 0.14, "hitpoints": 5656, "upgradeCost": 300000, "upgradeResource": "Dark Elixir", "upgradeTime": 1036800, "thRequired": 17 }
+    ],
+    "superchargeLevels": [
+      { "level": "SC1", "dps": 219, "damagePerShot": 328.5, "hpDamagePercent": 0.14, "hitpoints": 5656, "upgradeCost": 150000, "upgradeResource": "Dark Elixir", "upgradeTime": 432000, "thRequired": 17 },
+      { "level": "SC2", "dps": 219, "damagePerShot": 328.5, "hpDamagePercent": 0.14, "hitpoints": 5858, "upgradeCost": 130000, "upgradeResource": "Dark Elixir", "upgradeTime": 604800, "thRequired": 17 }
+    ]
+  },
+  {
+    "name": "Multi-Archer Tower",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "multiple_targets",
+    "thUnlock": 16,
+    "range": 10,
+    "attackSpeed": 0.6,
+    "tileSize": "3x3",
+    "numberOfTargets": 3,
+    "specialMechanics": "Three Archers fire simultaneously at up to 3 different targets. DPS listed is per archer. Dynamic retargeting based on unit proximity.",
+    "maxCountByTH": {
+      "16": 2,
+      "17": 3,
+      "18": 3
+    },
+    "levels": [
+      { "level": 1, "dpsPerArcher": 100, "damagePerHit": 60, "hitpoints": 5000, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 16 },
+      { "level": 2, "dpsPerArcher": 108, "damagePerHit": 65, "hitpoints": 5200, "upgradeCost": 13000000, "upgradeResource": "Gold", "upgradeTime": 691200, "thRequired": 16 },
+      { "level": 3, "dpsPerArcher": 116, "damagePerHit": 70, "hitpoints": 5400, "upgradeCost": 17500000, "upgradeResource": "Gold", "upgradeTime": 928800, "thRequired": 17 },
+      { "level": 4, "dpsPerArcher": 121, "damagePerHit": 73, "hitpoints": 5500, "upgradeCost": 27000000, "upgradeResource": "Gold", "upgradeTime": 1209600, "thRequired": 18 }
+    ],
+    "superchargeLevels": [
+      { "level": "SC1", "dpsPerArcher": 126, "damagePerHit": 76, "hitpoints": 5500, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 518400, "thRequired": 18 },
+      { "level": "SC2", "dpsPerArcher": 126, "damagePerHit": 76, "hitpoints": 5600, "upgradeCost": 10000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 18 }
+    ]
+  },
+  {
+    "name": "Ricochet Cannon",
+    "category": "defense",
+    "targetType": "ground",
+    "damageType": "ricochet_shot",
+    "thUnlock": 16,
+    "range": 9,
+    "attackSpeed": 0.8,
+    "tileSize": "3x3",
+    "specialMechanics": "Projectile ricochets to a second target within 3.5 tiles of the initial target. Ricochet deals 70% of primary damage (30% decay per bounce).",
+    "maxCountByTH": {
+      "16": 2,
+      "17": 3,
+      "18": 3
+    },
+    "levels": [
+      { "level": 1, "dps": 360, "damagePerShot": 288, "secondaryDamage": 201.6, "hitpoints": 5400, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 16 },
+      { "level": 2, "dps": 390, "damagePerShot": 312, "secondaryDamage": 218.4, "hitpoints": 5700, "upgradeCost": 13000000, "upgradeResource": "Gold", "upgradeTime": 691200, "thRequired": 16 },
+      { "level": 3, "dps": 405, "damagePerShot": 324, "secondaryDamage": 226.8, "hitpoints": 6000, "upgradeCost": 17500000, "upgradeResource": "Gold", "upgradeTime": 928800, "thRequired": 17 },
+      { "level": 4, "dps": 412, "damagePerShot": 329.6, "secondaryDamage": 230.72, "hitpoints": 6100, "upgradeCost": 26500000, "upgradeResource": "Gold", "upgradeTime": 1166400, "thRequired": 18 }
+    ],
+    "superchargeLevels": [
+      { "level": "SC1", "dps": 420, "damagePerShot": 336, "secondaryDamage": 235.2, "hitpoints": 6100, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 518400, "thRequired": 18 },
+      { "level": "SC2", "dps": 420, "damagePerShot": 336, "secondaryDamage": 235.2, "hitpoints": 6250, "upgradeCost": 10000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 18 }
+    ]
+  },
+  {
+    "name": "Multi-Gear Tower",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "single_target",
+    "thUnlock": 17,
+    "tileSize": "3x3",
+    "specialMechanics": "Switchable between Long Range and Fast Attack modes. Created by merging geared-up Cannon and Archer Tower at level 21. The merging process cannot be undone.",
+    "modes": {
+      "longRange": {
+        "range": 12,
+        "attackSpeed": 1.0
+      },
+      "fastAttack": {
+        "range": 8,
+        "attackSpeed": 0.192,
+        "timeBetweenBursts": 0.383,
+        "shotsPerBurst": 4
+      }
+    },
+    "maxCountByTH": {
+      "17": 1,
+      "18": 1
+    },
+    "levels": [
+      {
+        "level": 1,
+        "longRange": { "dps": 350, "damagePerHit": 350 },
+        "fastAttack": { "dps": 540, "damagePerHit": 155 },
+        "hitpoints": 4000,
+        "upgradeCost": 17000000,
+        "upgradeResource": "Gold",
+        "upgradeTime": 864000,
+        "thRequired": 17
+      },
+      {
+        "level": 2,
+        "longRange": { "dps": 370, "damagePerHit": 370 },
+        "fastAttack": { "dps": 574, "damagePerHit": 165 },
+        "hitpoints": 4200,
+        "upgradeCost": 18000000,
+        "upgradeResource": "Gold",
+        "upgradeTime": 928800,
+        "thRequired": 17
+      },
+      {
+        "level": 3,
+        "longRange": { "dps": 390, "damagePerHit": 390 },
+        "fastAttack": { "dps": 588, "damagePerHit": 169 },
+        "hitpoints": 4350,
+        "upgradeCost": 28000000,
+        "upgradeResource": "Gold",
+        "upgradeTime": 1209600,
+        "thRequired": 18
+      }
+    ],
+    "superchargeLevels": [
+      {
+        "level": "SC1",
+        "longRange": { "dps": 400, "damagePerHit": 400 },
+        "fastAttack": { "dps": 600, "damagePerHit": 172 },
+        "hitpoints": 4350,
+        "upgradeCost": 12000000,
+        "upgradeResource": "Gold",
+        "upgradeTime": 518400,
+        "thRequired": 18
+      },
+      {
+        "level": "SC2",
+        "longRange": { "dps": 400, "damagePerHit": 400 },
+        "fastAttack": { "dps": 600, "damagePerHit": 172 },
+        "hitpoints": 4500,
+        "upgradeCost": 10000000,
+        "upgradeResource": "Gold",
+        "upgradeTime": 604800,
+        "thRequired": 18
+      }
+    ]
+  },
+  {
+    "name": "Firespitter",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "multiple_targets",
+    "thUnlock": 17,
+    "range": 16,
+    "attackSpeed": 0.0625,
+    "burstMechanics": {
+      "shotsPerBurst": 20,
+      "timeBetweenBursts": 1.0
+    },
+    "tileSize": "3x3",
+    "specialMechanics": "Fires 20 shots per burst cycle with significant scatter at distance. Covers a single general direction spanning roughly 150 degrees, can be rotated in 90-degree increments. Shots can pass through the initial target to hit enemies behind, similar to Scattershot.",
+    "maxCountByTH": {
+      "17": 2,
+      "18": 2
+    },
+    "levels": [
+      { "level": 1, "dps": 399, "damagePerHit": 46, "hitpoints": 4500, "upgradeCost": 17000000, "upgradeResource": "Gold", "upgradeTime": 950400, "thRequired": 17 },
+      { "level": 2, "dps": 425, "damagePerHit": 49, "hitpoints": 5000, "upgradeCost": 18000000, "upgradeResource": "Gold", "upgradeTime": 993600, "thRequired": 17 }
+    ],
+    "superchargeLevels": [
+      { "level": "SC1", "dps": 442, "damagePerHit": 51, "hitpoints": 5000, "upgradeCost": 8000000, "upgradeResource": "Gold", "upgradeTime": 302400, "thRequired": 17 },
+      { "level": "SC2", "dps": 442, "damagePerHit": 51, "hitpoints": 5250, "upgradeCost": 6000000, "upgradeResource": "Gold", "upgradeTime": 345600, "thRequired": 17 }
+    ]
+  },
+  {
+    "name": "Revenge Tower",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "single_target_and_ricochet",
+    "thUnlock": 18,
+    "range": 11,
+    "tileSize": "3x3",
+    "specialMechanics": "Activates in stages based on buildings destroyed: Stage 1 at 5 buildings, Stage 2 at 25 buildings, Stage 3 at 50 buildings. Stage 1 is single-target. Stage 2+ has ricochet with 40% decay per bounce (secondary = 60% of primary). Stage 3 allows two bounces (tertiary = 36% of primary). Attack speed increases with each stage.",
+    "stages": {
+      "dormant": { "attackSpeed": null, "dps": 0 },
+      "stage1": { "attackSpeed": 1.2, "activationThreshold": 5 },
+      "stage2": { "attackSpeed": 0.6, "activationThreshold": 25, "ricochetDecay": 0.40 },
+      "stage3": { "attackSpeed": 0.35, "activationThreshold": 50, "ricochetDecay": 0.40, "maxBounces": 2 }
+    },
+    "maxCountByTH": {
+      "18": 1
+    },
+    "levels": [
+      {
+        "level": 1,
+        "hitpoints": 5800,
+        "stage1": { "dps": 375, "damagePerShot": 450 },
+        "stage2": { "dps": 375, "primaryDamage": 225, "secondaryDamage": 135 },
+        "stage3": { "dps": 642, "primaryDamage": 225, "secondaryDamage": 135, "tertiaryDamage": 81 },
+        "upgradeCost": 430000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 1123205,
+        "thRequired": 18
+      },
+      {
+        "level": 2,
+        "hitpoints": 6200,
+        "stage1": { "dps": 416, "damagePerShot": 500 },
+        "stage2": { "dps": 416, "primaryDamage": 250, "secondaryDamage": 150 },
+        "stage3": { "dps": 714, "primaryDamage": 250, "secondaryDamage": 150, "tertiaryDamage": 90 },
+        "upgradeCost": 460000,
+        "upgradeResource": "Dark Elixir",
+        "upgradeTime": 1209600,
+        "thRequired": 18
+      }
+    ]
+  },
+  {
+    "name": "Super Wizard Tower",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "chain_lightning",
+    "thUnlock": 18,
+    "range": 8,
+    "attackSpeed": 1.3,
+    "tileSize": "3x3",
+    "chainTargets": 15,
+    "specialMechanics": "Fires chain lightning that hits the primary target then chains to up to 15 additional targets. Secondary targets take reduced damage (approximately 40% of primary).",
+    "maxCountByTH": {
+      "18": 2
+    },
+    "levels": [
+      { "level": 1, "dps": 290, "primaryDamagePerHit": 377, "secondaryDamagePerHit": 150.8, "hitpoints": 6000, "upgradeCost": 29000000, "upgradeResource": "Gold", "upgradeTime": 1123200, "thRequired": 18 },
+      { "level": 2, "dps": 320, "primaryDamagePerHit": 416, "secondaryDamagePerHit": 166.4, "hitpoints": 6300, "upgradeCost": 30000000, "upgradeResource": "Gold", "upgradeTime": 1209600, "thRequired": 18 }
+    ],
+    "superchargeLevels": [
+      { "level": "SC1", "dps": 327, "primaryDamagePerHit": 425.1, "secondaryDamagePerHit": 170.04, "hitpoints": 6300, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 518400, "thRequired": 18 },
+      { "level": "SC2", "dps": 327, "primaryDamagePerHit": 425.1, "secondaryDamagePerHit": 170.04, "hitpoints": 6450, "upgradeCost": 14000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 18 }
+    ]
+  },
+  {
+    "name": "Builder's Hut",
+    "category": "defense",
+    "targetType": "ground_and_air",
+    "damageType": "single_target",
+    "thUnlock": 14,
+    "range": 6,
+    "attackSpeed": 0.4,
+    "tileSize": "2x2",
+    "repairRange": 4,
+    "specialMechanics": "Defense capability unlocks at level 2 (TH14). When an enemy enters range, the hut's top springs out as a crossbow turret. The Builder inside also repairs nearby damaged buildings within 4 tiles. Level 1 has no defensive capability.",
+    "maxCountByTH": {
+      "14": 5,
+      "15": 5,
+      "16": 5,
+      "17": 5,
+      "18": 5
+    },
+    "levels": [
+      { "level": 1, "dps": null, "hitpoints": 250, "repairPerSecond": null, "upgradeCost": 0, "upgradeResource": "Gold", "upgradeTime": 0, "thRequired": 1, "note": "No defensive capability" },
+      { "level": 2, "dps": 80, "damagePerHit": 32, "hitpoints": 1000, "repairPerSecond": 50, "upgradeCost": 3000000, "upgradeResource": "Gold", "upgradeTime": 172800, "thRequired": 14 },
+      { "level": 3, "dps": 100, "damagePerHit": 40, "hitpoints": 1300, "repairPerSecond": 60, "upgradeCost": 4000000, "upgradeResource": "Gold", "upgradeTime": 259200, "thRequired": 14 },
+      { "level": 4, "dps": 120, "damagePerHit": 48, "hitpoints": 1600, "repairPerSecond": 70, "upgradeCost": 6000000, "upgradeResource": "Gold", "upgradeTime": 345600, "thRequired": 14 },
+      { "level": 5, "dps": 135, "damagePerHit": 54, "hitpoints": 1800, "repairPerSecond": 80, "upgradeCost": 7000000, "upgradeResource": "Gold", "upgradeTime": 432000, "thRequired": 15 },
+      { "level": 6, "dps": 150, "damagePerHit": 60, "hitpoints": 1900, "repairPerSecond": 85, "upgradeCost": 8000000, "upgradeResource": "Gold", "upgradeTime": 475200, "thRequired": 16 },
+      { "level": 7, "dps": 165, "damagePerHit": 66, "hitpoints": 2000, "repairPerSecond": 90, "upgradeCost": 15500000, "upgradeResource": "Gold", "upgradeTime": 820800, "thRequired": 17 }
+    ]
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "name": "Giga Tesla",
+    "category": "th_weapon",
+    "thLevel": 12,
+    "targetType": "ground_and_air",
+    "damageType": "multiple_targets",
+    "range": 10,
+    "attackSpeed": 0.5,
+    "specialMechanics": "Built into Town Hall 12. Emerges and activates when the Town Hall takes damage or when 51% of the base is destroyed. As of October 2025, individual upgrade levels were removed and consolidated into a single stat line.",
+    "note": "Levels were removed in the October 6, 2025 update. Current version has a single unified stat set.",
+    "currentStats": {
+      "dpsPerTarget": 140,
+      "damagePerHit": 70,
+      "numberOfTargets": 4,
+      "hitpoints": 7500,
+      "deathDamage": 500,
+      "deathDamageRadius": 4
+    },
+    "historicalLevels": [
+      { "level": 1, "dpsPerTarget": 100, "damagePerHit": 50, "numberOfTargets": 2, "deathDamage": 0, "upgradeCost": 0, "upgradeResource": "Gold", "upgradeTime": 0 },
+      { "level": 2, "dpsPerTarget": 120, "damagePerHit": 60, "numberOfTargets": 2, "deathDamage": 0, "upgradeCost": 1500000, "upgradeResource": "Gold", "upgradeTime": 86400 },
+      { "level": 3, "dpsPerTarget": 120, "damagePerHit": 60, "numberOfTargets": 3, "deathDamage": 0, "upgradeCost": 2000000, "upgradeResource": "Gold", "upgradeTime": 172800 },
+      { "level": 4, "dpsPerTarget": 140, "damagePerHit": 70, "numberOfTargets": 3, "deathDamage": 0, "upgradeCost": 3000000, "upgradeResource": "Gold", "upgradeTime": 259200 },
+      { "level": 5, "dpsPerTarget": 140, "damagePerHit": 70, "numberOfTargets": 4, "deathDamage": 500, "upgradeCost": 4000000, "upgradeResource": "Gold", "upgradeTime": 345600 }
+    ]
+  },
+  {
+    "name": "Giga Inferno",
+    "category": "th_weapon",
+    "thLevel": 13,
+    "targetType": "ground_and_air",
+    "damageType": "multiple_targets",
+    "range": 10,
+    "attackSpeed": 0.128,
+    "specialMechanics": "Built into Town Hall 13 and 14. Emerges when the Town Hall takes damage or 51% of base is destroyed. Attacks with rapid inferno beams similar to Inferno Tower. At higher levels, death explosion slows and reduces attack rate of nearby troops. As of October 2025, individual upgrade levels were removed.",
+    "note": "Levels were removed in the October 6, 2025 update. Current version has a single unified stat set.",
+    "currentStats": {
+      "dpsPerTarget": 220,
+      "damagePerHit": 28.16,
+      "numberOfTargets": 4,
+      "hitpoints": 8200,
+      "deathDamage": 700,
+      "deathDamageRadius": 4,
+      "speedDecrease": 0.50,
+      "attackRateDecrease": 0.50,
+      "slowdownDuration": 8
+    },
+    "historicalLevels": [
+      { "level": 1, "dpsPerTarget": 140, "damagePerHit": 17.92, "numberOfTargets": 4, "deathDamage": 500, "deathDamageRadius": 4, "slowEffect": null, "upgradeCost": 0, "upgradeResource": "Gold", "upgradeTime": 0 },
+      { "level": 2, "dpsPerTarget": 160, "damagePerHit": 20.48, "numberOfTargets": 4, "deathDamage": 550, "deathDamageRadius": 4, "slowEffect": null, "upgradeCost": 2000000, "upgradeResource": "Gold", "upgradeTime": 86400 },
+      { "level": 3, "dpsPerTarget": 180, "damagePerHit": 23.04, "numberOfTargets": 4, "deathDamage": 600, "deathDamageRadius": 4, "slowEffect": { "duration": 4, "speedDecrease": 0.50, "attackRateDecrease": 0.50 }, "upgradeCost": 3000000, "upgradeResource": "Gold", "upgradeTime": 172800 },
+      { "level": 4, "dpsPerTarget": 200, "damagePerHit": 25.6, "numberOfTargets": 4, "deathDamage": 650, "deathDamageRadius": 4, "slowEffect": { "duration": 6, "speedDecrease": 0.50, "attackRateDecrease": 0.50 }, "upgradeCost": 4000000, "upgradeResource": "Gold", "upgradeTime": 259200 },
+      { "level": 5, "dpsPerTarget": 220, "damagePerHit": 28.16, "numberOfTargets": 4, "deathDamage": 700, "deathDamageRadius": 4, "slowEffect": { "duration": 8, "speedDecrease": 0.50, "attackRateDecrease": 0.50 }, "upgradeCost": 5000000, "upgradeResource": "Gold", "upgradeTime": 345600 }
+    ]
+  },
+  {
+    "name": "Inferno Artillery",
+    "category": "th_weapon",
+    "thLevel": 17,
+    "targetType": "ground_and_air",
+    "damageType": "multiple_targets",
+    "range": 12,
+    "attackSpeed": 3.5,
+    "numberOfTargets": 4,
+    "specialMechanics": "Built into Town Hall 17. Fires four homing fireballs simultaneously that create lava pools on impact. Lava pools deal damage over time (max 75 DPS, 6.8-second duration). Fire pool damage does not stack; multiple fireballs striking the same area cause targets to reach maximum ticking speed faster but do not increase the per-tick damage. No death bomb; instead uses a separate Giga Bomb trap.",
+    "lavaPools": {
+      "maxDPS": 75,
+      "duration": 6.8
+    },
+    "levels": [
+      { "level": 1, "dps": 40, "damagePerShot": 140, "hitpoints": 10400, "upgradeCost": 0, "upgradeResource": "Gold", "upgradeTime": 0, "thRequired": 17 },
+      { "level": 2, "dps": 45, "damagePerShot": 157.5, "hitpoints": 10400, "upgradeCost": 10000000, "upgradeResource": "Gold", "upgradeTime": 518400, "thRequired": 17 },
+      { "level": 3, "dps": 50, "damagePerShot": 175, "hitpoints": 10400, "upgradeCost": 12000000, "upgradeResource": "Gold", "upgradeTime": 604800, "thRequired": 17 },
+      { "level": 4, "dps": 55, "damagePerShot": 192.5, "hitpoints": 10400, "upgradeCost": 14000000, "upgradeResource": "Gold", "upgradeTime": 691200, "thRequired": 17 },
+      { "level": 5, "dps": 60, "damagePerShot": 210, "hitpoints": 10400, "upgradeCost": 18000000, "upgradeResource": "Gold", "upgradeTime": 864000, "thRequired": 17 }
+    ]
+  },
+  {
+    "name": "Guardians",
+    "category": "th_weapon",
+    "thLevel": 18,
+    "specialMechanics": "Two Guardian units defend the Town Hall at TH18: Longshot (ranged) and Smasher (melee). Both spawn when the Town Hall is attacked. Guardians can be upgraded with builders. While upgrading, Guardians cannot defend in Multiplayer Battles but can defend in other game modes.",
+    "guardians": {
+      "longshot": {
+        "name": "Longshot",
+        "targetType": "ground_and_air",
+        "damageType": "splash",
+        "attackSpeed": 1.8,
+        "range": 11,
+        "splashRadius": 1,
+        "deathDamageRadius": 3.5,
+        "movementSpeed": 12,
+        "patrolRadius": 17,
+        "triggerRadius": 19,
+        "specialAbility": "Final Blow: explosive death damage",
+        "levels": [
+          { "level": 1, "dps": 330, "damagePerHit": 594, "hitpoints": 7000, "deathDamage": 1000, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+          { "level": 2, "dps": 360, "damagePerHit": 648, "hitpoints": 8000, "deathDamage": 1000, "upgradeCost": 18000000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+          { "level": 3, "dps": 390, "damagePerHit": 702, "hitpoints": 9000, "deathDamage": 1000, "upgradeCost": 22000000, "upgradeResource": "Elixir", "upgradeTime": 777600 },
+          { "level": 4, "dps": 420, "damagePerHit": 756, "hitpoints": 10000, "deathDamage": 1000, "upgradeCost": 26000000, "upgradeResource": "Elixir", "upgradeTime": 950400 },
+          { "level": 5, "dps": 450, "damagePerHit": 810, "hitpoints": 11000, "deathDamage": 1000, "upgradeCost": 28000000, "upgradeResource": "Elixir", "upgradeTime": 1123200 }
+        ]
+      },
+      "smasher": {
+        "name": "Smasher",
+        "targetType": "ground_and_air",
+        "damageType": "splash",
+        "attackSpeed": 1.8,
+        "range": 1.25,
+        "searchRadius": 12,
+        "triggerRadius": 14,
+        "damageRadius": 2.5,
+        "movementSpeed": 12,
+        "specialAbility": "Sore Loser: When the Town Hall is destroyed, the Smasher becomes enraged (60% damage increase, movement/attack speed boost). Upon death, deploys a defensive Rage Spell that buffs nearby defensive buildings and units.",
+        "rageOnTHDestruction": {
+          "damageIncrease": 0.60,
+          "speedIncrease": 12
+        },
+        "levels": [
+          { "level": 1, "dps": 500, "damagePerHit": 900, "hitpoints": 12000, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+          { "level": 2, "dps": 550, "damagePerHit": 990, "hitpoints": 13000, "upgradeCost": 18000000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+          { "level": 3, "dps": 600, "damagePerHit": 1080, "hitpoints": 14000, "upgradeCost": 22000000, "upgradeResource": "Elixir", "upgradeTime": 777600 },
+          { "level": 4, "dps": 650, "damagePerHit": 1170, "hitpoints": 15000, "upgradeCost": 26000000, "upgradeResource": "Elixir", "upgradeTime": 950400 },
+          { "level": 5, "dps": 700, "damagePerHit": 1260, "hitpoints": 16000, "upgradeCost": 28000000, "upgradeResource": "Elixir", "upgradeTime": 1123200 }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,928 @@
+[
+  {
+    "name": "Super Barbarian",
+    "baseTroop": "Barbarian",
+    "baseTroopLevelRequired": 8,
+    "thRequired": 11,
+    "housingSpace": 5,
+    "originalHousingSpace": 1,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Rage: gains increased speed and damage for the first 8 seconds after deployment (70% damage increase, +16 movement speed)",
+    "movementSpeed": 20,
+    "attackRange": 0.6,
+    "attackSpeed": 0.8,
+    "damageType": "single",
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 8,
+        "dps": 180,
+        "hp": 1000,
+        "damagePerAttack": 144
+      },
+      {
+        "level": 9,
+        "dps": 200,
+        "hp": 1100,
+        "damagePerAttack": 160
+      },
+      {
+        "level": 10,
+        "dps": 220,
+        "hp": 1200,
+        "damagePerAttack": 176
+      },
+      {
+        "level": 11,
+        "dps": 240,
+        "hp": 1300,
+        "damagePerAttack": 192
+      },
+      {
+        "level": 12,
+        "dps": 250,
+        "hp": 1350,
+        "damagePerAttack": 200
+      }
+    ]
+  },
+  {
+    "name": "Super Archer",
+    "baseTroop": "Archer",
+    "baseTroopLevelRequired": 8,
+    "thRequired": 11,
+    "housingSpace": 12,
+    "originalHousingSpace": 1,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Sharp Shot: arrows pierce through multiple buildings, targeting range of 6 tiles with projectile traveling up to 12 tiles",
+    "movementSpeed": 24,
+    "attackRange": 6,
+    "attackSpeed": 1.5,
+    "damageType": "piercing",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 8,
+        "dps": 120,
+        "hp": 450,
+        "damagePerAttack": 180
+      },
+      {
+        "level": 9,
+        "dps": 132,
+        "hp": 510,
+        "damagePerAttack": 198
+      },
+      {
+        "level": 10,
+        "dps": 144,
+        "hp": 565,
+        "damagePerAttack": 216
+      },
+      {
+        "level": 11,
+        "dps": 156,
+        "hp": 605,
+        "damagePerAttack": 234
+      },
+      {
+        "level": 12,
+        "dps": 162,
+        "hp": 645,
+        "damagePerAttack": 243
+      },
+      {
+        "level": 13,
+        "dps": 166,
+        "hp": 685,
+        "damagePerAttack": 249
+      }
+    ]
+  },
+  {
+    "name": "Super Giant",
+    "baseTroop": "Giant",
+    "baseTroopLevelRequired": 9,
+    "thRequired": 12,
+    "housingSpace": 10,
+    "originalHousingSpace": 5,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Wall Buster: deals 5x damage to Walls, but does not preferentially target them",
+    "movementSpeed": 12,
+    "attackRange": 1,
+    "attackSpeed": 2,
+    "damageType": "single",
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "Defenses",
+    "levels": [
+      {
+        "level": 9,
+        "dps": 130,
+        "hp": 4000,
+        "damagePerAttack": 260,
+        "wallDamagePerAttack": 1300
+      },
+      {
+        "level": 10,
+        "dps": 140,
+        "hp": 4200,
+        "damagePerAttack": 280,
+        "wallDamagePerAttack": 1400
+      },
+      {
+        "level": 11,
+        "dps": 150,
+        "hp": 4400,
+        "damagePerAttack": 300,
+        "wallDamagePerAttack": 1500
+      },
+      {
+        "level": 12,
+        "dps": 160,
+        "hp": 4600,
+        "damagePerAttack": 320,
+        "wallDamagePerAttack": 1600
+      },
+      {
+        "level": 13,
+        "dps": 175,
+        "hp": 4900,
+        "damagePerAttack": 350,
+        "wallDamagePerAttack": 1750
+      },
+      {
+        "level": 14,
+        "dps": 205,
+        "hp": 5600,
+        "damagePerAttack": 410,
+        "wallDamagePerAttack": 2050
+      }
+    ]
+  },
+  {
+    "name": "Sneaky Goblin",
+    "baseTroop": "Goblin",
+    "baseTroopLevelRequired": 7,
+    "thRequired": 11,
+    "housingSpace": 3,
+    "originalHousingSpace": 1,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Cloak: invisible to defenses for the first 5 seconds after deployment",
+    "movementSpeed": 32,
+    "attackRange": 0.4,
+    "attackSpeed": 1,
+    "damageType": "single",
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "Resources",
+    "levels": [
+      {
+        "level": 7,
+        "dps": 155,
+        "hp": 270,
+        "damagePerAttack": 155,
+        "resourceDps": 310
+      },
+      {
+        "level": 8,
+        "dps": 170,
+        "hp": 320,
+        "damagePerAttack": 170,
+        "resourceDps": 340
+      },
+      {
+        "level": 9,
+        "dps": 180,
+        "hp": 350,
+        "damagePerAttack": 180,
+        "resourceDps": 360
+      }
+    ]
+  },
+  {
+    "name": "Super Wall Breaker",
+    "baseTroop": "Wall Breaker",
+    "baseTroopLevelRequired": 7,
+    "thRequired": 11,
+    "housingSpace": 8,
+    "originalHousingSpace": 2,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Mega Bomb: bomb explodes under all circumstances, even if the troop is destroyed before reaching its target",
+    "movementSpeed": 28,
+    "attackRange": 0.6,
+    "attackSpeed": null,
+    "damageType": "area_splash",
+    "splashRadius": 1.6,
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "Walls",
+    "levels": [
+      {
+        "level": 7,
+        "dps": null,
+        "hp": 350,
+        "damage": 78,
+        "deathDamage": 175,
+        "wallDamage": 3120,
+        "wallDeathDamage": 7000
+      },
+      {
+        "level": 8,
+        "dps": null,
+        "hp": 400,
+        "damage": 100,
+        "deathDamage": 225,
+        "wallDamage": 4000,
+        "wallDeathDamage": 9000
+      },
+      {
+        "level": 9,
+        "dps": null,
+        "hp": 450,
+        "damage": 120,
+        "deathDamage": 275,
+        "wallDamage": 4800,
+        "wallDeathDamage": 11000
+      },
+      {
+        "level": 10,
+        "dps": null,
+        "hp": 475,
+        "damage": 130,
+        "deathDamage": 313,
+        "wallDamage": 5200,
+        "wallDeathDamage": 12520
+      },
+      {
+        "level": 11,
+        "dps": null,
+        "hp": 500,
+        "damage": 140,
+        "deathDamage": 338,
+        "wallDamage": 5600,
+        "wallDeathDamage": 13520
+      },
+      {
+        "level": 12,
+        "dps": null,
+        "hp": 525,
+        "damage": 150,
+        "deathDamage": 363,
+        "wallDamage": 6000,
+        "wallDeathDamage": 14520
+      },
+      {
+        "level": 13,
+        "dps": null,
+        "hp": 550,
+        "damage": 160,
+        "deathDamage": 388,
+        "wallDamage": 6400,
+        "wallDeathDamage": 15520
+      },
+      {
+        "level": 14,
+        "dps": null,
+        "hp": 575,
+        "damage": 170,
+        "deathDamage": 413,
+        "wallDamage": 6800,
+        "wallDeathDamage": 16520
+      }
+    ]
+  },
+  {
+    "name": "Rocket Balloon",
+    "baseTroop": "Balloon",
+    "baseTroopLevelRequired": 8,
+    "thRequired": 12,
+    "housingSpace": 8,
+    "originalHousingSpace": 5,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Rocket Boost: equipped with booster rockets that grant greatly increased movement speed (speed increase of 52) for the first 4 seconds after deployment, equivalent to a level 5 Haste Spell",
+    "movementSpeed": 10,
+    "boosterMovementSpeedIncrease": 52,
+    "attackRange": 0.5,
+    "attackSpeed": 3,
+    "damageType": "area_splash",
+    "targetType": "ground_only",
+    "isFlying": true,
+    "favoriteTarget": "Defenses",
+    "levels": [
+      {
+        "level": 8,
+        "dps": 270,
+        "hp": 840,
+        "damagePerAttack": 810,
+        "deathDamage": 580
+      },
+      {
+        "level": 9,
+        "dps": 280,
+        "hp": 940,
+        "damagePerAttack": 840,
+        "deathDamage": 620
+      },
+      {
+        "level": 10,
+        "dps": 285,
+        "hp": 1040,
+        "damagePerAttack": 855,
+        "deathDamage": 650
+      },
+      {
+        "level": 11,
+        "dps": 290,
+        "hp": 1140,
+        "damagePerAttack": 870,
+        "deathDamage": 700
+      },
+      {
+        "level": 12,
+        "dps": 304,
+        "hp": 1240,
+        "damagePerAttack": 912,
+        "deathDamage": 730
+      }
+    ]
+  },
+  {
+    "name": "Super Wizard",
+    "baseTroop": "Wizard",
+    "baseTroopLevelRequired": 9,
+    "thRequired": 12,
+    "housingSpace": 10,
+    "originalHousingSpace": 4,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Chain Magic: attacks chain to up to 9 additional nearby targets, dealing 40% of primary damage to each chained target (up to 10 targets total)",
+    "movementSpeed": 20,
+    "attackRange": 3,
+    "attackSpeed": 2,
+    "damageType": "chain",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 9,
+        "dps": 220,
+        "hp": 545,
+        "damagePerAttack": 440,
+        "chainDamagePerTarget": 176
+      },
+      {
+        "level": 10,
+        "dps": 240,
+        "hp": 705,
+        "damagePerAttack": 480,
+        "chainDamagePerTarget": 192
+      },
+      {
+        "level": 11,
+        "dps": 265,
+        "hp": 760,
+        "damagePerAttack": 530,
+        "chainDamagePerTarget": 212
+      },
+      {
+        "level": 12,
+        "dps": 285,
+        "hp": 815,
+        "damagePerAttack": 570,
+        "chainDamagePerTarget": 228
+      },
+      {
+        "level": 13,
+        "dps": 305,
+        "hp": 870,
+        "damagePerAttack": 610,
+        "chainDamagePerTarget": 244
+      },
+      {
+        "level": 14,
+        "dps": 335,
+        "hp": 925,
+        "damagePerAttack": 670,
+        "chainDamagePerTarget": 268
+      }
+    ]
+  },
+  {
+    "name": "Super Dragon",
+    "baseTroop": "Dragon",
+    "baseTroopLevelRequired": 7,
+    "thRequired": 12,
+    "housingSpace": 40,
+    "originalHousingSpace": 20,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Roast: shoots bursts of flames with 10 shots per burst, each dealing splash damage",
+    "movementSpeed": 14,
+    "attackRange": 3,
+    "attackSpeed": 1.8,
+    "attackSpeedBetweenShots": 0.192,
+    "shotsPerBurst": 10,
+    "damageType": "area_splash",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 7,
+        "dps": 381,
+        "hp": 6100
+      },
+      {
+        "level": 8,
+        "dps": 405,
+        "hp": 6400
+      },
+      {
+        "level": 9,
+        "dps": 429,
+        "hp": 6700
+      },
+      {
+        "level": 10,
+        "dps": 452,
+        "hp": 7200
+      },
+      {
+        "level": 11,
+        "dps": 471,
+        "hp": 7600
+      },
+      {
+        "level": 12,
+        "dps": 490,
+        "hp": 8000
+      }
+    ]
+  },
+  {
+    "name": "Inferno Dragon",
+    "baseTroop": "Baby Dragon",
+    "baseTroopLevelRequired": 6,
+    "thRequired": 12,
+    "housingSpace": 15,
+    "originalHousingSpace": 10,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Inferno Beam: fires a beam that builds up damage over time in 3 stages, similar to the Inferno Tower's single-target mode",
+    "movementSpeed": 18,
+    "attackRange": 4,
+    "attackSpeed": 0.128,
+    "damageType": "single_ramping",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 6,
+        "dpsStage1": 75,
+        "dpsStage2": 150,
+        "dpsStage3": 1500,
+        "hp": 1900
+      },
+      {
+        "level": 7,
+        "dpsStage1": 79,
+        "dpsStage2": 158,
+        "dpsStage3": 1580,
+        "hp": 2050
+      },
+      {
+        "level": 8,
+        "dpsStage1": 83,
+        "dpsStage2": 166,
+        "dpsStage3": 1660,
+        "hp": 2200
+      },
+      {
+        "level": 9,
+        "dpsStage1": 85,
+        "dpsStage2": 170,
+        "dpsStage3": 1700,
+        "hp": 2300
+      },
+      {
+        "level": 10,
+        "dpsStage1": 86,
+        "dpsStage2": 174,
+        "dpsStage3": 1740,
+        "hp": 2400
+      },
+      {
+        "level": 11,
+        "dpsStage1": 88,
+        "dpsStage2": 178,
+        "dpsStage3": 1780,
+        "hp": 2500
+      }
+    ]
+  },
+  {
+    "name": "Super Miner",
+    "baseTroop": "Miner",
+    "baseTroopLevelRequired": 7,
+    "thRequired": 13,
+    "housingSpace": 24,
+    "originalHousingSpace": 6,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Last Blast: burrows underground (invulnerable while burrowing), deals escalating drill damage over time, and detonates an explosive barrel upon death dealing damage in a 2-tile radius to buildings and ground units",
+    "movementSpeed": 32,
+    "attackRange": 0.6,
+    "attackSpeed": 0.25,
+    "damageType": "single_ramping",
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 7,
+        "dpsInitial": 170,
+        "dpsAt1_5s": 340,
+        "dpsAt3s": 520,
+        "hp": 3000,
+        "deathDamage": 1400
+      },
+      {
+        "level": 8,
+        "dpsInitial": 185,
+        "dpsAt1_5s": 370,
+        "dpsAt3s": 560,
+        "hp": 3300,
+        "deathDamage": 1600
+      },
+      {
+        "level": 9,
+        "dpsInitial": 205,
+        "dpsAt1_5s": 405,
+        "dpsAt3s": 605,
+        "hp": 3600,
+        "deathDamage": 1800
+      },
+      {
+        "level": 10,
+        "dpsInitial": 225,
+        "dpsAt1_5s": 440,
+        "dpsAt3s": 650,
+        "hp": 4000,
+        "deathDamage": 2000
+      },
+      {
+        "level": 11,
+        "dpsInitial": 245,
+        "dpsAt1_5s": 475,
+        "dpsAt3s": 695,
+        "hp": 4400,
+        "deathDamage": 2200
+      },
+      {
+        "level": 12,
+        "dpsInitial": 265,
+        "dpsAt1_5s": 510,
+        "dpsAt3s": 740,
+        "hp": 5000,
+        "deathDamage": 2400
+      }
+    ]
+  },
+  {
+    "name": "Super Minion",
+    "baseTroop": "Minion",
+    "baseTroopLevelRequired": 8,
+    "thRequired": 12,
+    "housingSpace": 12,
+    "originalHousingSpace": 2,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Long Shot: first 8 shots on offense (3 shots on defense) are fired at extended range of 10.25 tiles before switching to normal 4-tile range",
+    "movementSpeed": 16,
+    "attackRange": 4,
+    "longShotRange": 10.25,
+    "attackSpeed": 1,
+    "damageType": "single",
+    "targetType": "ground_and_air",
+    "isFlying": true,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 8,
+        "dps": 300,
+        "hp": 1500,
+        "damagePerAttack": 300
+      },
+      {
+        "level": 9,
+        "dps": 325,
+        "hp": 1600,
+        "damagePerAttack": 325
+      },
+      {
+        "level": 10,
+        "dps": 350,
+        "hp": 1700,
+        "damagePerAttack": 350
+      },
+      {
+        "level": 11,
+        "dps": 360,
+        "hp": 1800,
+        "damagePerAttack": 360
+      },
+      {
+        "level": 12,
+        "dps": 370,
+        "hp": 1900,
+        "damagePerAttack": 370
+      },
+      {
+        "level": 13,
+        "dps": 385,
+        "hp": 2100,
+        "damagePerAttack": 385
+      },
+      {
+        "level": 14,
+        "dps": 400,
+        "hp": 2300,
+        "damagePerAttack": 400
+      }
+    ]
+  },
+  {
+    "name": "Super Hog Rider",
+    "baseTroop": "Hog Rider",
+    "baseTroopLevelRequired": 10,
+    "thRequired": 13,
+    "housingSpace": 12,
+    "originalHousingSpace": 5,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Divide and Conquer: upon defeat, splits into a Super Hog (targets defenses, jumps walls) and a Super Rider (targets any ground unit, deals 2x wall damage) that continue fighting independently",
+    "movementSpeed": 24,
+    "attackRange": 0.6,
+    "attackSpeed": 1,
+    "damageType": "single",
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "Defenses",
+    "levels": [
+      {
+        "level": 10,
+        "dps": 180,
+        "hp": 1500,
+        "damagePerAttack": 180
+      },
+      {
+        "level": 11,
+        "dps": 200,
+        "hp": 1600,
+        "damagePerAttack": 200
+      },
+      {
+        "level": 12,
+        "dps": 230,
+        "hp": 1750,
+        "damagePerAttack": 230
+      },
+      {
+        "level": 13,
+        "dps": 250,
+        "hp": 1900,
+        "damagePerAttack": 250
+      },
+      {
+        "level": 14,
+        "dps": 270,
+        "hp": 2100,
+        "damagePerAttack": 270
+      }
+    ]
+  },
+  {
+    "name": "Super Valkyrie",
+    "baseTroop": "Valkyrie",
+    "baseTroopLevelRequired": 7,
+    "thRequired": 12,
+    "housingSpace": 20,
+    "originalHousingSpace": 8,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Farewell Gift: drops a rage spell effect upon death with a 4-tile radius, equivalent to a level 4 Rage Spell, boosting nearby troops and defenses",
+    "movementSpeed": 24,
+    "attackRange": 0.6,
+    "attackSpeed": 1.1,
+    "damageType": "area_splash",
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 7,
+        "dps": 250,
+        "hp": 2400,
+        "damagePerAttack": 275
+      },
+      {
+        "level": 8,
+        "dps": 300,
+        "hp": 2700,
+        "damagePerAttack": 330
+      },
+      {
+        "level": 9,
+        "dps": 325,
+        "hp": 2900,
+        "damagePerAttack": 357.5
+      },
+      {
+        "level": 10,
+        "dps": 350,
+        "hp": 3400,
+        "damagePerAttack": 385
+      },
+      {
+        "level": 11,
+        "dps": 375,
+        "hp": 3900,
+        "damagePerAttack": 412.5
+      }
+    ]
+  },
+  {
+    "name": "Super Witch",
+    "baseTroop": "Witch",
+    "baseTroopLevelRequired": 5,
+    "thRequired": 12,
+    "housingSpace": 40,
+    "originalHousingSpace": 12,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Big Boy: instead of summoning hordes of skeletons, spawns a single large skeleton (Big Boy) with high hitpoints; only one Big Boy can be active at a time and a new one spawns if destroyed",
+    "movementSpeed": 12,
+    "attackRange": 4,
+    "attackSpeed": 0.7,
+    "damageType": "area_splash",
+    "targetType": "ground_and_air",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 5,
+        "dps": 360,
+        "hp": 3200,
+        "damagePerAttack": 252
+      },
+      {
+        "level": 6,
+        "dps": 390,
+        "hp": 3400,
+        "damagePerAttack": 273
+      },
+      {
+        "level": 7,
+        "dps": 430,
+        "hp": 3750,
+        "damagePerAttack": 301
+      }
+    ]
+  },
+  {
+    "name": "Ice Hound",
+    "baseTroop": "Lava Hound",
+    "baseTroopLevelRequired": 5,
+    "thRequired": 12,
+    "housingSpace": 40,
+    "originalHousingSpace": 30,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Dish Served Cold: freezes the surrounding area upon death and releases Ice Pups",
+    "movementSpeed": 20,
+    "attackRange": 0.75,
+    "attackSpeed": 2,
+    "damageType": "single",
+    "targetType": "ground_only",
+    "isFlying": true,
+    "favoriteTarget": "Air Defenses",
+    "levels": [
+      {
+        "level": 5,
+        "dps": 10,
+        "hp": 9500,
+        "damagePerAttack": 20,
+        "freezeTimeOnDeath": 3.75,
+        "icePupsReleased": 10
+      },
+      {
+        "level": 6,
+        "dps": 15,
+        "hp": 10000,
+        "damagePerAttack": 30,
+        "freezeTimeOnDeath": 4.25,
+        "icePupsReleased": 12
+      },
+      {
+        "level": 7,
+        "dps": 20,
+        "hp": 10500,
+        "damagePerAttack": 40,
+        "freezeTimeOnDeath": 4.75,
+        "icePupsReleased": 14
+      }
+    ]
+  },
+  {
+    "name": "Super Bowler",
+    "baseTroop": "Bowler",
+    "baseTroopLevelRequired": 4,
+    "thRequired": 12,
+    "housingSpace": 30,
+    "originalHousingSpace": 6,
+    "boostCost": 25000,
+    "boostResource": "Dark Elixir",
+    "boostDuration": "3 days",
+    "specialAbility": "Triple Strike: boulders bounce 3 times (instead of 2), each bounce traveling 3 tiles apart, extending total reach",
+    "movementSpeed": 14,
+    "attackRange": 3,
+    "attackSpeed": 2.2,
+    "damageType": "area_splash",
+    "splashRadius": 0.6,
+    "targetType": "ground_only",
+    "isFlying": false,
+    "favoriteTarget": "None",
+    "levels": [
+      {
+        "level": 4,
+        "dps": 170,
+        "hp": 1600,
+        "damagePerAttack": 374
+      },
+      {
+        "level": 5,
+        "dps": 185,
+        "hp": 1800,
+        "damagePerAttack": 407
+      },
+      {
+        "level": 6,
+        "dps": 200,
+        "hp": 2000,
+        "damagePerAttack": 440
+      },
+      {
+        "level": 7,
+        "dps": 220,
+        "hp": 2300,
+        "damagePerAttack": 484
+      },
+      {
+        "level": 8,
+        "dps": 240,
+        "hp": 2600,
+        "damagePerAttack": 528
+      },
+      {
+        "level": 9,
+        "dps": 270,
+        "hp": 3000,
+        "damagePerAttack": 594
+      },
+      {
+        "level": 10,
+        "dps": 300,
+        "hp": 3600,
+        "damagePerAttack": 660
+      }
+    ]
+  }
+]

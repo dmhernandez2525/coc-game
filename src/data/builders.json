@@ -1,0 +1,201 @@
+{
+  "metadata": {
+    "game": "Clash of Clans",
+    "category": "Builder System",
+    "source": "clashofclans.fandom.com",
+    "lastUpdated": "2026-02-11",
+    "notes": "Builder costs, 6th builder (B.O.B/O.T.T.O) requirements, Builder Base progression"
+  },
+  "builderHuts": {
+    "description": "Builders are essential workers that construct and upgrade buildings. The first builder is free; additional builders cost Gems. At Town Hall 14+, Builder's Huts can be weaponized with a short-range turret.",
+    "builderCosts": [
+      { "builder": 1, "cost": 0,    "costType": "free",  "notes": "Included at game start" },
+      { "builder": 2, "cost": 250,  "costType": "gems",  "notes": "Prompted during tutorial" },
+      { "builder": 3, "cost": 500,  "costType": "gems" },
+      { "builder": 4, "cost": 1000, "costType": "gems" },
+      { "builder": 5, "cost": 2000, "costType": "gems" }
+    ],
+    "totalGemCostForAllBuilders": 3750,
+    "weaponizedBuilderHuts": {
+      "description": "At Town Hall 14+, Builder's Huts can be upgraded to add a short-range turret that fires at enemies.",
+      "availableFromTownHall": 14,
+      "levels": [
+        { "level": 1, "notes": "Base level (no weapon)" },
+        { "level": 2, "notes": "First weaponized tier" },
+        { "level": 3 },
+        { "level": 4 },
+        { "level": 5 },
+        { "level": 6 },
+        { "level": 7, "notes": "Maximum level, increasing damage, repair speed, and hitpoints at each tier" }
+      ]
+    }
+  },
+  "sixthBuilder": {
+    "name": "B.O.B (formerly O.T.T.O)",
+    "description": "The 6th builder is unlocked by fully upgrading the B.O.B Control building (formerly O.T.T.O's Hut) in the Builder Base to level 5. Once complete, B.O.B's Hut becomes available in the Home Village as an additional builder.",
+    "buildingName": "B.O.B Control (formerly O.T.T.O's Hut)",
+    "buildCost": "100,000 Builder Gold",
+    "buildTime": "Instant (no build time)",
+    "minimumBuilderHallLevel": 9,
+    "minimumTownHall": 10,
+    "minimumTownHallNotes": "Due to Home Village Mortar level 8 requirement (unlocked at TH10)",
+    "unlockRequirements": [
+      {
+        "step": "Level 1 to 2",
+        "requirement": "Gear Up 3 Home Village buildings",
+        "details": [
+          { "homeVillageBuilding": "Cannon",       "homeVillageLevelRequired": 7,  "builderBaseEquivalent": "Double Cannon",     "builderBaseLevelRequired": 4 },
+          { "homeVillageBuilding": "Archer Tower",  "homeVillageLevelRequired": 10, "builderBaseEquivalent": "Archer Tower (BB)", "builderBaseLevelRequired": 6 },
+          { "homeVillageBuilding": "Mortar",        "homeVillageLevelRequired": 8,  "builderBaseEquivalent": "Multi Mortar",      "builderBaseLevelRequired": 8 }
+        ]
+      },
+      {
+        "step": "Level 2 to 3",
+        "requirement": "Upgrade any Builder Base troop to level 18",
+        "details": "Requires Star Laboratory level 9"
+      },
+      {
+        "step": "Level 3 to 4",
+        "requirement": "Upgrade any Builder Base defense to level 9",
+        "details": "Excludes O.T.T.O's Outpost, traps, and walls"
+      },
+      {
+        "step": "Level 4 to 5",
+        "requirement": "Upgrade Builder Base heroes to combined level 45",
+        "details": "Battle Machine + Battle Copter = 45 total levels"
+      }
+    ]
+  },
+  "builderBase": {
+    "description": "The Builder Base is a secondary village with its own progression system, troops, and resources. It uses Builder Gold and Builder Elixir.",
+    "builderHall": {
+      "description": "The Builder Hall is the main building of the Builder Base. Destroying it awards a Star in attacks. Players must place all available buildings before upgrading.",
+      "levels": [
+        {
+          "level": 1,
+          "upgradeCost": 0,
+          "upgradeTime": null,
+          "hitpoints": 100,
+          "keyUnlocks": ["Cannon", "Gold Mine", "Elixir Collector", "Builder Barracks", "Army Camp", "Star Laboratory", "Walls"]
+        },
+        {
+          "level": 2,
+          "upgradeCost": 3500,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "5 seconds",
+          "hitpoints": 800,
+          "keyUnlocks": ["Double Cannon", "Archer Tower", "Gold Storage", "Elixir Storage", "Push Trap"]
+        },
+        {
+          "level": 3,
+          "upgradeCost": 30000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "1 hour",
+          "hitpoints": 960,
+          "keyUnlocks": ["Gem Mine", "Hidden Tesla", "Firecrackers", "Crusher", "Spring Trap", "Mine"]
+        },
+        {
+          "level": 4,
+          "upgradeCost": 200000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "1 day",
+          "hitpoints": 1152,
+          "keyUnlocks": ["Guard Post", "Air Bombs", "Clock Tower", "Mega Mine"]
+        },
+        {
+          "level": 5,
+          "upgradeCost": 400000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "2 days",
+          "hitpoints": 1382,
+          "keyUnlocks": ["Multi Mortar", "Battle Machine Altar"]
+        },
+        {
+          "level": 6,
+          "upgradeCost": 1200000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "3 days",
+          "hitpoints": 1658,
+          "keyUnlocks": ["O.T.T.O's Outpost (second stage)", "Reinforcement Camp", "Healing Hut", "Roaster"]
+        },
+        {
+          "level": 7,
+          "upgradeCost": 1800000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "4 days",
+          "hitpoints": 1980,
+          "keyUnlocks": ["Giant Cannon"]
+        },
+        {
+          "level": 8,
+          "upgradeCost": 2800000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "5 days",
+          "hitpoints": 2388,
+          "keyUnlocks": ["Mega Tesla"]
+        },
+        {
+          "level": 9,
+          "upgradeCost": 3800000,
+          "upgradeCostUnit": "Builder Elixir",
+          "upgradeTime": "6 days",
+          "hitpoints": 2507,
+          "keyUnlocks": ["Battle Copter Altar", "B.O.B Control (O.T.T.O's Hut)"]
+        },
+        {
+          "level": 10,
+          "upgradeCost": 4800000,
+          "upgradeCostUnit": "Builder Gold",
+          "upgradeTime": "7 days",
+          "hitpoints": null,
+          "keyUnlocks": ["Additional defenses and upgrades"],
+          "notes": "Maximum Builder Hall level"
+        }
+      ]
+    },
+    "troops": [
+      { "name": "Raged Barbarian",      "type": "ground", "unlockBuilderBarracksLevel": 1 },
+      { "name": "Sneaky Archer",        "type": "ground", "unlockBuilderBarracksLevel": 2 },
+      { "name": "Boxer Giant",          "type": "ground", "unlockBuilderBarracksLevel": 3 },
+      { "name": "Beta Minion",          "type": "air",    "unlockBuilderBarracksLevel": 4 },
+      { "name": "Bomber",               "type": "ground", "unlockBuilderBarracksLevel": 5 },
+      { "name": "Baby Dragon",          "type": "air",    "unlockBuilderBarracksLevel": 6 },
+      { "name": "Cannon Cart",          "type": "ground", "unlockBuilderBarracksLevel": 7 },
+      { "name": "Night Witch",          "type": "ground", "unlockBuilderBarracksLevel": 8 },
+      { "name": "Drop Ship",            "type": "air",    "unlockBuilderBarracksLevel": 9 },
+      { "name": "Power P.E.K.K.A",      "type": "ground", "unlockBuilderBarracksLevel": 10 },
+      { "name": "Hog Glider",           "type": "air",    "unlockBuilderBarracksLevel": 11 },
+      { "name": "Electrofire Wizard",   "type": "ground", "unlockBuilderBarracksLevel": 12 }
+    ],
+    "heroes": [
+      { "name": "Battle Machine", "unlockBuilderHallLevel": 5, "type": "Ground hero" },
+      { "name": "Battle Copter",  "unlockBuilderHallLevel": 9, "type": "Air hero (converts Battle Machine to flying mode)" }
+    ],
+    "gearUps": {
+      "description": "Gear Ups are special modifications to Home Village buildings that require specific Builder Base building levels. Required for B.O.B Control level 2.",
+      "buildings": [
+        {
+          "homeVillageBuilding": "Cannon (Double Cannon mode)",
+          "homeVillageLevelRequired": 7,
+          "builderBaseBuildingRequired": "Double Cannon level 4",
+          "gearUpCost": "750,000 Gold",
+          "gearUpTime": "14 days"
+        },
+        {
+          "homeVillageBuilding": "Archer Tower (Fast Attack mode)",
+          "homeVillageLevelRequired": 10,
+          "builderBaseBuildingRequired": "Archer Tower (BB) level 6",
+          "gearUpCost": "1,500,000 Gold",
+          "gearUpTime": "14 days"
+        },
+        {
+          "homeVillageBuilding": "Mortar (Multi Mortar mode)",
+          "homeVillageLevelRequired": 8,
+          "builderBaseBuildingRequired": "Multi Mortar level 8",
+          "gearUpCost": "2,000,000 Gold",
+          "gearUpTime": "14 days"
+        }
+      ]
+    }
+  }
+}

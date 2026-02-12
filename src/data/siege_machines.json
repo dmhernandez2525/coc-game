@@ -1,0 +1,129 @@
+[
+  {
+    "name": "Wall Wrecker",
+    "workshopLevelRequired": 1,
+    "thUnlock": 12,
+    "housingSpace": 1,
+    "movementSpeed": 12,
+    "attackSpeed": 1.3,
+    "isFlying": false,
+    "targetBehavior": "Targets Town Hall as primary target, smashes through Walls en route",
+    "specialMechanics": "Deals 10x damage to Walls. Carries Clan Castle troops, releases them upon reaching Town Hall or upon destruction. Immune to spell effects. Cannot be healed by Healers.",
+    "levels": [
+      { "level": 1, "dps": 250, "damagePerHit": 325, "wallDamagePerHit": 3250, "hp": 5500, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 300, "damagePerHit": 390, "wallDamagePerHit": 3900, "hp": 6000, "upgradeCost": 2500000, "upgradeResource": "Elixir", "upgradeTime": 172800 },
+      { "level": 3, "dps": 350, "damagePerHit": 455, "wallDamagePerHit": 4550, "hp": 6500, "upgradeCost": 3500000, "upgradeResource": "Elixir", "upgradeTime": 259200 },
+      { "level": 4, "dps": 400, "damagePerHit": 520, "wallDamagePerHit": 5200, "hp": 7000, "upgradeCost": 6500000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+      { "level": 5, "dps": 580, "damagePerHit": 754, "wallDamagePerHit": 7540, "hp": 8500, "upgradeCost": 10000000, "upgradeResource": "Elixir", "upgradeTime": 777600 },
+      { "level": 6, "dps": 670, "damagePerHit": 871, "wallDamagePerHit": 8710, "hp": 10000, "upgradeCost": 26000000, "upgradeResource": "Elixir", "upgradeTime": 1166400 }
+    ]
+  },
+  {
+    "name": "Battle Blimp",
+    "workshopLevelRequired": 2,
+    "thUnlock": 12,
+    "housingSpace": 1,
+    "movementSpeed": 18,
+    "attackSpeed": 1.5,
+    "isFlying": true,
+    "targetBehavior": "Flies directly to Town Hall, bypassing all other buildings and troops",
+    "specialMechanics": "Drops bombs while traveling (similar damage to a Lightning Spell per bomb). Deals death damage upon destruction as area splash. Carries Clan Castle troops, releases on destruction or reaching TH. Immune to spell effects. Cannot be healed by Healers.",
+    "levels": [
+      { "level": 1, "dps": 100, "damagePerHit": 150, "deathDamage": 700, "hp": 3000, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 140, "damagePerHit": 210, "deathDamage": 800, "hp": 3500, "upgradeCost": 2500000, "upgradeResource": "Elixir", "upgradeTime": 172800 },
+      { "level": 3, "dps": 180, "damagePerHit": 270, "deathDamage": 900, "hp": 4000, "upgradeCost": 3500000, "upgradeResource": "Elixir", "upgradeTime": 259200 },
+      { "level": 4, "dps": 220, "damagePerHit": 330, "deathDamage": 1000, "hp": 4500, "upgradeCost": 6500000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+      { "level": 5, "dps": 260, "damagePerHit": 390, "deathDamage": 1100, "hp": 5000, "upgradeCost": 10000000, "upgradeResource": "Elixir", "upgradeTime": 777600 }
+    ]
+  },
+  {
+    "name": "Stone Slammer",
+    "workshopLevelRequired": 3,
+    "thUnlock": 12,
+    "housingSpace": 1,
+    "movementSpeed": 16,
+    "attackSpeed": 2.5,
+    "isFlying": true,
+    "targetBehavior": "Prioritizes defensive structures above all other targets",
+    "specialMechanics": "Dual hitbox: primary 1-tile splash for high damage, secondary 3-tile splash for lower damage with 25x wall damage multiplier. Deals death damage on destruction (similar to Balloon). Carries Clan Castle troops, releases on destruction. Immune to spell effects.",
+    "levels": [
+      { "level": 1, "dps": 400, "damagePerHit": 1000, "hp": 5500, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 500, "damagePerHit": 1250, "hp": 5900, "upgradeCost": 2500000, "upgradeResource": "Elixir", "upgradeTime": 172800 },
+      { "level": 3, "dps": 600, "damagePerHit": 1500, "hp": 6200, "upgradeCost": 3500000, "upgradeResource": "Elixir", "upgradeTime": 259200 },
+      { "level": 4, "dps": 700, "damagePerHit": 1750, "hp": 6500, "upgradeCost": 6500000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+      { "level": 5, "dps": 750, "damagePerHit": 1875, "hp": 6800, "upgradeCost": 10000000, "upgradeResource": "Elixir", "upgradeTime": 777600 }
+    ]
+  },
+  {
+    "name": "Siege Barracks",
+    "workshopLevelRequired": 4,
+    "thUnlock": 13,
+    "housingSpace": 1,
+    "movementSpeed": 0,
+    "attackSpeed": null,
+    "isFlying": false,
+    "targetBehavior": "Stationary spawner; parachutes to deployment location",
+    "specialMechanics": "Parachutes down and remains stationary with a 30-second lifetime, slowly losing health. Spawns P.E.K.K.As first, then Wizards. Spawned troop levels depend on Laboratory research level. Carries Clan Castle troops, releases on destruction. Deals no direct damage.",
+    "levels": [
+      { "level": 1, "dps": 0, "hp": 3300, "pekkaCount": 1, "wizardCount": 6, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 0, "hp": 3700, "pekkaCount": 1, "wizardCount": 8, "upgradeCost": 3500000, "upgradeResource": "Elixir", "upgradeTime": 259200 },
+      { "level": 3, "dps": 0, "hp": 4100, "pekkaCount": 1, "wizardCount": 10, "upgradeCost": 5000000, "upgradeResource": "Elixir", "upgradeTime": 345600 },
+      { "level": 4, "dps": 0, "hp": 4500, "pekkaCount": 1, "wizardCount": 11, "upgradeCost": 8000000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+      { "level": 5, "dps": 0, "hp": 4800, "pekkaCount": 2, "wizardCount": 11, "upgradeCost": 18000000, "upgradeResource": "Elixir", "upgradeTime": 1036800 }
+    ]
+  },
+  {
+    "name": "Log Launcher",
+    "workshopLevelRequired": 5,
+    "thUnlock": 12,
+    "housingSpace": 1,
+    "movementSpeed": 3,
+    "attackSpeed": 3,
+    "isFlying": false,
+    "targetBehavior": "Targets Town Hall, fights through buildings and walls to reach it",
+    "specialMechanics": "Launches logs up to 20 tiles or until hitting 4 buildings. Point-blank damage affects 1-tile radius with 4x wall damage. HP decays at 156 HP/s. Carries Clan Castle troops, releases on destruction or reaching TH. Immune to spell effects.",
+    "levels": [
+      { "level": 1, "dps": 140, "damagePerHit": 420, "wallDamagePerHit": 1680, "pointBlankDamage": 2900, "hp": 4000, "lifetimeSeconds": 25.64, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 160, "damagePerHit": 480, "wallDamagePerHit": 1920, "pointBlankDamage": 3000, "hp": 4400, "lifetimeSeconds": 28.20, "upgradeCost": 3200000, "upgradeResource": "Elixir", "upgradeTime": 259200 },
+      { "level": 3, "dps": 180, "damagePerHit": 540, "wallDamagePerHit": 2160, "pointBlankDamage": 3100, "hp": 4800, "lifetimeSeconds": 30.76, "upgradeCost": 4500000, "upgradeResource": "Elixir", "upgradeTime": 345600 },
+      { "level": 4, "dps": 200, "damagePerHit": 600, "wallDamagePerHit": 2400, "pointBlankDamage": 3200, "hp": 5200, "lifetimeSeconds": 33.33, "upgradeCost": 7500000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+      { "level": 5, "dps": 220, "damagePerHit": 660, "wallDamagePerHit": 2640, "pointBlankDamage": 3400, "hp": 5500, "lifetimeSeconds": 35.25, "upgradeCost": 18000000, "upgradeResource": "Elixir", "upgradeTime": 1036800 }
+    ]
+  },
+  {
+    "name": "Flame Flinger",
+    "workshopLevelRequired": 6,
+    "thUnlock": 14,
+    "housingSpace": 1,
+    "movementSpeed": 6,
+    "attackSpeed": 5,
+    "isFlying": false,
+    "targetBehavior": "Prioritizes defensive structures, bypasses all other buildings and troops while defenses remain",
+    "specialMechanics": "Longest range in game at 11 tiles. Lobs trios of Fire Spirits with 5-second intervals. Creates circular fire area lasting 22 seconds dealing damage-over-time. Flame damage deals additional damage to Walls. Loses 17 HP/s while deployed. Stationary while attacking.",
+    "levels": [
+      { "level": 1, "dps": 124, "damagePerHit": 225, "flameDpsMax": 80, "hp": 1700, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 137, "damagePerHit": 250, "flameDpsMax": 95, "hp": 1800, "upgradeCost": 5500000, "upgradeResource": "Elixir", "upgradeTime": 259200 },
+      { "level": 3, "dps": 151, "damagePerHit": 275, "flameDpsMax": 105, "hp": 1900, "upgradeCost": 8000000, "upgradeResource": "Elixir", "upgradeTime": 345600 },
+      { "level": 4, "dps": 165, "damagePerHit": 300, "flameDpsMax": 120, "hp": 2000, "upgradeCost": 10000000, "upgradeResource": "Elixir", "upgradeTime": 604800 },
+      { "level": 5, "dps": 179, "damagePerHit": 325, "flameDpsMax": 130, "hp": 2100, "upgradeCost": 18000000, "upgradeResource": "Elixir", "upgradeTime": 1036800 }
+    ]
+  },
+  {
+    "name": "Battle Drill",
+    "workshopLevelRequired": 7,
+    "thUnlock": 15,
+    "housingSpace": 1,
+    "movementSpeed": 24,
+    "attackSpeed": 1.7,
+    "isFlying": false,
+    "targetBehavior": "Prioritizes defensive structures above all other targets",
+    "specialMechanics": "Burrows underground toward defenses, bypassing walls. Upon surfacing, stuns all defenses in a small area. Instantly destroys any Walls it contacts when surfacing. Carries Clan Castle troops, releases on destruction. Immune to spell effects.",
+    "levels": [
+      { "level": 1, "dps": 430, "damagePerHit": 731, "hp": 4800, "upgradeCost": 0, "upgradeResource": "Elixir", "upgradeTime": 0 },
+      { "level": 2, "dps": 470, "damagePerHit": 799, "hp": 5100, "upgradeCost": 6000000, "upgradeResource": "Elixir", "upgradeTime": 345600 },
+      { "level": 3, "dps": 510, "damagePerHit": 867, "hp": 5400, "upgradeCost": 8500000, "upgradeResource": "Elixir", "upgradeTime": 432000 },
+      { "level": 4, "dps": 550, "damagePerHit": 935, "hp": 5800, "upgradeCost": 10000000, "upgradeResource": "Elixir", "upgradeTime": 691200 },
+      { "level": 5, "dps": 590, "damagePerHit": 1003, "hp": 6300, "upgradeCost": 17000000, "upgradeResource": "Elixir", "upgradeTime": 777600 }
+    ]
+  }
+]
