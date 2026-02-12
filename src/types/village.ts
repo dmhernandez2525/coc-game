@@ -71,12 +71,22 @@ export interface CampaignProgress {
   totalStars: number;
 }
 
+export interface VillageObstacle {
+  instanceId: string;
+  type: string;
+  gridX: number;
+  gridY: number;
+  removalCost: number;
+  removalTime: number;
+}
+
 export interface VillageState {
   version: number;
   townHallLevel: number;
   buildings: PlacedBuilding[];
   walls: PlacedWall[];
   traps: PlacedTrap[];
+  obstacles: VillageObstacle[];
   resources: ResourceAmounts;
   builders: BuilderSlot[];
   army: TrainedTroop[];
@@ -85,6 +95,7 @@ export interface VillageState {
   trophies: number;
   league: string;
   campaignProgress: CampaignProgress;
+  obstacleCounter: number;
   lastSaveTimestamp: number;
   totalPlayTime: number;
   gameClockSpeed: number;

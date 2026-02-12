@@ -172,6 +172,7 @@ export function useVillage() {
 
   return {
     state,
+    setState,
     selectedId,
     selectedBuilding,
     placementMode,

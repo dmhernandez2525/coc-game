@@ -4,6 +4,7 @@ import { HUD } from './HUD.tsx';
 import { BuildingPanel } from './BuildingPanel.tsx';
 import { ShopPanel } from './ShopPanel.tsx';
 import { useVillage } from '../hooks/useVillage.ts';
+import { useResources } from '../hooks/useResources.ts';
 
 interface VillageScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -12,6 +13,7 @@ interface VillageScreenProps {
 export function VillageScreen({ onNavigate }: VillageScreenProps) {
   const {
     state,
+    setState,
     selectedId,
     selectedBuilding,
     placementMode,
@@ -29,27 +31,40 @@ export function VillageScreen({ onNavigate }: VillageScreenProps) {
     cancelPlacement,
   } = useVillage();
 
+  const { collect, collectAll, storageCaps } = useResources(state, setState);
+
+  const handleBuildingInteract = (instanceId: string) => {
+    const building = state.buildings.find((b) => b.instanceId === instanceId);
+    if (building?.buildingType === 'resource_collector') {
+      const uncollected = building.uncollectedResources ?? 0;
+      if (uncollected > 0) {
+        collect(instanceId);
+        return;
+      }
+    }
+    handleBuildingClick(instanceId);
+  };
+
   return (
     <div className="relative min-h-screen bg-slate-900 overflow-hidden">
-      {/* HUD */}
       <HUD
         resources={state.resources}
+        storageCaps={storageCaps}
         builders={builders}
         townHallLevel={state.townHallLevel}
         trophies={state.trophies}
+        onCollectAll={collectAll}
       />
 
-      {/* Main grid area */}
       <div className="pt-14 pb-4 flex flex-col items-center">
         <VillageGrid
           state={state}
-          onBuildingClick={handleBuildingClick}
+          onBuildingClick={handleBuildingInteract}
           selectedBuilding={selectedId}
           placementMode={placementMode}
           onPlacementClick={handlePlacementClick}
         />
 
-        {/* Action bar */}
         <div className="flex gap-3 mt-4">
           <button
             onClick={() => setShopOpen(true)}
@@ -71,7 +86,6 @@ export function VillageScreen({ onNavigate }: VillageScreenProps) {
           </button>
         </div>
 
-        {/* Placement mode indicator */}
         {placementMode && (
           <div className="mt-3 flex items-center gap-3 text-sm">
             <span className="text-amber-300">
@@ -88,7 +102,6 @@ export function VillageScreen({ onNavigate }: VillageScreenProps) {
         )}
       </div>
 
-      {/* Building panel */}
       {selectedBuilding && (
         <BuildingPanel
           building={selectedBuilding}
@@ -101,7 +114,6 @@ export function VillageScreen({ onNavigate }: VillageScreenProps) {
         />
       )}
 
-      {/* Shop panel */}
       {shopOpen && (
         <ShopPanel
           townHallLevel={state.townHallLevel}
