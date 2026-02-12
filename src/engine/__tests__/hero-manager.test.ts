@@ -25,6 +25,7 @@ function makeTroop(overrides?: Partial<DeployedTroop>): DeployedTroop {
     targetId: null,
     state: 'idle',
     dps: 110,
+    baseDps: 110,
     attackRange: 1,
     movementSpeed: 16,
     isFlying: false,
@@ -248,8 +249,9 @@ describe('activateHeroAbility', () => {
     const result = activateHeroAbility(troop, 'Barbarian King', 5);
 
     expect(result).not.toBeNull();
-    expect(result!.currentHp).toBe(1300); // 800 + 500
-    expect(result!.dps).toBe(166);        // 110 + 56
+    expect(result!.hero.currentHp).toBe(1300); // 800 + 500
+    expect(result!.hero.dps).toBe(166);        // 110 + 56
+    expect(result!.summonedTroops.length).toBeGreaterThan(0); // Summons Barbarians
   });
 
   it('caps healed hp at maxHp', () => {
@@ -259,7 +261,7 @@ describe('activateHeroAbility', () => {
     const result = activateHeroAbility(troop, 'Barbarian King', 5);
 
     expect(result).not.toBeNull();
-    expect(result!.currentHp).toBe(1595); // Capped at maxHp, not 1900
+    expect(result!.hero.currentHp).toBe(1595); // Capped at maxHp, not 1900
   });
 
   it('does not mutate the input DeployedTroop', () => {
@@ -272,7 +274,7 @@ describe('activateHeroAbility', () => {
     expect(troop.dps).toBe(originalDps);
   });
 
-  it('preserves other troop properties in the returned object', () => {
+  it('preserves other troop properties in the returned hero object', () => {
     const troop = makeTroop({
       currentHp: 800,
       maxHp: 1595,
@@ -285,11 +287,11 @@ describe('activateHeroAbility', () => {
     const result = activateHeroAbility(troop, 'Barbarian King', 5);
 
     expect(result).not.toBeNull();
-    expect(result!.x).toBe(30);
-    expect(result!.y).toBe(40);
-    expect(result!.state).toBe('attacking');
-    expect(result!.targetId).toBe('building_1');
-    expect(result!.name).toBe('Barbarian King');
+    expect(result!.hero.x).toBe(30);
+    expect(result!.hero.y).toBe(40);
+    expect(result!.hero.state).toBe('attacking');
+    expect(result!.hero.targetId).toBe('building_1');
+    expect(result!.hero.name).toBe('Barbarian King');
   });
 });
 

@@ -6,6 +6,8 @@ import { getDefense } from '../data/loaders/defense-loader.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
 import { findTroopTarget, findDefenseTarget, moveToward, distance } from './targeting-ai.ts';
 import { tickSpells } from './spell-engine.ts';
+import { processDefenseSpecial, processBombTowerDeath } from './defense-behaviors.ts';
+import { processTroopSpecial, processDeathSpawns, processDeathDamage } from './troop-mechanics.ts';
 
 const BATTLE_DURATION = 180;
 const DEFAULT_BUILDING_HP = 500;
@@ -29,14 +31,43 @@ export function initBattleState(
     });
 
     if (placed.buildingType === 'defense' && defData && levelStats) {
-      defenses.push({
+      const dps = (levelStats as { dps: number }).dps;
+      const def: ActiveDefense = {
         buildingInstanceId: placed.instanceId, name: placed.buildingId,
         level: placed.level, currentHp: levelStats.hp, maxHp: levelStats.hp,
         x: placed.gridX, y: placed.gridY, targetTroopId: null,
-        dps: (levelStats as { dps: number }).dps,
+        dps, baseDps: dps,
         range: { ...defData.range }, attackSpeed: defData.attackSpeed,
         lastAttackTime: 0, isDestroyed: false,
-      });
+      };
+
+      // Set special defense properties
+      if (placed.buildingId === 'Inferno Tower') {
+        def.infernoMode = 'single'; // Default to single; could be toggled
+        def.infernoRampTime = 0;
+        def.infernoMaxTargets = 5;
+      } else if (placed.buildingId === 'Hidden Tesla') {
+        def.isHidden = true;
+        def.revealTriggerRange = 6;
+      } else if (placed.buildingId === 'Eagle Artillery') {
+        def.eagleActivated = false;
+        def.eagleActivationThreshold = 200;
+        def.range = { min: 7, max: 50 };
+      } else if (placed.buildingId === 'Mortar') {
+        def.range = { min: 4, max: def.range.max };
+        def.splashRadius = 1.5;
+      } else if (placed.buildingId === 'Air Sweeper') {
+        def.pushbackStrength = 3;
+        def.pushbackArc = 120;
+      } else if (placed.buildingId === 'Bomb Tower') {
+        def.splashRadius = 1.5;
+        def.deathDamage = dps * 3;
+        def.deathDamageRadius = 3;
+      } else if (placed.buildingId === 'Wizard Tower') {
+        def.splashRadius = 1;
+      }
+
+      defenses.push(def);
     }
   }
 
@@ -66,10 +97,41 @@ export function deployTroop(
   const deployed: DeployedTroop = {
     id: `troop_${troopName}_${Date.now()}`, name: troopName, level: available.level,
     currentHp: levelStats.hp, maxHp: levelStats.hp, x, y,
-    targetId: null, state: 'idle', dps: levelStats.dps,
+    targetId: null, state: 'idle', dps: levelStats.dps, baseDps: levelStats.dps,
     attackRange: troopData.attackRange, movementSpeed: troopData.movementSpeed,
     isFlying: troopData.isFlying,
   };
+
+  // Set special troop properties
+  if (troopName === 'Wall Breaker') {
+    deployed.selfDestructs = true;
+    deployed.wallDamageMultiplier = 40;
+  } else if (troopName === 'Goblin') {
+    deployed.resourceDamageMultiplier = 2;
+  } else if (troopName === 'Healer') {
+    deployed.healPerSecond = levelStats.dps; // Healers use DPS stat as heal/sec
+    deployed.healRadius = 5;
+    deployed.dps = 0; // Healers don't deal damage
+    deployed.baseDps = 0;
+  } else if (troopName === 'Baby Dragon') {
+    // Enrage check happens each tick
+  } else if (troopName === 'Miner') {
+    deployed.isBurrowed = false;
+  } else if (troopName === 'Electro Dragon') {
+    deployed.chainTargets = 4;
+    deployed.chainDamageDecay = 0.75;
+  } else if (troopName === 'Golem') {
+    deployed.deathSpawnName = 'Golemite';
+    deployed.deathSpawnCount = 2;
+  } else if (troopName === 'Lava Hound') {
+    deployed.deathSpawnName = 'Lava Pup';
+    deployed.deathSpawnCount = 6;
+  } else if (troopName === 'Balloon') {
+    deployed.deathDamage = levelStats.dps * 2;
+    deployed.deathDamageRadius = 1.5;
+  } else if (troopName === 'Valkyrie') {
+    deployed.splashRadius = 1;
+  }
 
   const updatedAvailable = state.availableTroops
     .map((t, i) => (i === idx ? { ...t, count: t.count - 1 } : t))
@@ -134,9 +196,13 @@ export function calculateStars(
 
 /** Process one troop for the current tick. Mutates troop, buildings, and defenses. */
 function processTroop(
-  troop: DeployedTroop, buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
+  troop: DeployedTroop, allTroops: DeployedTroop[],
+  buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
 ): void {
   if (troop.state === 'dead') return;
+
+  // Run special troop mechanics (may modify DPS, burrowed state, etc.)
+  const specialHandled = processTroopSpecial(troop, allTroops, buildings, defenses, deltaMs);
 
   // Clear dead target.
   if (troop.targetId && !findTargetPos(troop.targetId, buildings, defenses)) {
@@ -157,7 +223,10 @@ function processTroop(
   const dist = distance(troop.x, troop.y, targetPos.x, targetPos.y);
   if (dist <= troop.attackRange) {
     troop.state = 'attacking';
-    applyDamage(troop.targetId, troop.dps * (deltaMs / 1000), buildings, defenses);
+    // Only apply normal damage if special handler didn't already handle it
+    if (!specialHandled) {
+      applyDamage(troop.targetId, troop.dps * (deltaMs / 1000), buildings, defenses);
+    }
   } else {
     troop.state = 'moving';
     const pos = moveToward(troop.x, troop.y, targetPos.x, targetPos.y, troop.movementSpeed, deltaMs);
@@ -169,15 +238,23 @@ function processTroop(
 /** Process one defense for the current tick. Mutates defense and troops. */
 function processDefense(
   defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, deltaMs: number,
+  destructionPercent: number, totalHousingDeployed: number,
 ): void {
   if (defense.isDestroyed) return;
 
+  // Try special defense behavior first
+  const ctx = { troops, elapsed, deltaMs, destructionPercent, totalHousingDeployed };
+  if (processDefenseSpecial(defense, ctx)) return;
+
+  // Standard defense behavior
   if (defense.targetTroopId) {
     const target = troops.find((t) => t.id === defense.targetTroopId);
     if (!target || target.state === 'dead') defense.targetTroopId = null;
   }
 
-  if (!defense.targetTroopId) defense.targetTroopId = findDefenseTarget(defense, troops);
+  // Filter out burrowed miners from targeting
+  const targetable = troops.filter((t) => !t.isBurrowed);
+  if (!defense.targetTroopId) defense.targetTroopId = findDefenseTarget(defense, targetable);
   if (!defense.targetTroopId) return;
   if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
 
@@ -204,8 +281,35 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   const troops = state.deployedTroops.map((t) => ({ ...t }));
   const elapsed = BATTLE_DURATION - timeRemaining;
 
-  for (const troop of troops) processTroop(troop, buildings, defenses, deltaMs);
-  for (const defense of defenses) processDefense(defense, troops, elapsed, deltaMs);
+  // Calculate housing deployed for Eagle Artillery activation
+  const totalHousingDeployed = state.deployedTroops.length * 5; // Approximation: 5 housing per troop
+  const currentDestruction = calculateStars(buildings).destructionPercent;
+
+  for (const troop of troops) processTroop(troop, troops, buildings, defenses, deltaMs);
+
+  // Handle troop death effects (spawns, death damage)
+  const newSpawns: DeployedTroop[] = [];
+  for (const troop of troops) {
+    if (troop.state !== 'dead') continue;
+    if (troop.deathSpawnName) {
+      newSpawns.push(...processDeathSpawns(troop));
+      troop.deathSpawnName = undefined; // Only spawn once
+    }
+    if (troop.deathDamage) {
+      processDeathDamage(troop, buildings, defenses);
+      troop.deathDamage = undefined; // Only explode once
+    }
+  }
+  troops.push(...newSpawns);
+
+  for (const defense of defenses) {
+    const wasAlive = !defense.isDestroyed;
+    processDefense(defense, troops, elapsed, deltaMs, currentDestruction, totalHousingDeployed);
+    // Handle Bomb Tower death explosion
+    if (wasAlive && defense.isDestroyed && defense.name === 'Bomb Tower') {
+      processBombTowerDeath(defense, troops);
+    }
+  }
 
   // Apply active spell effects (healing, rage, poison, etc.)
   const spellResult = tickSpells(state.spells, troops, buildings, defenses, deltaMs);
