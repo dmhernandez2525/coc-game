@@ -34,15 +34,15 @@ describe('getCampaignLevels', () => {
 
   it('has "Payback" as the first level', () => {
     const levels = getCampaignLevels();
-    expect(levels[0].name).toBe('Payback');
-    expect(levels[0].level).toBe(1);
+    expect(levels[0]!.name).toBe('Payback');
+    expect(levels[0]!.level).toBe(1);
   });
 
   it('has level 90 as the last level', () => {
     const levels = getCampaignLevels();
     const last = levels[levels.length - 1];
-    expect(last.level).toBe(90);
-    expect(last.name).toBe("M.O.M.M.A's Madhouse");
+    expect(last!.level).toBe(90);
+    expect(last!.name).toBe("M.O.M.M.A's Madhouse");
   });
 
   it('every level has goldLoot, elixirLoot, and darkElixirLoot fields', () => {
@@ -198,7 +198,7 @@ describe('completeCampaignLevel', () => {
     const result = completeCampaignLevel(progress, 1, 2);
     // Should return the same object since stars are not higher
     expect(result).toBe(progress);
-    expect(result.levels[0].stars).toBe(3);
+    expect(result.levels[0]!.stars).toBe(3);
   });
 
   it('returns unchanged progress when stars are equal', () => {
@@ -214,26 +214,26 @@ describe('completeCampaignLevel', () => {
       { levelNumber: 1, stars: 1, completed: true },
     ]);
     const result = completeCampaignLevel(progress, 1, 3);
-    expect(result.levels[0].stars).toBe(3);
+    expect(result.levels[0]!.stars).toBe(3);
     expect(result.totalStars).toBe(3);
   });
 
   it('clamps stars to a maximum of 3', () => {
     const progress = makeProgress();
     const result = completeCampaignLevel(progress, 1, 5);
-    expect(result.levels[0].stars).toBe(3);
+    expect(result.levels[0]!.stars).toBe(3);
   });
 
   it('clamps negative stars to 0', () => {
     const progress = makeProgress();
     const result = completeCampaignLevel(progress, 1, -2);
-    expect(result.levels[0].stars).toBe(0);
+    expect(result.levels[0]!.stars).toBe(0);
   });
 
   it('marks level as not completed when clamped to 0 stars', () => {
     const progress = makeProgress();
     const result = completeCampaignLevel(progress, 1, 0);
-    expect(result.levels[0].completed).toBe(false);
+    expect(result.levels[0]!.completed).toBe(false);
   });
 
   it('does not mutate the input progress object', () => {
@@ -244,7 +244,7 @@ describe('completeCampaignLevel', () => {
     completeCampaignLevel(progress, 1, 3);
     expect(progress.levels).toEqual(originalLevels);
     expect(progress.levels).toHaveLength(1);
-    expect(progress.levels[0].stars).toBe(1);
+    expect(progress.levels[0]!.stars).toBe(1);
   });
 
   it('does not mutate the input when adding a new level entry', () => {
@@ -286,17 +286,17 @@ describe('getStarRewards', () => {
   it('marks the first tier as claimed when totalStars reaches 150', () => {
     const progress = makeProgress([], 150);
     const rewards = getStarRewards(progress);
-    expect(rewards[0].claimed).toBe(true);
-    expect(rewards[1].claimed).toBe(false);
-    expect(rewards[2].claimed).toBe(false);
+    expect(rewards[0]!.claimed).toBe(true);
+    expect(rewards[1]!.claimed).toBe(false);
+    expect(rewards[2]!.claimed).toBe(false);
   });
 
   it('marks the first two tiers as claimed at 225 stars', () => {
     const progress = makeProgress([], 225);
     const rewards = getStarRewards(progress);
-    expect(rewards[0].claimed).toBe(true);
-    expect(rewards[1].claimed).toBe(true);
-    expect(rewards[2].claimed).toBe(false);
+    expect(rewards[0]!.claimed).toBe(true);
+    expect(rewards[1]!.claimed).toBe(true);
+    expect(rewards[2]!.claimed).toBe(false);
   });
 
   it('marks all tiers as claimed at 270 stars (max)', () => {
