@@ -5,8 +5,8 @@ import { npcBases, getNPCBasesForTH, getRandomNPCBase } from '../npc-bases.ts';
 // ---------------------------------------------------------------------------
 
 describe('npcBases', () => {
-  it('has exactly 15 entries', () => {
-    expect(npcBases).toHaveLength(15);
+  it('has exactly 45 entries (3 per TH level, TH1 through TH15)', () => {
+    expect(npcBases).toHaveLength(45);
   });
 
   it('every base has a non-empty id', () => {
@@ -23,10 +23,10 @@ describe('npcBases', () => {
     }
   });
 
-  it('every base has a townHallLevel between 1 and 5', () => {
+  it('every base has a townHallLevel between 1 and 15', () => {
     for (const base of npcBases) {
       expect(base.townHallLevel).toBeGreaterThanOrEqual(1);
-      expect(base.townHallLevel).toBeLessThanOrEqual(5);
+      expect(base.townHallLevel).toBeLessThanOrEqual(15);
     }
   });
 
@@ -57,8 +57,8 @@ describe('npcBases', () => {
     }
   });
 
-  it('has exactly 3 bases per TH level (1 through 5)', () => {
-    for (let th = 1; th <= 5; th++) {
+  it('has exactly 3 bases per TH level (1 through 15)', () => {
+    for (let th = 1; th <= 15; th++) {
       const count = npcBases.filter((b) => b.townHallLevel === th).length;
       expect(count).toBe(3);
     }
@@ -93,9 +93,9 @@ describe('getNPCBasesForTH', () => {
     }
   });
 
-  it('TH5 returns all 15 bases (townHallLevel <= 6 includes everything)', () => {
+  it('TH5 returns 18 bases (townHallLevel <= 6)', () => {
     const bases = getNPCBasesForTH(5);
-    expect(bases).toHaveLength(15);
+    expect(bases).toHaveLength(18);
   });
 
   it('TH0 returns only bases with townHallLevel <= 1 (TH1 bases only)', () => {

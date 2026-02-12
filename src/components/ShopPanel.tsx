@@ -8,9 +8,11 @@ import {
   getStorages,
   getArmyBuilding,
   getAllArmyBuildingNames,
+  traps as trapDataList,
+  wallData,
 } from '../data/loaders/index.ts';
 
-type Tab = 'defenses' | 'resources' | 'army';
+type Tab = 'defenses' | 'resources' | 'army' | 'traps' | 'walls';
 
 interface ShopItem {
   id: string;
@@ -27,7 +29,11 @@ interface ShopPanelProps {
   townHallLevel: number;
   placedBuildings: PlacedBuilding[];
   resources: ResourceAmounts;
+  wallCount?: number;
+  trapCounts?: Record<string, number>;
   onSelectBuilding: (buildingId: string, buildingType: PlacedBuilding['buildingType']) => void;
+  onSelectTrap?: (trapId: string) => void;
+  onSelectWall?: () => void;
   onClose: () => void;
 }
 
@@ -48,7 +54,11 @@ export function ShopPanel({
   townHallLevel,
   placedBuildings,
   resources,
+  wallCount = 0,
+  trapCounts = {},
   onSelectBuilding,
+  onSelectTrap,
+  onSelectWall,
   onClose,
 }: ShopPanelProps) {
   const [tab, setTab] = useState<Tab>('defenses');
@@ -121,13 +131,53 @@ export function ShopPanel({
       }
     }
 
+    if (tab === 'traps') {
+      for (const trap of trapDataList) {
+        const maxCount = trap.maxCountByTH[String(townHallLevel)] ?? 0;
+        if (maxCount === 0) continue;
+        const lvl1 = trap.levels[0];
+        if (!lvl1) continue;
+        result.push({
+          id: trap.name,
+          name: trap.name,
+          category: 'defense',
+          cost: lvl1.upgradeCost,
+          costResource: lvl1.upgradeResource,
+          maxCount,
+          placedCount: trapCounts[trap.name] ?? 0,
+          unlocked: trap.thUnlock <= townHallLevel,
+        });
+      }
+    }
+
+    if (tab === 'walls') {
+      if (wallData) {
+        const maxWalls = th.maxWalls ?? 0;
+        const wallLvl1 = wallData.levels[0];
+        if (maxWalls > 0 && wallLvl1) {
+          result.push({
+            id: 'Wall',
+            name: 'Wall',
+            category: 'defense',
+            cost: wallLvl1.upgradeCost,
+            costResource: wallLvl1.upgradeResource,
+            maxCount: maxWalls,
+            placedCount: wallCount,
+            unlocked: wallData.thUnlock <= townHallLevel,
+          });
+        }
+      }
+    }
+
     return result;
-  }, [tab, th, townHallLevel, placedBuildings]);
+  }, [tab, th, townHallLevel, placedBuildings, wallCount, trapCounts]);
 
   const tabs: Array<{ key: Tab; label: string }> = [
     { key: 'defenses', label: 'Defenses' },
     { key: 'resources', label: 'Resources' },
     { key: 'army', label: 'Army' },
+    { key: 'traps', label: 'Traps' },
+    { key: 'walls', label: 'Walls' },
   ];
 
   return (
@@ -171,7 +221,16 @@ export function ShopPanel({
           return (
             <button
               key={item.id}
-              onClick={() => canBuy && onSelectBuilding(item.id, item.category)}
+              onClick={() => {
+                if (!canBuy) return;
+                if (tab === 'traps' && onSelectTrap) {
+                  onSelectTrap(item.id);
+                } else if (tab === 'walls' && onSelectWall) {
+                  onSelectWall();
+                } else {
+                  onSelectBuilding(item.id, item.category);
+                }
+              }}
               disabled={!canBuy}
               className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                 canBuy

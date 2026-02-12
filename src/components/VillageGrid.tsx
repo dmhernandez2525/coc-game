@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import type { VillageState, PlacedBuilding } from '../types/village.ts';
+import type { VillageState, PlacedBuilding, PlacedWall, PlacedTrap } from '../types/village.ts';
 import {
   GRID_SIZE,
   TILE_WIDTH,
@@ -98,6 +98,21 @@ export function VillageGrid({
       }
     }
     ctx.restore();
+
+    // Draw walls with connection logic
+    if (state.walls && state.walls.length > 0) {
+      const wallSet = new Set(state.walls.map((w) => `${w.gridX},${w.gridY}`));
+      for (const wall of state.walls) {
+        drawWall(ctx, wall, wallSet, toCanvas, zoom, wall.instanceId === selectedBuilding);
+      }
+    }
+
+    // Draw traps (hidden from attacker, visible to owner)
+    if (state.traps && state.traps.length > 0) {
+      for (const trap of state.traps) {
+        drawTrap(ctx, trap, toCanvas, zoom);
+      }
+    }
 
     // Draw buildings
     for (const bld of state.buildings) {
@@ -293,4 +308,138 @@ function drawBuilding(
   ctx.fillStyle = '#ffffffcc';
   const abbrev = bld.buildingId.length > 8 ? bld.buildingId.slice(0, 7) + '.' : bld.buildingId;
   ctx.fillText(abbrev, center.x, center.y + fontSize * 0.8);
+
+  // Upgrade progress bar (if upgrading)
+  if (bld.isUpgrading && bld.upgradeTimeRemaining > 0) {
+    const barW = Math.max(20, 30 * zoom);
+    const barH = Math.max(3, 4 * zoom);
+    const barX = center.x - barW / 2;
+    const barY = center.y + fontSize * 1.5;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.fillStyle = '#fbbf24';
+    // We don't have the total upgrade time, so just show a pulsing bar
+    const pulse = (Math.sin(Date.now() / 500) + 1) / 2;
+    ctx.fillRect(barX, barY, barW * pulse, barH);
+  }
+
+  // Uncollected resource indicator (bubble above building)
+  const uncollected = bld.uncollectedResources ?? 0;
+  if (uncollected > 0 && bld.buildingType === 'resource_collector') {
+    const bubbleY = topLeft.y - 10 * zoom;
+    const bubbleR = Math.max(5, 7 * zoom);
+    ctx.beginPath();
+    ctx.arc(center.x, bubbleY, bubbleR, 0, Math.PI * 2);
+    ctx.fillStyle = bld.buildingId.includes('Gold') ? '#fbbf24' : '#a855f7';
+    ctx.globalAlpha = 0.9;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.font = `bold ${Math.max(6, 7 * zoom)}px sans-serif`;
+    ctx.fillStyle = '#000';
+    ctx.fillText('$', center.x, bubbleY + 1);
+  }
+}
+
+// Wall colors by level range
+const WALL_COLORS: Array<{ maxLevel: number; fill: string; stroke: string }> = [
+  { maxLevel: 2, fill: '#9ca3af', stroke: '#6b7280' },   // Wood/Stone
+  { maxLevel: 4, fill: '#d4a574', stroke: '#a87c4f' },   // Gold
+  { maxLevel: 6, fill: '#818cf8', stroke: '#6366f1' },   // Crystal
+  { maxLevel: 8, fill: '#1e1e1e', stroke: '#4a4a4a' },   // Dark
+  { maxLevel: 10, fill: '#ef4444', stroke: '#b91c1c' },  // Lava
+  { maxLevel: 15, fill: '#60a5fa', stroke: '#2563eb' },   // Legendary
+];
+
+function getWallColor(level: number): { fill: string; stroke: string } {
+  for (const wc of WALL_COLORS) {
+    if (level <= wc.maxLevel) return wc;
+  }
+  return WALL_COLORS[WALL_COLORS.length - 1]!;
+}
+
+// 4-directional neighbors for wall connection detection
+const WALL_NEIGHBORS = [
+  { dx: 1, dy: 0 },
+  { dx: -1, dy: 0 },
+  { dx: 0, dy: 1 },
+  { dx: 0, dy: -1 },
+];
+
+function drawWall(
+  ctx: CanvasRenderingContext2D,
+  wall: PlacedWall,
+  wallSet: Set<string>,
+  toCanvas: (gx: number, gy: number) => { x: number; y: number },
+  zoom: number,
+  isSelected: boolean,
+) {
+  const { fill, stroke } = getWallColor(wall.level);
+  const p = toCanvas(wall.gridX, wall.gridY);
+  const hw = (TILE_WIDTH / 2) * zoom;
+  const hh = (TILE_HEIGHT / 2) * zoom;
+
+  // Draw base wall tile (slightly smaller than full tile)
+  const scale = 0.85;
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - hh * scale);
+  ctx.lineTo(p.x + hw * scale, p.y);
+  ctx.lineTo(p.x, p.y + hh * scale);
+  ctx.lineTo(p.x - hw * scale, p.y);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = isSelected ? '#fbbf24' : stroke;
+  ctx.lineWidth = isSelected ? 2.5 : 1.5;
+  ctx.stroke();
+
+  // Draw connection lines to adjacent walls
+  ctx.strokeStyle = fill;
+  ctx.lineWidth = Math.max(2, 3 * zoom);
+  for (const n of WALL_NEIGHBORS) {
+    const nKey = `${wall.gridX + n.dx},${wall.gridY + n.dy}`;
+    if (wallSet.has(nKey)) {
+      const np = toCanvas(wall.gridX + n.dx, wall.gridY + n.dy);
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo((p.x + np.x) / 2, (p.y + np.y) / 2);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawTrap(
+  ctx: CanvasRenderingContext2D,
+  trap: PlacedTrap,
+  toCanvas: (gx: number, gy: number) => { x: number; y: number },
+  zoom: number,
+) {
+  const p = toCanvas(trap.gridX, trap.gridY);
+  const hw = (TILE_WIDTH / 2) * zoom;
+  const hh = (TILE_HEIGHT / 2) * zoom;
+
+  // Draw a small diamond with dashed outline (indicating hidden)
+  const scale = 0.6;
+  ctx.save();
+  ctx.setLineDash([3 * zoom, 3 * zoom]);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y - hh * scale);
+  ctx.lineTo(p.x + hw * scale, p.y);
+  ctx.lineTo(p.x, p.y + hh * scale);
+  ctx.lineTo(p.x - hw * scale, p.y);
+  ctx.closePath();
+  ctx.fillStyle = trap.isArmed ? 'rgba(239,68,68,0.4)' : 'rgba(100,100,100,0.3)';
+  ctx.fill();
+  ctx.strokeStyle = trap.isArmed ? '#ef4444' : '#6b7280';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Trap icon (small "!" for armed, "x" for disarmed)
+  const fontSize = Math.max(8, 10 * zoom);
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = trap.isArmed ? '#fca5a5' : '#9ca3af';
+  ctx.fillText(trap.isArmed ? '!' : 'x', p.x, p.y);
+  ctx.restore();
 }

@@ -342,3 +342,330 @@ describe('isHeroAvailableForBattle', () => {
     expect(result).toBe(false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - Archer Queen
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - Archer Queen', () => {
+  it('heals the Archer Queen when ability activates', () => {
+    // Archer Queen level 5: abilityLevel=1, abilityHPRecovery=150, abilityDamageIncrease=300
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 400,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).not.toBeNull();
+    // 400 + 150 = 550
+    expect(result!.hero.currentHp).toBe(550);
+  });
+
+  it('summons Archers', () => {
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 400,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.summonedTroops.length).toBeGreaterThan(0);
+    // All summoned troops should be Archers
+    for (const s of result!.summonedTroops) {
+      expect(s.name).toBe('Archer');
+    }
+  });
+
+  it('sets isBurrowed to true (invisibility/Royal Cloak)', () => {
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 400,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.hero.isBurrowed).toBe(true);
+  });
+
+  it('boosts DPS by abilityDamageIncrease', () => {
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 400,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).not.toBeNull();
+    // dps = baseDps + abilityDamageIncrease = 150 + 300 = 450
+    expect(result!.hero.dps).toBe(450);
+  });
+
+  it('marks heroAbilityUsed as true', () => {
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 400,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.hero.heroAbilityUsed).toBe(true);
+  });
+
+  it('caps healed HP at maxHp', () => {
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 600,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).not.toBeNull();
+    // 600 + 150 = 750, but capped at 630
+    expect(result!.hero.currentHp).toBe(630);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - Grand Warden
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - Grand Warden', () => {
+  it('heals the Grand Warden', () => {
+    // Grand Warden level 5: abilityLevel=1, no abilityHPRecovery field in JSON => defaults to 0
+    const troop = makeTroop({
+      name: 'Grand Warden',
+      level: 5,
+      currentHp: 700,
+      maxHp: 923,
+      dps: 49,
+      baseDps: 49,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Grand Warden', 5);
+
+    expect(result).not.toBeNull();
+    // abilityHPRecovery is not in the Grand Warden JSON, so falls back to 0
+    // currentHp stays at 700 (700 + 0 = 700, still <= 923)
+    expect(result!.hero.currentHp).toBe(700);
+  });
+
+  it('does not summon any troops', () => {
+    const troop = makeTroop({
+      name: 'Grand Warden',
+      level: 5,
+      currentHp: 700,
+      maxHp: 923,
+      dps: 49,
+      baseDps: 49,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Grand Warden', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.summonedTroops).toHaveLength(0);
+  });
+
+  it('marks heroAbilityUsed as true', () => {
+    const troop = makeTroop({
+      name: 'Grand Warden',
+      level: 5,
+      currentHp: 700,
+      maxHp: 923,
+      dps: 49,
+      baseDps: 49,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Grand Warden', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.hero.heroAbilityUsed).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - Royal Champion
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - Royal Champion', () => {
+  it('marks heroAbilityUsed as true', () => {
+    // Royal Champion level 5: abilityLevel=1, seekingShieldHPRecovery=1260
+    // But the handler uses abilityHPRecovery which is not in the JSON, so falls back to 0
+    const troop = makeTroop({
+      name: 'Royal Champion',
+      level: 5,
+      currentHp: 2000,
+      maxHp: 2678,
+      dps: 375,
+      baseDps: 375,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Royal Champion', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.hero.heroAbilityUsed).toBe(true);
+  });
+
+  it('does not summon any troops', () => {
+    const troop = makeTroop({
+      name: 'Royal Champion',
+      level: 5,
+      currentHp: 2000,
+      maxHp: 2678,
+      dps: 375,
+      baseDps: 375,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Royal Champion', 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.summonedTroops).toHaveLength(0);
+  });
+
+  it('keeps currentHp unchanged when abilityHPRecovery is not defined in data', () => {
+    const troop = makeTroop({
+      name: 'Royal Champion',
+      level: 5,
+      currentHp: 2000,
+      maxHp: 2678,
+      dps: 375,
+      baseDps: 375,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Royal Champion', 5);
+
+    expect(result).not.toBeNull();
+    // abilityHPRecovery not in RC data, falls back to 0. So hp = min(2000+0, 2678) = 2000
+    expect(result!.hero.currentHp).toBe(2000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - heroAbilityUsed guard
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - ability already used', () => {
+  it('returns null when heroAbilityUsed is already true', () => {
+    const troop = makeTroop({
+      name: 'Barbarian King',
+      level: 5,
+      currentHp: 800,
+      maxHp: 1595,
+      dps: 110,
+      baseDps: 110,
+      heroAbilityUsed: true,
+    });
+
+    const result = activateHeroAbility(troop, 'Barbarian King', 5);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null for Archer Queen when ability already used', () => {
+    const troop = makeTroop({
+      name: 'Archer Queen',
+      level: 5,
+      currentHp: 400,
+      maxHp: 630,
+      dps: 150,
+      baseDps: 150,
+      heroAbilityUsed: true,
+    });
+
+    const result = activateHeroAbility(troop, 'Archer Queen', 5);
+
+    expect(result).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - fallback handler (hero not in ABILITY_HANDLERS)
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - fallback for unknown handler', () => {
+  it('uses the generic fallback for Minion Prince (not in ABILITY_HANDLERS)', () => {
+    // Minion Prince level 6 has abilityLevel=1 but no dedicated handler
+    const troop = makeTroop({
+      name: 'Minion Prince',
+      level: 6,
+      currentHp: 300,
+      maxHp: 410,
+      dps: 196,
+      baseDps: 196,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Minion Prince', 6);
+
+    expect(result).not.toBeNull();
+    // Fallback uses abilityHPRecovery (not in Minion Prince data, so 0)
+    // and abilityDamageIncrease (also not in data, so 0)
+    expect(result!.hero.currentHp).toBe(300);
+    expect(result!.hero.dps).toBe(196); // baseDps + 0
+    expect(result!.hero.heroAbilityUsed).toBe(true);
+    expect(result!.summonedTroops).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - stats not found
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - stats not found', () => {
+  it('returns null when hero level stats do not exist', () => {
+    const troop = makeTroop({
+      name: 'Barbarian King',
+      level: 999,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Barbarian King', 999);
+
+    expect(result).toBeNull();
+  });
+
+  it('returns null for a completely unknown hero name', () => {
+    const troop = makeTroop({
+      name: 'MadeUpHero',
+      level: 1,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'MadeUpHero', 1);
+
+    expect(result).toBeNull();
+  });
+});
