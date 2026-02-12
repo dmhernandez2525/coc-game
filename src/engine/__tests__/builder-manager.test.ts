@@ -16,6 +16,7 @@ function makeState(overrides?: Partial<VillageState>): VillageState {
     buildings: [],
     walls: [],
     traps: [],
+    obstacles: [],
     resources: { gold: 10000, elixir: 10000, darkElixir: 0, gems: 5000 },
     builders: [
       { id: 1, isUnlocked: true, assignedTo: null, timeRemaining: 0 },
@@ -30,6 +31,7 @@ function makeState(overrides?: Partial<VillageState>): VillageState {
     trophies: 0,
     league: 'Unranked',
     campaignProgress: { levels: [], totalStars: 0 },
+    obstacleCounter: 0,
     lastSaveTimestamp: Date.now(),
     totalPlayTime: 0,
     gameClockSpeed: 1,
