@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { Screen } from '../App.tsx';
-import type { BattleState, BattleResult, BattleBuilding, DeployedTroop } from '../types/battle.ts';
+import type { BattleState, BattleResult, BattleBuilding, DeployedTroop, ActiveSpell } from '../types/battle.ts';
 import { initBattleState, deployTroop, tickBattle, getBattleResult, isBattleOver } from '../engine/battle-engine.ts';
+import { deploySpell } from '../engine/spell-engine.ts';
 import { getRandomNPCBase } from '../data/npc-bases.ts';
 import { createStarterVillage } from '../engine/village-manager.ts';
 import { BattleHUD } from './BattleHUD.tsx';
@@ -16,6 +17,14 @@ const CW = 800;
 const CH = 600;
 const CELL = 20;
 
+const SPELL_COLORS: Record<string, string> = {
+  'Healing Spell': 'rgba(34, 197, 94, 0.25)',
+  'Rage Spell': 'rgba(239, 68, 68, 0.25)',
+  'Poison Spell': 'rgba(168, 85, 247, 0.25)',
+  'Freeze Spell': 'rgba(56, 189, 248, 0.25)',
+  'Haste Spell': 'rgba(250, 204, 21, 0.25)',
+};
+
 function hpColor(ratio: number): string {
   if (ratio > 0.5) return '#22c55e';
   return ratio > 0.25 ? '#eab308' : '#ef4444';
@@ -28,13 +37,25 @@ function drawHpBar(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.fillRect(x, y, w * ratio, 3);
 }
 
-function drawBattleField(ctx: CanvasRenderingContext2D, buildings: BattleBuilding[], troops: DeployedTroop[]) {
+function drawBattleField(
+  ctx: CanvasRenderingContext2D, buildings: BattleBuilding[],
+  troops: DeployedTroop[], spells: ActiveSpell[],
+) {
   ctx.fillStyle = '#1e293b';
   ctx.fillRect(0, 0, CW, CH);
   ctx.strokeStyle = '#334155';
   ctx.lineWidth = 0.5;
   for (let x = 0; x < CW; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, CH); ctx.stroke(); }
   for (let y = 0; y < CH; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(CW, y); ctx.stroke(); }
+
+  // Draw active spell effect circles
+  for (const s of spells) {
+    const sx = s.x * CELL, sy = s.y * CELL;
+    ctx.beginPath();
+    ctx.arc(sx, sy, s.radius * CELL, 0, Math.PI * 2);
+    ctx.fillStyle = SPELL_COLORS[s.name] ?? 'rgba(255, 255, 255, 0.15)';
+    ctx.fill();
+  }
 
   for (const b of buildings) {
     const bx = b.x * CELL, by = b.y * CELL;
@@ -65,6 +86,7 @@ export function BattleScreen({ onNavigate }: BattleScreenProps) {
   const [battleState, setBattleState] = useState<BattleState | null>(null);
   const [result, setResult] = useState<BattleResult | null>(null);
   const [selectedTroop, setSelectedTroop] = useState<string | null>(null);
+  const [selectedSpell, setSelectedSpell] = useState<string | null>(null);
   const [npcBaseFound, setNpcBaseFound] = useState(true);
   const [trophyOffer, setTrophyOffer] = useState(0);
   const stateRef = useRef<BattleState | null>(null);
@@ -100,16 +122,29 @@ export function BattleScreen({ onNavigate }: BattleScreenProps) {
   useEffect(() => {
     if (!battleState) return;
     const ctx = canvasRef.current?.getContext('2d');
-    if (ctx) drawBattleField(ctx, battleState.buildings, battleState.deployedTroops);
+    if (ctx) drawBattleField(ctx, battleState.buildings, battleState.deployedTroops, battleState.spells);
   }, [battleState]);
 
   const handleCanvasClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!battleState || battleState.phase === 'ended' || !selectedTroop) return;
+    if (!battleState || battleState.phase === 'ended') return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const gx = Math.floor(((e.clientX - rect.left) * (CW / rect.width)) / CELL);
     const gy = Math.floor(((e.clientY - rect.top) * (CH / rect.height)) / CELL);
+
+    // Deploy spell if one is selected
+    if (selectedSpell) {
+      const next = deploySpell(battleState, selectedSpell, gx, gy);
+      if (!next) return;
+      setBattleState(next);
+      const rem = next.availableSpells.find((s) => s.name === selectedSpell);
+      if (!rem || rem.count <= 0) setSelectedSpell(null);
+      return;
+    }
+
+    // Deploy troop
+    if (!selectedTroop) return;
     const next = deployTroop(battleState, selectedTroop, gx, gy);
     if (!next) return;
     setBattleState(next);
@@ -117,10 +152,16 @@ export function BattleScreen({ onNavigate }: BattleScreenProps) {
     if (!rem || rem.count <= 0) {
       setSelectedTroop(next.availableTroops.find((t) => t.count > 0)?.name ?? null);
     }
-  }, [battleState, selectedTroop]);
+  }, [battleState, selectedTroop, selectedSpell]);
 
   const handleSelectTroop = useCallback((name: string) => {
+    setSelectedSpell(null);
     setSelectedTroop((prev) => (prev === name ? null : name));
+  }, []);
+
+  const handleSelectSpell = useCallback((name: string) => {
+    setSelectedTroop(null);
+    setSelectedSpell((prev) => (prev === name ? null : name));
   }, []);
 
   const handleSurrender = useCallback(() => {
@@ -159,8 +200,8 @@ export function BattleScreen({ onNavigate }: BattleScreenProps) {
         className="border border-slate-700 rounded-lg cursor-crosshair max-w-full max-h-[80vh]"
         style={{ imageRendering: 'pixelated' }} />
       {!result && (
-        <BattleHUD state={battleState} selectedTroop={selectedTroop}
-          onDeployTroop={handleSelectTroop} onSurrender={handleSurrender} />
+        <BattleHUD state={battleState} selectedTroop={selectedTroop} selectedSpell={selectedSpell}
+          onDeployTroop={handleSelectTroop} onDeploySpell={handleSelectSpell} onSurrender={handleSurrender} />
       )}
       {result && <BattleResultScreen result={result} onReturnHome={handleReturnHome} />}
     </div>

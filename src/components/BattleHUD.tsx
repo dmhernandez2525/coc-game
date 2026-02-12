@@ -4,7 +4,9 @@ import { formatResource } from '../utils/resource-format.ts';
 interface BattleHUDProps {
   state: BattleState;
   selectedTroop: string | null;
+  selectedSpell: string | null;
   onDeployTroop: (troopName: string) => void;
+  onDeploySpell: (spellName: string) => void;
   onSurrender: () => void;
 }
 
@@ -28,7 +30,7 @@ function StarIcon({ filled }: { filled: boolean }) {
   );
 }
 
-export function BattleHUD({ state, selectedTroop, onDeployTroop, onSurrender }: BattleHUDProps) {
+export function BattleHUD({ state, selectedTroop, selectedSpell, onDeployTroop, onDeploySpell, onSurrender }: BattleHUDProps) {
   return (
     <div className="absolute inset-0 pointer-events-none z-10">
       {/* Top bar */}
@@ -63,7 +65,7 @@ export function BattleHUD({ state, selectedTroop, onDeployTroop, onSurrender }: 
         </div>
       </div>
 
-      {/* Bottom bar: troop deployment */}
+      {/* Bottom bar: troop + spell deployment */}
       <div className="absolute bottom-0 left-0 right-0 pointer-events-auto">
         <div className="flex items-center gap-2 px-4 py-3 bg-slate-900/90 border-t border-slate-700 overflow-x-auto">
           {state.availableTroops.map((troop) => (
@@ -83,8 +85,28 @@ export function BattleHUD({ state, selectedTroop, onDeployTroop, onSurrender }: 
               <span className="text-[10px] tabular-nums mt-0.5">x{troop.count}</span>
             </button>
           ))}
-          {state.availableTroops.length === 0 && (
-            <span className="text-sm text-slate-500 italic">No troops available</span>
+          {state.availableSpells.length > 0 && (
+            <div className="w-px h-10 bg-slate-600 mx-1" />
+          )}
+          {state.availableSpells.map((spell) => (
+            <button
+              key={spell.name}
+              onClick={() => onDeploySpell(spell.name)}
+              disabled={spell.count <= 0}
+              className={`flex flex-col items-center px-3 py-2 rounded-lg min-w-[72px] transition-colors ${
+                selectedSpell === spell.name
+                  ? 'bg-purple-600 text-white'
+                  : spell.count > 0
+                    ? 'bg-indigo-800 hover:bg-indigo-700 text-slate-200'
+                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+              }`}
+            >
+              <span className="text-xs font-semibold truncate max-w-[64px]">{spell.name}</span>
+              <span className="text-[10px] tabular-nums mt-0.5">x{spell.count}</span>
+            </button>
+          ))}
+          {state.availableTroops.length === 0 && state.availableSpells.length === 0 && (
+            <span className="text-sm text-slate-500 italic">No troops or spells available</span>
           )}
         </div>
       </div>

@@ -5,6 +5,7 @@ import type { PlacedBuilding, TrainedTroop } from '../types/village.ts';
 import { getDefense } from '../data/loaders/defense-loader.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
 import { findTroopTarget, findDefenseTarget, moveToward, distance } from './targeting-ai.ts';
+import { tickSpells } from './spell-engine.ts';
 
 const BATTLE_DURATION = 180;
 const DEFAULT_BUILDING_HP = 500;
@@ -206,14 +207,18 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   for (const troop of troops) processTroop(troop, buildings, defenses, deltaMs);
   for (const defense of defenses) processDefense(defense, troops, elapsed, deltaMs);
 
-  const { stars, destructionPercent } = calculateStars(buildings);
-  const allDead = troops.every((t) => t.state === 'dead');
+  // Apply active spell effects (healing, rage, poison, etc.)
+  const spellResult = tickSpells(state.spells, troops, buildings, defenses, deltaMs);
+
+  const { stars, destructionPercent } = calculateStars(spellResult.buildings);
+  const allDead = spellResult.troops.every((t) => t.state === 'dead');
   const noneLeft = state.availableTroops.length === 0;
   const phase = destructionPercent >= 100 || (allDead && noneLeft) ? 'ended' : state.phase;
 
   return {
-    ...state, phase, timeRemaining, deployedTroops: troops,
-    defenses, buildings, stars, destructionPercent,
+    ...state, phase, timeRemaining, deployedTroops: spellResult.troops,
+    defenses: spellResult.defenses, buildings: spellResult.buildings,
+    spells: spellResult.spells, stars, destructionPercent,
   };
 }
 

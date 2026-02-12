@@ -1,5 +1,4 @@
 import { npcBases, getNPCBasesForTH, getRandomNPCBase } from '../npc-bases.ts';
-import type { NPCBase } from '../npc-bases.ts';
 
 // ---------------------------------------------------------------------------
 // npcBases data integrity
