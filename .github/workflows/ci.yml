@@ -23,7 +23,7 @@ jobs:
         run: NODE_ENV=development npm ci
 
       - name: Type check
-        run: npx tsc --noEmit
+        run: npx tsc -b --noEmit
 
       - name: Run tests with coverage
         run: npx vitest run --coverage

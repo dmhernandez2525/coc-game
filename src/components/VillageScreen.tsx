@@ -38,7 +38,7 @@ import { createClan } from '../engine/clan-manager.ts';
 import type { AchievementProgress } from '../engine/achievement-manager.ts';
 import { claimReward } from '../engine/achievement-manager.ts';
 import type { MagicItemInventory } from '../engine/magic-items-manager.ts';
-import { createInventory, useBookOfBuilding, useRune } from '../engine/magic-items-manager.ts';
+import { createInventory } from '../engine/magic-items-manager.ts';
 import type { SuperTroopState } from '../engine/super-troop-manager.ts';
 import {
   createSuperTroopState,
