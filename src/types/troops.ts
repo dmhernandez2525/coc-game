@@ -180,6 +180,7 @@ export interface SiegeMachineLevelStats {
   upgradeTime: number;
   wallDamagePerHit?: number;
   deathDamage?: number;
+  deathDamageRadius?: number;
 }
 
 export interface SiegeMachineData {

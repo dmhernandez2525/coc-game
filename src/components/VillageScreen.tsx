@@ -38,7 +38,7 @@ import { createClan } from '../engine/clan-manager.ts';
 import type { AchievementProgress } from '../engine/achievement-manager.ts';
 import { claimReward } from '../engine/achievement-manager.ts';
 import type { MagicItemInventory } from '../engine/magic-items-manager.ts';
-import { createInventory, useBookOfBuilding, useRune } from '../engine/magic-items-manager.ts';
+import { createInventory } from '../engine/magic-items-manager.ts';
 import type { SuperTroopState } from '../engine/super-troop-manager.ts';
 import {
   createSuperTroopState,
@@ -184,8 +184,9 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setState((prev) => {
       const troopIdx = prev.army.findIndex((t) => t.name === troopName);
       if (troopIdx < 0) return prev;
+      const existing = prev.army[troopIdx]!;
       const newArmy = [...prev.army];
-      newArmy[troopIdx] = { ...newArmy[troopIdx], level: newArmy[troopIdx].level + 1 };
+      newArmy[troopIdx] = { ...existing, level: existing.level + 1 };
       return { ...prev, army: newArmy };
     });
   }, [setState]);

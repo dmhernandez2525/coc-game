@@ -1,4 +1,4 @@
-import type { ActiveDefense, DeployedTroop, BattleBuilding } from '../types/battle.ts';
+import type { ActiveDefense, DeployedTroop } from '../types/battle.ts';
 import { distance, findDefenseTarget } from './targeting-ai.ts';
 
 // --- Inferno Tower (Single Target) ---
@@ -108,7 +108,7 @@ function processEagleArtillery(
 // Has a dead zone (min range 4). Fires splash shells.
 
 function processMortar(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, _deltaMs: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
 
@@ -136,7 +136,7 @@ function processMortar(
 // Deals 0 damage but pushes back air troops in a cone.
 
 function processAirSweeper(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, _deltaMs: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
   if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;

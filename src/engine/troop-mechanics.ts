@@ -5,7 +5,7 @@ import { distance } from './targeting-ai.ts';
 // 40x damage to walls, self-destructs on impact.
 
 function processWallBreaker(
-  troop: DeployedTroop, buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
+  troop: DeployedTroop, buildings: BattleBuilding[], _defenses: ActiveDefense[], deltaMs: number,
 ): void {
   if (troop.state === 'dead') return;
   // Wall Breakers only attack walls; wallDamageMultiplier should be set to 40
@@ -105,7 +105,7 @@ function processMiner(
 // Chain lightning: primary target + bounces to nearby targets with damage decay.
 
 function processElectroDragonAttack(
-  troop: DeployedTroop, allTroops: DeployedTroop[],
+  troop: DeployedTroop, _allTroops: DeployedTroop[],
   buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
 ): boolean {
   if (troop.state !== 'attacking' || !troop.targetId) return false;
