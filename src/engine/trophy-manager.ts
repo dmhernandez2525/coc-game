@@ -169,6 +169,19 @@ export function checkLeagueChange(
   };
 }
 
+/** Get the league bonus (gold, elixir, darkElixir) for a given league name. */
+export function getLeagueBonus(
+  leagueName: string,
+): { gold: number; elixir: number; darkElixir: number } | null {
+  const tier = getLeagueTier(leagueName);
+  if (!tier) return null;
+  return {
+    gold: tier.maxBonusGold,
+    elixir: tier.maxBonusElixir,
+    darkElixir: tier.maxBonusDarkElixir,
+  };
+}
+
 /**
  * Process the full trophy result after a battle.
  * Returns updated village state, league bonus loot, and league change info.

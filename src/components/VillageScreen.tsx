@@ -184,8 +184,9 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setState((prev) => {
       const troopIdx = prev.army.findIndex((t) => t.name === troopName);
       if (troopIdx < 0) return prev;
+      const existing = prev.army[troopIdx]!;
       const newArmy = [...prev.army];
-      newArmy[troopIdx] = { ...newArmy[troopIdx], level: newArmy[troopIdx].level + 1 };
+      newArmy[troopIdx] = { ...existing, level: existing.level + 1 };
       return { ...prev, army: newArmy };
     });
   }, [setState]);
