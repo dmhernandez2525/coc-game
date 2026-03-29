@@ -1,5 +1,4 @@
 // Auto-save hook: periodically saves village state to localStorage.
-// Works with the existing useState-based state management.
 
 import { useEffect, useRef } from 'react';
 import type { VillageState } from '../types/village.ts';
@@ -18,7 +17,10 @@ export function useAutoSave(
   intervalMs: number = DEFAULT_INTERVAL_MS,
 ): void {
   const stateRef = useRef(state);
-  stateRef.current = state;
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -27,7 +29,6 @@ export function useAutoSave(
 
     return () => {
       clearInterval(id);
-      // Save one last time on unmount
       saveManager.save(stateRef.current, 'autosave');
     };
   }, [intervalMs]);

@@ -5,6 +5,7 @@ import type { VillageState, TrainedTroop, ResourceAmounts } from '../types/villa
 import type { TroopData } from '../types/troops.ts';
 import { getTroop, getAllTroops } from '../data/loaders/troop-loader.ts';
 import { getArmyBuilding } from '../data/loaders/army-building-loader.ts';
+import { RESOURCE_KEY_MAP } from '../utils/resource-constants.ts';
 
 export interface TrainingQueueItem {
   troopName: string;
@@ -16,12 +17,6 @@ export interface TrainingCost {
   resource: string;
   time: number; // seconds
 }
-
-const RESOURCE_KEY_MAP: Record<string, keyof ResourceAmounts> = {
-  Gold: 'gold',
-  Elixir: 'elixir',
-  'Dark Elixir': 'darkElixir',
-};
 
 const TROOP_TYPE_CONFIG: Record<string, {
   costMul: number; timeMul: number; resource: string;
@@ -135,7 +130,7 @@ export function removeTroop(
   const army = state.army
     .map((t) => {
       if (t.name !== troopName) return t;
-      return { ...t, count: t.count - count };
+      return { ...t, count: Math.max(0, t.count - count) };
     })
     .filter((t) => t.count > 0);
 

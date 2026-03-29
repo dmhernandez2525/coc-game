@@ -187,7 +187,7 @@ export function ShopPanel({
         <h3 className="text-lg font-bold text-amber-400">Shop</h3>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2"
+          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 rounded"
           aria-label="Close shop"
         >
           x
@@ -200,10 +200,10 @@ export function ShopPanel({
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex-1 py-2 text-sm font-semibold transition-colors ${
+            className={`flex-1 py-2 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 ${
               tab === t.key
-                ? 'text-amber-400 border-b-2 border-amber-400'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-amber-400 border-b-2 border-amber-400 bg-slate-800/40'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/20'
             }`}
           >
             {t.label}
@@ -235,7 +235,7 @@ export function ShopPanel({
               className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                 canBuy
                   ? 'bg-slate-800 hover:bg-slate-700 cursor-pointer'
-                  : 'bg-slate-800/50 opacity-50 cursor-not-allowed'
+                  : 'bg-slate-800/30 opacity-60 cursor-not-allowed border border-slate-700/50'
               }`}
             >
               <div className="flex items-center justify-between">

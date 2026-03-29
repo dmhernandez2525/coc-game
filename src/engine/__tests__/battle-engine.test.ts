@@ -1016,8 +1016,6 @@ describe('tickBattle - wall collision', () => {
     });
     const result = tickBattle(state, 1000);
 
-    // The wall should have taken damage since the troop is blocked
-    const wallAfter = result.buildings.find((b) => b.instanceId === 'wall_1');
     // Either the wall took damage or the troop is trying to path around it
     // The troop should not have been idle
     const troopAfter = result.deployedTroops.find((t) => t.name === 'Barbarian');

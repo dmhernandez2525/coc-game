@@ -81,7 +81,7 @@ export function BattleHUD({ state, selectedTroop, selectedSpell, onDeployTroop, 
                     : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
             >
-              <span className="text-xs font-semibold truncate max-w-[64px]">{troop.name}</span>
+              <span className="text-xs font-semibold block truncate max-w-[64px]" title={troop.name}>{troop.name}</span>
               <span className="text-[10px] tabular-nums mt-0.5">x{troop.count}</span>
             </button>
           ))}
@@ -101,7 +101,7 @@ export function BattleHUD({ state, selectedTroop, selectedSpell, onDeployTroop, 
                     : 'bg-slate-800 text-slate-500 cursor-not-allowed'
               }`}
             >
-              <span className="text-xs font-semibold truncate max-w-[64px]">{spell.name}</span>
+              <span className="text-xs font-semibold block truncate max-w-[64px]" title={spell.name}>{spell.name}</span>
               <span className="text-[10px] tabular-nums mt-0.5">x{spell.count}</span>
             </button>
           ))}

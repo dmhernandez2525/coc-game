@@ -294,4 +294,24 @@ describe('getMaxCountForTH', () => {
     // Laboratory is 0 at TH1 per the buildingCounts
     expect(getMaxCountForTH('Laboratory', 1)).toBe(0);
   });
+
+  it('falls back to defense maxCountByTH when not in TH buildingCounts', () => {
+    // Cannon at a high TH should still return a value via fallback
+    const result = getMaxCountForTH('Cannon', 10);
+    expect(result).toBeGreaterThan(0);
+  });
+
+  it('falls back to resource building maxCountByTH', () => {
+    const result = getMaxCountForTH('Gold Mine', 8);
+    expect(result).toBeGreaterThan(0);
+  });
+
+  it('falls back to army building maxCountByTH', () => {
+    const result = getMaxCountForTH('Barracks', 5);
+    expect(result).toBeGreaterThan(0);
+  });
+
+  it('returns 0 for an invalid TH level', () => {
+    expect(getMaxCountForTH('Cannon', 99)).toBe(0);
+  });
 });

@@ -34,7 +34,7 @@ export function StatsPanel({ stats, onClose }: StatsPanelProps) {
         <h2 className="text-lg font-bold text-amber-400">Statistics</h2>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2"
+          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 rounded"
           aria-label="Close stats"
         >
           x

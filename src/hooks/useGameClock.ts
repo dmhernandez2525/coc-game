@@ -1,4 +1,4 @@
-import { useRef, useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore, useEffect, useState } from 'react';
 import { createTimerSystem } from '../engine/timer-system';
 import type { TimerSystem } from '../engine/timer-system';
 
@@ -21,16 +21,18 @@ export interface UseGameClockReturn {
 }
 
 export function useGameClock(config?: UseGameClockConfig): UseGameClockReturn {
-  const timerRef = useRef<TimerSystem | null>(null);
-
-  if (timerRef.current === null) {
-    timerRef.current = createTimerSystem({
+  const [timer] = useState(() =>
+    createTimerSystem({
       speedMultiplier: config?.speedMultiplier,
       tickIntervalMs: config?.tickIntervalMs,
-    });
-  }
+    }),
+  );
 
-  const timer = timerRef.current;
+  useEffect(() => {
+    return () => {
+      timer.stop();
+    };
+  }, [timer]);
 
   const elapsedMs = useSyncExternalStore(
     timer.subscribe,

@@ -210,6 +210,101 @@ describe('corruption handling', () => {
 
     expect(manager.isValidSave(minimal)).toBe(true);
   });
+
+  it('isValidSave rejects negative resource values', () => {
+    const manager = createSaveManager();
+    const badState = {
+      version: 1,
+      townHallLevel: 1,
+      buildings: [],
+      resources: { gold: -1000, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    };
+
+    expect(manager.isValidSave(badState)).toBe(false);
+  });
+
+  it('isValidSave rejects negative gem values', () => {
+    const manager = createSaveManager();
+    const badState = {
+      version: 1,
+      townHallLevel: 1,
+      buildings: [],
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: -500 },
+      builders: [],
+    };
+
+    expect(manager.isValidSave(badState)).toBe(false);
+  });
+
+  it('isValidSave rejects townHallLevel of 0 or below', () => {
+    const manager = createSaveManager();
+    expect(manager.isValidSave({
+      version: 1,
+      townHallLevel: 0,
+      buildings: [],
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    })).toBe(false);
+  });
+
+  it('isValidSave rejects townHallLevel above 17', () => {
+    const manager = createSaveManager();
+    expect(manager.isValidSave({
+      version: 1,
+      townHallLevel: 100,
+      buildings: [],
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    })).toBe(false);
+  });
+
+  it('isValidSave rejects wrong types for required fields', () => {
+    const manager = createSaveManager();
+    // version as string instead of number
+    expect(manager.isValidSave({
+      version: '1',
+      townHallLevel: 1,
+      buildings: [],
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    })).toBe(false);
+
+    // buildings as object instead of array
+    expect(manager.isValidSave({
+      version: 1,
+      townHallLevel: 1,
+      buildings: {},
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    })).toBe(false);
+  });
+
+  it('isValidSave rejects negative trophies', () => {
+    const manager = createSaveManager();
+    expect(manager.isValidSave({
+      version: 1,
+      townHallLevel: 5,
+      buildings: [],
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+      trophies: -100,
+    })).toBe(false);
+  });
+
+  it('load rejects a crafted save with negative resources in localStorage', () => {
+    const crafted = JSON.stringify({
+      version: 1,
+      townHallLevel: 5,
+      buildings: [],
+      resources: { gold: 999999999, elixir: -1, darkElixir: 0, gems: 0 },
+      builders: [],
+    });
+    localStorage.setItem('coc_save_crafted', crafted);
+    const manager = createSaveManager();
+
+    expect(manager.load('crafted')).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------

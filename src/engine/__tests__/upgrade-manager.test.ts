@@ -412,3 +412,66 @@ describe('getNextTHUnlockSummary', () => {
     expect(getNextTHUnlockSummary(999)).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Branch coverage: edge cases
+// ---------------------------------------------------------------------------
+
+describe('upgrade-manager branch coverage', () => {
+  it('getUnlockedSpells returns empty array for invalid TH', () => {
+    expect(getUnlockedSpells(999)).toEqual([]);
+  });
+
+  it('getUnlockedHeroes returns empty array for invalid TH', () => {
+    expect(getUnlockedHeroes(999)).toEqual([]);
+  });
+
+  it('getUnlockedTroops returns empty array for invalid TH', () => {
+    expect(getUnlockedTroops(999)).toEqual([]);
+  });
+
+  it('startTownHallUpgrade returns null when no TH building exists', () => {
+    const state = makeVillage({ buildings: [] });
+    expect(startTownHallUpgrade(state)).toBeNull();
+  });
+
+  it('completeTownHallUpgrade handles TH with no assigned builder', () => {
+    const state = makeVillage({
+      townHallLevel: 1,
+      buildings: [makeTownHallBuilding({ isUpgrading: true, assignedBuilder: null })],
+    });
+    const result = completeTownHallUpgrade(state);
+    expect(result.townHallLevel).toBe(2);
+    const thBuilding = result.buildings.find((b) => b.buildingId === 'Town Hall');
+    expect(thBuilding!.isUpgrading).toBe(false);
+  });
+
+  it('completeTownHallUpgrade returns unchanged state when no TH building', () => {
+    const state = makeVillage({ buildings: [] });
+    const result = completeTownHallUpgrade(state);
+    expect(result.townHallLevel).toBe(state.townHallLevel);
+  });
+
+  it('getTHWeapon returns null for low TH levels', () => {
+    expect(getTHWeapon(1)).toBeNull();
+  });
+
+  it('getArmyCampCapacity returns 0 for invalid TH', () => {
+    expect(getArmyCampCapacity(999)).toBe(0);
+  });
+
+  it('getMaxWalls returns 0 for invalid TH', () => {
+    expect(getMaxWalls(999)).toBe(0);
+  });
+
+  it('canStartTownHallUpgrade returns false when TH is at max level', () => {
+    const maxLevel = getMaxTownHallLevel();
+    const state = makeVillage({ townHallLevel: maxLevel });
+    expect(canStartTownHallUpgrade(state)).toBe(false);
+  });
+
+  it('canStartTownHallUpgrade returns false when no TH building', () => {
+    const state = makeVillage({ buildings: [] });
+    expect(canStartTownHallUpgrade(state)).toBe(false);
+  });
+});

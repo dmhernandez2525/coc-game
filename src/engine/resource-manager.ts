@@ -5,14 +5,9 @@ import type { VillageState, PlacedBuilding, ResourceAmounts } from '../types/vil
 import type { CollectorLevelStats, StorageLevelStats, ResourceCollectorData, ResourceStorageData } from '../types/buildings.ts';
 import { getCollectors, getStorages } from '../data/loaders/resource-loader.ts';
 import { getTownHall } from '../data/loaders/townhall-loader.ts';
+import { RESOURCE_KEY_MAP } from '../utils/resource-constants.ts';
 
 const MS_PER_HOUR = 3_600_000;
-
-const RESOURCE_KEY_MAP: Record<string, keyof ResourceAmounts> = {
-  Gold: 'gold',
-  Elixir: 'elixir',
-  'Dark Elixir': 'darkElixir',
-};
 
 const NAME_TO_KEY: Record<string, keyof ResourceAmounts> = {
   'Gold Storage': 'gold',

@@ -83,41 +83,45 @@ function clearTimer(ref: React.MutableRefObject<ReturnType<typeof setInterval> |
 export function BattleScreen({ onNavigate }: BattleScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [battleState, setBattleState] = useState<BattleState | null>(null);
-  const [result, setResult] = useState<BattleResult | null>(null);
-  const [selectedTroop, setSelectedTroop] = useState<string | null>(null);
-  const [selectedSpell, setSelectedSpell] = useState<string | null>(null);
-  const [npcBaseFound, setNpcBaseFound] = useState(true);
-  const [trophyOffer, setTrophyOffer] = useState(0);
-  const stateRef = useRef<BattleState | null>(null);
-  stateRef.current = battleState;
-
   const villageState = useMemo(() => createStarterVillage(), []);
 
-  useEffect(() => {
+  const [battleState, setBattleState] = useState<BattleState | null>(() => {
     const npcBase = getRandomNPCBase(villageState.townHallLevel);
-    if (!npcBase) { setNpcBaseFound(false); return; }
-    setTrophyOffer(npcBase.trophyOffer);
+    if (!npcBase) return null;
+    return initBattleState(npcBase, villageState.army, villageState.spells);
+  });
+  const [result, setResult] = useState<BattleResult | null>(null);
+  const [selectedTroop, setSelectedTroop] = useState<string | null>(() => {
+    const npcBase = getRandomNPCBase(villageState.townHallLevel);
+    if (!npcBase) return null;
     const initial = initBattleState(npcBase, villageState.army, villageState.spells);
-    setBattleState(initial);
     const first = initial.availableTroops.find((t) => t.count > 0);
-    if (first) setSelectedTroop(first.name);
+    return first?.name ?? null;
+  });
+  const [selectedSpell, setSelectedSpell] = useState<string | null>(null);
+  const npcBaseFound = battleState !== null;
+  const trophyOffer = useMemo(() => {
+    const npcBase = getRandomNPCBase(villageState.townHallLevel);
+    return npcBase?.trophyOffer ?? 0;
   }, [villageState]);
+  const trophyOfferRef = useRef(trophyOffer);
 
+  const battleStarted = battleState !== null;
   useEffect(() => {
-    if (!battleState || result) return;
+    if (!battleStarted || result) return;
     intervalRef.current = setInterval(() => {
-      const cur = stateRef.current;
-      if (!cur || cur.phase === 'ended') return;
-      const next = tickBattle(cur, TICK_MS);
-      setBattleState(next);
-      if (isBattleOver(next)) {
-        setResult(getBattleResult(next, trophyOffer));
-        clearTimer(intervalRef);
-      }
+      setBattleState((prev) => {
+        if (!prev || prev.phase === 'ended') return prev;
+        const next = tickBattle(prev, TICK_MS);
+        if (isBattleOver(next)) {
+          setResult(getBattleResult(next, trophyOfferRef.current));
+          clearTimer(intervalRef);
+        }
+        return next;
+      });
     }, TICK_MS);
     return () => clearTimer(intervalRef);
-  }, [battleState !== null, result, trophyOffer]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [battleStarted, result]);
 
   useEffect(() => {
     if (!battleState) return;

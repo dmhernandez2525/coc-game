@@ -339,4 +339,33 @@ describe('TimerSystem', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
   });
+
+  // -----------------------------------------------------------------------
+  // Hardening: setSpeed rejects negative values
+  // -----------------------------------------------------------------------
+  describe('setSpeed hardening', () => {
+    it('clamps negative speed multiplier to 0', () => {
+      timer.setSpeed(-5);
+      expect(timer.getSpeed()).toBe(0);
+    });
+
+    it('allows setting speed to 0 (paused game time)', () => {
+      timer.setSpeed(0);
+      expect(timer.getSpeed()).toBe(0);
+
+      const callback = vi.fn();
+      timer.onTick(callback);
+      timer.start();
+      timer.addCountdown('frozen', 100, vi.fn());
+
+      vi.advanceTimersByTime(500);
+      // Ticks fire, but game delta is 0, so countdown doesn't complete
+      expect(timer.getCountdownRemaining('frozen')).toBe(100);
+    });
+
+    it('allows normal positive speed values', () => {
+      timer.setSpeed(10);
+      expect(timer.getSpeed()).toBe(10);
+    });
+  });
 });

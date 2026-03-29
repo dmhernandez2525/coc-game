@@ -143,7 +143,7 @@ function PreparationView({ war }: { war: WarState }) {
         </h4>
         <div className="space-y-1">
           {war.playerClan.members.map((m, i) => (
-            <MemberRow key={i} member={m} index={i} />
+            <MemberRow key={`${m.name}-${m.townHallLevel}`} member={m} index={i} />
           ))}
         </div>
       </div>
@@ -154,7 +154,7 @@ function PreparationView({ war }: { war: WarState }) {
         </h4>
         <div className="space-y-1">
           {war.enemyClan.members.map((m, i) => (
-            <MemberRow key={i} member={m} index={i} />
+            <MemberRow key={`${m.name}-${m.townHallLevel}`} member={m} index={i} />
           ))}
         </div>
       </div>
@@ -196,7 +196,7 @@ function BattleView({
         <div className="space-y-1">
           {war.playerClan.members.map((m, i) => (
             <div
-              key={i}
+              key={`${m.name}-${m.townHallLevel}`}
               className="flex items-center justify-between bg-slate-800 rounded px-3 py-1.5 text-sm"
             >
               <div className="flex items-center gap-2">
@@ -222,7 +222,7 @@ function BattleView({
         <div className="space-y-1">
           {war.enemyClan.members.map((m, i) => (
             <button
-              key={i}
+              key={`${m.name}-${m.townHallLevel}`}
               onClick={() => onAttack(i)}
               disabled={!playerHasAttacks}
               className="w-full flex items-center justify-between bg-slate-800 hover:bg-slate-700 rounded px-3 py-1.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-left"
@@ -314,7 +314,7 @@ function EndedView({ war, townHallLevel }: { war: WarState; townHallLevel: numbe
         </h4>
         <div className="space-y-1">
           {war.playerClan.members.map((m, i) => (
-            <MemberRow key={i} member={m} index={i} />
+            <MemberRow key={`${m.name}-${m.townHallLevel}`} member={m} index={i} />
           ))}
         </div>
       </div>
@@ -325,7 +325,7 @@ function EndedView({ war, townHallLevel }: { war: WarState; townHallLevel: numbe
         </h4>
         <div className="space-y-1">
           {war.enemyClan.members.map((m, i) => (
-            <MemberRow key={i} member={m} index={i} />
+            <MemberRow key={`${m.name}-${m.townHallLevel}`} member={m} index={i} />
           ))}
         </div>
       </div>
@@ -384,7 +384,7 @@ export function ClanWarPanel({
         <h2 className="text-lg font-bold text-amber-400">Clan War</h2>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2"
+          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 rounded"
           aria-label="Close clan war"
         >
           x

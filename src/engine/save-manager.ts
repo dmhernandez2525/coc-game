@@ -39,18 +39,29 @@ function saveIndex(slots: SaveSlot[]): void {
   localStorage.setItem(INDEX_KEY, JSON.stringify(slots));
 }
 
-const REQUIRED_KEYS: Array<keyof VillageState> = [
-  'version',
-  'townHallLevel',
-  'buildings',
-  'resources',
-  'builders',
-];
-
 function isValidSave(data: unknown): data is VillageState {
   if (typeof data !== 'object' || data === null) return false;
   const record = data as Record<string, unknown>;
-  return REQUIRED_KEYS.every((key) => key in record);
+
+  // Validate required keys and their types
+  if (typeof record.version !== 'number' || record.version < 1) return false;
+  if (typeof record.townHallLevel !== 'number' || record.townHallLevel < 1 || record.townHallLevel > 17) return false;
+  if (!Array.isArray(record.buildings)) return false;
+  if (!Array.isArray(record.builders)) return false;
+
+  // Validate resources shape and non-negative values
+  const res = record.resources;
+  if (typeof res !== 'object' || res === null) return false;
+  const r = res as Record<string, unknown>;
+  if (typeof r.gold !== 'number' || r.gold < 0) return false;
+  if (typeof r.elixir !== 'number' || r.elixir < 0) return false;
+  if (typeof r.darkElixir !== 'number' || r.darkElixir < 0) return false;
+  if (typeof r.gems !== 'number' || r.gems < 0) return false;
+
+  // Validate trophies if present
+  if ('trophies' in record && (typeof record.trophies !== 'number' || record.trophies < 0)) return false;
+
+  return true;
 }
 
 export function createSaveManager(): SaveManager {

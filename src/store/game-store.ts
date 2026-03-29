@@ -157,13 +157,13 @@ export const useGameStore = create<GameStore>((set, get) => {
     collectResource: (instanceId) =>
       set((s) => {
         const village = collectFromBuilding(s.village, instanceId);
-        return { village };
+        return { village, storageCaps: getStorageCapacity(village) };
       }),
 
     collectAll: () =>
       set((s) => {
         const village = collectAllResources(s.village);
-        return { village };
+        return { village, storageCaps: getStorageCapacity(village) };
       }),
 
     addResources: (amounts) =>
@@ -180,23 +180,26 @@ export const useGameStore = create<GameStore>((set, get) => {
       }),
 
     spendResources: (amounts) => {
-      const state = get();
-      const res = state.village.resources;
+      let success = false;
+      set((s) => {
+        const res = s.village.resources;
 
-      if ((amounts.gold ?? 0) > res.gold) return false;
-      if ((amounts.elixir ?? 0) > res.elixir) return false;
-      if ((amounts.darkElixir ?? 0) > res.darkElixir) return false;
-      if ((amounts.gems ?? 0) > res.gems) return false;
+        if ((amounts.gold ?? 0) > res.gold) return s;
+        if ((amounts.elixir ?? 0) > res.elixir) return s;
+        if ((amounts.darkElixir ?? 0) > res.darkElixir) return s;
+        if ((amounts.gems ?? 0) > res.gems) return s;
 
-      const updated: ResourceAmounts = {
-        gold: res.gold - (amounts.gold ?? 0),
-        elixir: res.elixir - (amounts.elixir ?? 0),
-        darkElixir: res.darkElixir - (amounts.darkElixir ?? 0),
-        gems: res.gems - (amounts.gems ?? 0),
-      };
+        const updated: ResourceAmounts = {
+          gold: res.gold - (amounts.gold ?? 0),
+          elixir: res.elixir - (amounts.elixir ?? 0),
+          darkElixir: res.darkElixir - (amounts.darkElixir ?? 0),
+          gems: res.gems - (amounts.gems ?? 0),
+        };
 
-      set({ village: { ...state.village, resources: updated } });
-      return true;
+        success = true;
+        return { village: { ...s.village, resources: updated } };
+      });
+      return success;
     },
 
     // -- Game clock --
@@ -218,17 +221,32 @@ export const useGameStore = create<GameStore>((set, get) => {
           return { ...b, timeRemaining: remaining };
         });
 
-        // Update building upgrade timers
+        // Update building upgrade timers and auto-complete finished upgrades
+        const completedSet = new Set(completedBuildings);
         const buildings = village.buildings.map((b) => {
           if (!b.isUpgrading) return b;
           const remaining = b.upgradeTimeRemaining - deltaMs * village.gameClockSpeed;
-          if (remaining <= 0) {
-            return { ...b, upgradeTimeRemaining: 0 };
+          if (remaining <= 0 || completedSet.has(b.instanceId)) {
+            return {
+              ...b,
+              level: b.level + 1,
+              isUpgrading: false,
+              upgradeTimeRemaining: 0,
+              assignedBuilder: null,
+            };
           }
           return { ...b, upgradeTimeRemaining: remaining };
         });
 
-        village = { ...village, builders, buildings };
+        // Free builders whose assignments completed
+        const freedBuilders = builders.map((b) => {
+          if (b.assignedTo && completedSet.has(b.assignedTo)) {
+            return { ...b, assignedTo: null, timeRemaining: 0 };
+          }
+          return b;
+        });
+
+        village = { ...village, builders: freedBuilders, buildings };
 
         // Tick super troop timers
         const superTroopState = tickSuperTroopTimers(s.superTroopState, deltaMs * village.gameClockSpeed);
@@ -236,7 +254,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         // Update total play time
         village = { ...village, totalPlayTime: village.totalPlayTime + deltaMs };
 
-        return { village, superTroopState };
+        return { village, superTroopState, storageCaps: getStorageCapacity(village) };
       }),
 
     // -- Army --
@@ -275,7 +293,7 @@ export const useGameStore = create<GameStore>((set, get) => {
     // -- Navigation/meta --
 
     setTrophies: (trophies) =>
-      set((s) => ({ village: { ...s.village, trophies } })),
+      set((s) => ({ village: { ...s.village, trophies: Math.max(0, trophies) } })),
 
     setLeague: (league) =>
       set((s) => ({ village: { ...s.village, league } })),

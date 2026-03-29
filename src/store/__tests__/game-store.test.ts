@@ -33,21 +33,6 @@ function makeBuilding(overrides?: Partial<PlacedBuilding>): PlacedBuilding {
   };
 }
 
-function makeCollector(overrides?: Partial<PlacedBuilding>): PlacedBuilding {
-  return {
-    instanceId: 'test_collector_1',
-    buildingId: 'Gold Mine',
-    buildingType: 'resource_collector',
-    level: 1,
-    gridX: 5,
-    gridY: 5,
-    isUpgrading: false,
-    upgradeTimeRemaining: 0,
-    assignedBuilder: null,
-    ...overrides,
-  };
-}
-
 function makeStorage(name: string, overrides?: Partial<PlacedBuilding>): PlacedBuilding {
   return {
     instanceId: `test_${name}`,
@@ -200,8 +185,6 @@ describe('setVillageState', () => {
   });
 
   it('recomputes storage caps when village state changes', () => {
-    const capsBefore = useGameStore.getState().storageCaps;
-
     // Set a village with storage buildings at higher level
     const custom = makeVillageState({
       buildings: [
@@ -928,7 +911,6 @@ describe('setInventory', () => {
 describe('save and load', () => {
   it('saves the current village and loads it back', () => {
     useGameStore.getState().setTrophies(1234);
-    const villageBefore = useGameStore.getState().village;
 
     const saveResult = useGameStore.getState().save('test_slot');
     expect(saveResult).toBe(true);
@@ -1037,5 +1019,172 @@ describe('auto-save', () => {
     expect(saved).toBeNull();
 
     vi.useRealTimers();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hardening: tick auto-completes upgrades and frees builders
+// ---------------------------------------------------------------------------
+
+describe('tick - auto-complete upgrades', () => {
+  it('increments building level when upgrade timer expires via tick', () => {
+    const village = useGameStore.getState().village;
+    const firstBuilding = village.buildings[0]!;
+    const levelBefore = firstBuilding.level;
+
+    const updatedBuildings = village.buildings.map((b) =>
+      b.instanceId === firstBuilding.instanceId
+        ? { ...b, isUpgrading: true, upgradeTimeRemaining: 5000, assignedBuilder: 1 }
+        : b,
+    );
+    const updatedBuilders = village.builders.map((b) =>
+      b.id === 1
+        ? { ...b, assignedTo: firstBuilding.instanceId, timeRemaining: 5000 }
+        : b,
+    );
+    useGameStore.getState().setVillageState({
+      ...village,
+      buildings: updatedBuildings,
+      builders: updatedBuilders,
+    });
+
+    // Tick past the upgrade duration
+    useGameStore.getState().tick(10000);
+
+    const building = useGameStore.getState().village.buildings.find(
+      (b) => b.instanceId === firstBuilding.instanceId,
+    );
+    expect(building!.level).toBe(levelBefore + 1);
+    expect(building!.isUpgrading).toBe(false);
+    expect(building!.upgradeTimeRemaining).toBe(0);
+    expect(building!.assignedBuilder).toBeNull();
+  });
+
+  it('frees the builder when upgrade completes via tick', () => {
+    const village = useGameStore.getState().village;
+    const firstBuilding = village.buildings[0]!;
+
+    const updatedBuildings = village.buildings.map((b) =>
+      b.instanceId === firstBuilding.instanceId
+        ? { ...b, isUpgrading: true, upgradeTimeRemaining: 3000, assignedBuilder: 1 }
+        : b,
+    );
+    const updatedBuilders = village.builders.map((b) =>
+      b.id === 1
+        ? { ...b, assignedTo: firstBuilding.instanceId, timeRemaining: 3000 }
+        : b,
+    );
+    useGameStore.getState().setVillageState({
+      ...village,
+      buildings: updatedBuildings,
+      builders: updatedBuilders,
+    });
+
+    useGameStore.getState().tick(5000);
+
+    const builder = useGameStore.getState().village.builders.find((b) => b.id === 1);
+    expect(builder!.assignedTo).toBeNull();
+    expect(builder!.timeRemaining).toBe(0);
+  });
+
+  it('updates storageCaps after tick completes a storage upgrade', () => {
+    const village = useGameStore.getState().village;
+    const storageBuilding = village.buildings.find(
+      (b) => b.buildingType === 'resource_storage',
+    );
+    expect(storageBuilding).toBeDefined();
+
+    const capsBefore = { ...useGameStore.getState().storageCaps };
+
+    const updatedBuildings = village.buildings.map((b) =>
+      b.instanceId === storageBuilding!.instanceId
+        ? { ...b, isUpgrading: true, upgradeTimeRemaining: 1000, assignedBuilder: 1 }
+        : b,
+    );
+    const updatedBuilders = village.builders.map((b) =>
+      b.id === 1
+        ? { ...b, assignedTo: storageBuilding!.instanceId, timeRemaining: 1000 }
+        : b,
+    );
+    useGameStore.getState().setVillageState({
+      ...village,
+      buildings: updatedBuildings,
+      builders: updatedBuilders,
+    });
+
+    useGameStore.getState().tick(5000);
+
+    const capsAfter = useGameStore.getState().storageCaps;
+    expect(capsAfter.gold).toBeGreaterThanOrEqual(capsBefore.gold);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hardening: spendResources atomicity
+// ---------------------------------------------------------------------------
+
+describe('spendResources - atomicity', () => {
+  it('returns false and does not modify state when insufficient gold', () => {
+    const goldBefore = useGameStore.getState().village.resources.gold;
+    const result = useGameStore.getState().spendResources({ gold: goldBefore + 1 });
+
+    expect(result).toBe(false);
+    expect(useGameStore.getState().village.resources.gold).toBe(goldBefore);
+  });
+
+  it('returns false and does not modify state when insufficient gems', () => {
+    const gemsBefore = useGameStore.getState().village.resources.gems;
+    const result = useGameStore.getState().spendResources({ gems: gemsBefore + 1 });
+
+    expect(result).toBe(false);
+    expect(useGameStore.getState().village.resources.gems).toBe(gemsBefore);
+  });
+
+  it('deducts all resource types atomically', () => {
+    useGameStore.getState().addResources({ gold: 5000, elixir: 5000, gems: 100 });
+    const before = { ...useGameStore.getState().village.resources };
+
+    const result = useGameStore.getState().spendResources({ gold: 100, elixir: 200, gems: 50 });
+
+    expect(result).toBe(true);
+    const after = useGameStore.getState().village.resources;
+    expect(after.gold).toBe(before.gold - 100);
+    expect(after.elixir).toBe(before.elixir - 200);
+    expect(after.gems).toBe(before.gems - 50);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hardening: setTrophies clamps negative values
+// ---------------------------------------------------------------------------
+
+describe('setTrophies - hardening', () => {
+  it('clamps negative trophy values to 0', () => {
+    useGameStore.getState().setTrophies(-500);
+    expect(useGameStore.getState().village.trophies).toBe(0);
+  });
+
+  it('allows setting trophies to a positive value', () => {
+    useGameStore.getState().setTrophies(3000);
+    expect(useGameStore.getState().village.trophies).toBe(3000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hardening: collectResource updates storageCaps
+// ---------------------------------------------------------------------------
+
+describe('collectResource - storageCaps sync', () => {
+  it('updates storageCaps after collecting resources', () => {
+    useGameStore.getState().tick(3_600_000);
+    const goldMine = useGameStore.getState().village.buildings.find(
+      (b) => b.buildingId === 'Gold Mine',
+    );
+    expect(goldMine).toBeDefined();
+
+    useGameStore.getState().collectResource(goldMine!.instanceId);
+
+    const caps = useGameStore.getState().storageCaps;
+    expect(caps.gold).toBeGreaterThan(0);
   });
 });

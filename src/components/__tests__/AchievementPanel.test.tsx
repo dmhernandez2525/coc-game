@@ -91,10 +91,7 @@ describe('AchievementPanel', () => {
     ];
     renderPanel({ progress, onClaimReward });
 
-    // Find the "Claim" button inside the Sweet Victory card
-    const sweetVictoryCard = screen.getByText('Sweet Victory').closest('div')!;
-    const claimButton = sweetVictoryCard.querySelector('button');
-    // The claimable button may not be in the exact same parent div, so use getAllByRole
+    // Find and click the "Claim" button
     const claimButtons = screen.getAllByRole('button', { name: 'Claim' });
     fireEvent.click(claimButtons[0]);
 

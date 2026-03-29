@@ -140,11 +140,10 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
       };
     });
 
-    // Freeze enemy CC troops in radius (slow to 0 speed)
+    // Freeze troops in radius (halt movement by setting isBurrowed which prevents targeting)
     const troops = state.deployedTroops.map((t) => {
       if (t.state === 'dead' || !isInRadius(x, y, t.x, t.y, radius)) return t;
-      // Enemy troops would be frozen in a real implementation
-      return t;
+      return { ...t, isBurrowed: true, frozenUntil: elapsed + freezeDuration };
     });
 
     return { ...state, defenses, deployedTroops: troops };
@@ -198,6 +197,33 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
       });
     }
     return { ...state, deployedTroops: [...state.deployedTroops, ...bats] };
+  },
+  clone: (state, spellData, ls, x, y) => {
+    const maxClones = stat(ls, 'cloneCount', 5);
+    const radius = spellData.radius ?? 3.5;
+    const cloneHpPercent = stat(ls, 'cloneHpPercent', 100);
+
+    const troopsInRadius = state.deployedTroops.filter(
+      (t) => t.state !== 'dead' && isInRadius(x, y, t.x, t.y, radius),
+    );
+    const clones: DeployedTroop[] = [];
+    for (let i = 0; i < Math.min(troopsInRadius.length, maxClones); i++) {
+      const source = troopsInRadius[i]!;
+      const cloneHp = Math.floor(source.maxHp * (cloneHpPercent / 100));
+      const offsetX = (Math.random() - 0.5) * 2;
+      const offsetY = (Math.random() - 0.5) * 2;
+      clones.push({
+        ...source,
+        id: `clone_${source.name}_${Date.now()}_${i}`,
+        currentHp: cloneHp,
+        maxHp: cloneHp,
+        x: x + offsetX,
+        y: y + offsetY,
+        targetId: null,
+        state: 'idle',
+      });
+    }
+    return { ...state, deployedTroops: [...state.deployedTroops, ...clones] };
   },
 };
 

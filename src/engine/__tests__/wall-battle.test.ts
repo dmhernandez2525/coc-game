@@ -1,4 +1,4 @@
-import type { DeployedTroop, BattleBuilding, ActiveDefense, ActiveSpell } from '../../types/battle.ts';
+import type { DeployedTroop, BattleBuilding, ActiveSpell } from '../../types/battle.ts';
 import { isWallBlocking, findBlockingWall } from '../targeting-ai.ts';
 import { applyEarthquakeDamage, earthquakeDamageForHit, tickSpells } from '../spell-engine.ts';
 
@@ -253,7 +253,7 @@ describe('applyEarthquakeDamage', () => {
   });
 
   it('applies diminishing damage on successive calls', () => {
-    let wall = makeWall({ x: 5, y: 5, maxHp: 1000, currentHp: 1000 });
+    const wall = makeWall({ x: 5, y: 5, maxHp: 1000, currentHp: 1000 });
 
     // First earthquake
     let result = applyEarthquakeDamage([wall], [], 5, 5, 5, 14.5);

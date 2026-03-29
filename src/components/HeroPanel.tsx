@@ -119,12 +119,12 @@ function EquipmentSlot({
                   key={eq.name}
                   onClick={() => onEquip(slotIndex, eq.name)}
                   disabled={alreadyInOther}
-                  className="w-full text-left px-2 py-1 text-xs hover:bg-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full text-left px-2 py-1 text-xs hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-800/50"
                 >
-                  <span className="text-white">{eq.name}</span>
+                  <span className={alreadyInOther ? 'text-slate-500' : 'text-white'}>{eq.name}</span>
                   <span className="ml-1 text-slate-500 capitalize">({eq.data.rarity})</span>
                   {alreadyInOther && (
-                    <span className="ml-1 text-slate-500">(other slot)</span>
+                    <span className="ml-1 text-red-400/70">(other slot)</span>
                   )}
                 </button>
               );
@@ -203,11 +203,11 @@ function PetSection({
                     key={pet.name}
                     onClick={() => onAssign(pet.name)}
                     disabled={assignedElsewhere}
-                    className="w-full text-left px-2 py-1 text-xs hover:bg-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-full text-left px-2 py-1 text-xs hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-800/50"
                   >
-                    <span className="text-white">{pet.name}</span>
+                    <span className={assignedElsewhere ? 'text-slate-500' : 'text-white'}>{pet.name}</span>
                     {assignedElsewhere && (
-                      <span className="ml-1 text-slate-500">(assigned)</span>
+                      <span className="ml-1 text-red-400/70">(assigned)</span>
                     )}
                   </button>
                 );
@@ -378,7 +378,7 @@ export function HeroPanel({
         <h2 className="text-lg font-bold text-amber-400">Heroes</h2>
         <button
           onClick={onClose}
-          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2"
+          className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 rounded"
           aria-label="Close hero panel"
         >
           x

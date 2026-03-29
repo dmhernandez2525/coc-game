@@ -4,6 +4,7 @@
 import type { VillageState, TrainedTroop, ResourceAmounts } from '../types/village.ts';
 import { getSpell, getAllSpells as loadAllSpells } from '../data/loaders/spell-loader.ts';
 import type { SpellData } from '../types/troops.ts';
+import { RESOURCE_KEY_MAP } from '../utils/resource-constants.ts';
 
 // -- Types --
 
@@ -12,13 +13,6 @@ export interface SpellTrainingCost {
   resource: string;
   time: number; // seconds
 }
-
-// -- Constants --
-
-const RESOURCE_KEY_MAP: Record<string, keyof ResourceAmounts> = {
-  Elixir: 'elixir',
-  'Dark Elixir': 'darkElixir',
-};
 
 const SPELL_FACTORY_MAP: Record<string, string> = {
   elixir: 'Spell Factory',
@@ -168,7 +162,7 @@ export function removeSpell(
   const spells = state.spells
     .map((s) => {
       if (s.name !== spellName) return s;
-      return { ...s, count: s.count - count };
+      return { ...s, count: Math.max(0, s.count - count) };
     })
     .filter((s) => s.count > 0);
 

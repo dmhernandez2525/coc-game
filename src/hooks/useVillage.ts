@@ -111,7 +111,7 @@ export function useVillage(
       );
       return { ...prev, resources: newResources, buildings: newBuildings };
     });
-  }, [selectedBuilding, upgradeCost, canUpgrade]);
+  }, [selectedBuilding, upgradeCost, canUpgrade, setState]);
 
   const handleRemove = useCallback(() => {
     if (!selectedBuilding || selectedBuilding.buildingId === 'Town Hall') return;
@@ -120,7 +120,7 @@ export function useVillage(
       buildings: prev.buildings.filter((b) => b.instanceId !== selectedBuilding.instanceId),
     }));
     setSelectedId(null);
-  }, [selectedBuilding]);
+  }, [selectedBuilding, setState]);
 
   const handleClosePanel = useCallback(() => {
     setSelectedId(null);
@@ -169,7 +169,7 @@ export function useVillage(
       }));
       setPlacementMode(null);
     },
-    [placementMode, placementType, state.buildings],
+    [placementMode, placementType, state.buildings, setState],
   );
 
   const cancelPlacement = useCallback(() => {

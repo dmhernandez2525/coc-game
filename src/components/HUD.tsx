@@ -20,13 +20,15 @@ interface ResourceBadgeProps {
 function ResourceBadge({ label, value, cap, colorClass }: ResourceBadgeProps) {
   const atCap = cap !== Infinity && value >= cap;
   return (
-    <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 rounded-lg">
+    <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg ${
+      atCap ? 'bg-red-900/30 border border-red-500/30' : 'bg-slate-800/80'
+    }`}>
       <span className="text-xs text-slate-400">{label}</span>
       <span className={`font-bold text-sm tabular-nums ${atCap ? 'text-red-400' : colorClass}`}>
         {formatResource(Math.floor(value))}
       </span>
       {cap !== Infinity && (
-        <span className="text-xs text-slate-500">/ {formatResource(cap)}</span>
+        <span className={`text-xs ${atCap ? 'text-red-400/60' : 'text-slate-500'}`}>/ {formatResource(cap)}</span>
       )}
     </div>
   );

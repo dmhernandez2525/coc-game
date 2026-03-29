@@ -526,3 +526,32 @@ describe('removeSpell', () => {
     expect(state.spells[0]!.count).toBe(3);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Hardening: removeSpell cannot produce negative counts
+// ---------------------------------------------------------------------------
+
+describe('removeSpell hardening', () => {
+  it('clamps spell count to 0 when removing more than available', () => {
+    const state = makeVillage({
+      spells: [{ name: 'Lightning Spell', level: 1, count: 2 }],
+    });
+    const result = removeSpell(state, 'Lightning Spell', 100);
+
+    expect(result.spells).toHaveLength(0);
+  });
+
+  it('leaves other spells untouched when over-removing one type', () => {
+    const state = makeVillage({
+      spells: [
+        { name: 'Lightning Spell', level: 1, count: 1 },
+        { name: 'Poison Spell', level: 1, count: 3 },
+      ],
+    });
+    const result = removeSpell(state, 'Lightning Spell', 999);
+
+    expect(result.spells).toHaveLength(1);
+    expect(result.spells[0]!.name).toBe('Poison Spell');
+    expect(result.spells[0]!.count).toBe(3);
+  });
+});

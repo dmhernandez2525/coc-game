@@ -17,16 +17,19 @@ export function useResources(
   state: VillageState,
   onStateUpdate: (updater: (prev: VillageState) => VillageState) => void,
 ) {
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const onStateUpdateRef = useRef(onStateUpdate);
+
+  useEffect(() => {
+    onStateUpdateRef.current = onStateUpdate;
+  }, [onStateUpdate]);
 
   useEffect(() => {
     const id = setInterval(() => {
-      onStateUpdate((prev) => tickResourceProduction(prev, TICK_INTERVAL_MS));
+      onStateUpdateRef.current((prev) => tickResourceProduction(prev, TICK_INTERVAL_MS));
     }, TICK_INTERVAL_MS);
 
     return () => clearInterval(id);
-  }, [onStateUpdate]);
+  }, []);
 
   const collect = useCallback(
     (instanceId: string) => {

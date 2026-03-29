@@ -1099,3 +1099,161 @@ describe('tickSpells - spell duration expiration', () => {
     expect(result.spells[0]!.remainingDuration).toBe(14);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Freeze Spell (instant) - GAP-005
+// ---------------------------------------------------------------------------
+
+describe('deploySpell - Freeze Spell', () => {
+  it('freezes defenses within radius', () => {
+    const defense = makeDefense({ x: 5, y: 5, name: 'Archer Tower' });
+    const farDefense = makeDefense({ x: 50, y: 50, name: 'Cannon' });
+    const state = makeBattleState({
+      defenses: [defense, farDefense],
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    const frozenDef = result!.defenses.find((d) => d.name === 'Archer Tower');
+    const unaffectedDef = result!.defenses.find((d) => d.name === 'Cannon');
+    expect(frozenDef!.isFrozen).toBe(true);
+    expect(frozenDef!.frozenUntil).toBeGreaterThan(0);
+    expect(unaffectedDef!.isFrozen).toBeFalsy();
+  });
+
+  it('resets Inferno Tower ramp time when frozen', () => {
+    const inferno = makeDefense({
+      x: 5, y: 5, name: 'Inferno Tower', infernoRampTime: 3,
+    });
+    const state = makeBattleState({
+      defenses: [inferno],
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.defenses[0]!.infernoRampTime).toBe(0);
+  });
+
+  it('freezes troops by setting isBurrowed and frozenUntil', () => {
+    const troop = makeTroop({ x: 5, y: 5 });
+    const farTroop = makeTroop({ x: 50, y: 50 });
+    const state = makeBattleState({
+      deployedTroops: [troop, farTroop],
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    const frozenTroop = result!.deployedTroops[0]!;
+    const unaffectedTroop = result!.deployedTroops[1]!;
+    expect(frozenTroop.isBurrowed).toBe(true);
+    expect(frozenTroop.frozenUntil).toBeGreaterThan(0);
+    expect(unaffectedTroop.isBurrowed).toBeFalsy();
+  });
+
+  it('does not freeze dead troops', () => {
+    const deadTroop = makeTroop({ x: 5, y: 5, state: 'dead', currentHp: 0 });
+    const state = makeBattleState({
+      deployedTroops: [deadTroop],
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.deployedTroops[0]!.isBurrowed).toBeFalsy();
+  });
+
+  it('does not freeze destroyed defenses', () => {
+    const destroyed = makeDefense({ x: 5, y: 5, isDestroyed: true });
+    const state = makeBattleState({
+      defenses: [destroyed],
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.defenses[0]!.isFrozen).toBeFalsy();
+  });
+
+  it('decrements spell count after deployment', () => {
+    const state = makeBattleState({
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 2 }],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.availableSpells[0]!.count).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Clone Spell (instant) - GAP-002
+// ---------------------------------------------------------------------------
+
+describe('deploySpell - Clone Spell', () => {
+  it('clones troops within radius', () => {
+    const troop = makeTroop({ x: 5, y: 5, name: 'Giant', maxHp: 500, currentHp: 500 });
+    const state = makeBattleState({
+      deployedTroops: [troop],
+      availableSpells: [{ name: 'Clone Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.deployedTroops.length).toBeGreaterThan(1);
+    const clone = result!.deployedTroops.find((t) => t.id.startsWith('clone_'));
+    expect(clone).toBeDefined();
+    expect(clone!.name).toBe('Giant');
+  });
+
+  it('does not clone dead troops', () => {
+    const deadTroop = makeTroop({ x: 5, y: 5, state: 'dead', currentHp: 0 });
+    const state = makeBattleState({
+      deployedTroops: [deadTroop],
+      availableSpells: [{ name: 'Clone Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    // Only the original dead troop should exist
+    expect(result!.deployedTroops.length).toBe(1);
+  });
+
+  it('does not clone troops outside radius', () => {
+    const farTroop = makeTroop({ x: 50, y: 50 });
+    const state = makeBattleState({
+      deployedTroops: [farTroop],
+      availableSpells: [{ name: 'Clone Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.deployedTroops.length).toBe(1);
+  });
+
+  it('cloned troops start in idle state with no target', () => {
+    const troop = makeTroop({ x: 5, y: 5, state: 'attacking', targetId: 'bld_1' });
+    const state = makeBattleState({
+      deployedTroops: [troop],
+      availableSpells: [{ name: 'Clone Spell', level: 1, count: 1 }],
+    });
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    const clone = result!.deployedTroops.find((t) => t.id.startsWith('clone_'));
+    expect(clone!.state).toBe('idle');
+    expect(clone!.targetId).toBeNull();
+  });
+});

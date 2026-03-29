@@ -199,7 +199,7 @@ export function recordPlayerAttack(
 export function simulateNPCAttacks(war: WarState): WarState {
   if (war.phase !== 'battle') return war;
 
-  let updatedEnemyClan = { ...war.enemyClan, members: [...war.enemyClan.members] };
+  const updatedEnemyClan = { ...war.enemyClan, members: [...war.enemyClan.members] };
   let totalStars = 0;
   let totalDestruction = 0;
 

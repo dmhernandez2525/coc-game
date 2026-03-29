@@ -2,7 +2,7 @@ services:
   - type: web
     runtime: static
     name: coc-game-site
-    buildCommand: NODE_ENV=development npm ci && npm run build
+    buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     envVars:
       - key: NODE_VERSION
@@ -12,6 +12,9 @@ services:
         source: /*
         destination: /index.html
     headers:
+      - path: /*
+        name: Strict-Transport-Security
+        value: max-age=31536000; includeSubDomains
       - path: /*
         name: X-Frame-Options
         value: DENY

@@ -37,7 +37,7 @@ export function GemShopPanel({ gems, onBuyResources, onClose }: GemShopPanelProp
           <h2 className="text-lg font-bold text-amber-400">Gem Shop</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2"
+            className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/50 rounded"
             aria-label="Close gem shop"
           >
             x
@@ -63,10 +63,12 @@ export function GemShopPanel({ gems, onBuyResources, onClose }: GemShopPanelProp
                   key={option.resourceType}
                   onClick={() => canAfford && handleBuy(option)}
                   disabled={!canAfford}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                    canAfford
-                      ? 'bg-slate-800 hover:bg-slate-700 cursor-pointer'
-                      : 'bg-slate-800/50 opacity-50 cursor-not-allowed'
+                  className={`w-full text-left px-4 py-3 rounded-lg transition-all ${
+                    justPurchased
+                      ? 'bg-green-900/40 border border-green-500/40'
+                      : canAfford
+                        ? 'bg-slate-800 hover:bg-slate-700 cursor-pointer'
+                        : 'bg-slate-800/30 opacity-60 cursor-not-allowed border border-slate-700/50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -78,7 +80,7 @@ export function GemShopPanel({ gems, onBuyResources, onClose }: GemShopPanelProp
                     </span>
                   </div>
                   {justPurchased && (
-                    <p className="text-xs text-green-400 mt-1">Purchased!</p>
+                    <p className="text-xs text-green-300 mt-1 font-semibold">Purchased!</p>
                   )}
                   {!canAfford && (
                     <p className="text-xs text-red-400 mt-1">Not enough gems</p>

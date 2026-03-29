@@ -10,36 +10,10 @@ import { getTownHall } from '../../data/loaders/index';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makePlacedBuilding(
-  buildingId: string,
-  buildingType: PlacedBuilding['buildingType'] = 'defense',
-  overrides?: Partial<PlacedBuilding>,
-): PlacedBuilding {
-  return {
-    instanceId: `${buildingId}-${Math.random().toString(36).slice(2, 8)}`,
-    buildingId,
-    buildingType,
-    level: 1,
-    gridX: 0,
-    gridY: 0,
-    isUpgrading: false,
-    upgradeTimeRemaining: 0,
-    assignedBuilder: null,
-    ...overrides,
-  };
-}
-
 const richResources: ResourceAmounts = {
   gold: 9_999_999,
   elixir: 9_999_999,
   darkElixir: 9_999_999,
-  gems: 0,
-};
-
-const poorResources: ResourceAmounts = {
-  gold: 0,
-  elixir: 0,
-  darkElixir: 0,
   gems: 0,
 };
 

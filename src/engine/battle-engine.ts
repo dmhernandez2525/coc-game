@@ -314,7 +314,10 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   const elapsed = BATTLE_DURATION - timeRemaining;
 
   // Calculate housing deployed for Eagle Artillery activation
-  const totalHousingDeployed = state.deployedTroops.length * 5; // Approximation: 5 housing per troop
+  const totalHousingDeployed = state.deployedTroops.reduce((sum, t) => {
+    const data = getTroop(t.name);
+    return sum + (data?.housingSpace ?? 1);
+  }, 0);
   const currentDestruction = calculateStars(buildings).destructionPercent;
 
   for (const troop of troops) processTroop(troop, troops, buildings, defenses, deltaMs);

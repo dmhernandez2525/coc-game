@@ -108,7 +108,7 @@ function processEagleArtillery(
 // Has a dead zone (min range 4). Fires splash shells.
 
 function processMortar(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, _deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
 
@@ -136,7 +136,7 @@ function processMortar(
 // Deals 0 damage but pushes back air troops in a cone.
 
 function processAirSweeper(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, _deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
   if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
@@ -249,8 +249,8 @@ const DEFENSE_HANDLERS: Record<string, DefenseHandler> = {
   },
   'Hidden Tesla': (d, ctx) => processHiddenTesla(d, ctx.troops, ctx.elapsed, ctx.deltaMs, ctx.destructionPercent),
   'Eagle Artillery': (d, ctx) => processEagleArtillery(d, ctx.troops, ctx.elapsed, ctx.deltaMs, ctx.totalHousingDeployed),
-  'Mortar': (d, ctx) => processMortar(d, ctx.troops, ctx.elapsed, ctx.deltaMs),
-  'Air Sweeper': (d, ctx) => processAirSweeper(d, ctx.troops, ctx.elapsed, ctx.deltaMs),
+  'Mortar': (d, ctx) => processMortar(d, ctx.troops, ctx.elapsed),
+  'Air Sweeper': (d, ctx) => processAirSweeper(d, ctx.troops, ctx.elapsed),
 };
 
 /**

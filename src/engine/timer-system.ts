@@ -108,7 +108,7 @@ export function createTimerSystem(config?: TimerSystemConfig): TimerSystem {
     },
 
     setSpeed(multiplier: number) {
-      speedMultiplier = multiplier;
+      speedMultiplier = Math.max(0, multiplier);
     },
 
     getSpeed() {

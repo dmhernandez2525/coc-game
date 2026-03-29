@@ -103,7 +103,8 @@ export interface HeroLevelStats {
   abilityLevel: number | null;
   heroHallLevelRequired: number;
   townHallRequired: number;
-  [key: string]: unknown;
+  abilityHPRecovery?: number | null;
+  abilityDamageIncrease?: number | null;
 }
 
 export interface HeroData {
@@ -131,7 +132,10 @@ export interface EquipmentLevelStats {
   glowyOreCost: number;
   starryOreCost: number;
   blacksmithLevelRequired: number;
-  [key: string]: unknown;
+  hitpointIncrease?: number;
+  damageIncrease?: number;
+  hpRecovery?: number;
+  speedIncrease?: number;
 }
 
 export interface HeroEquipmentData {

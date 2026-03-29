@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { simulateCampaignBattle } from '../campaign-simulator.ts';
-import type { CampaignBattleResult } from '../campaign-simulator.ts';
 import type { TrainedTroop } from '../../types/village.ts';
 
 // ---------------------------------------------------------------------------
@@ -195,5 +194,27 @@ describe('simulateCampaignBattle', () => {
     expect(result).not.toBeNull();
     expect(Number.isInteger(result.stars)).toBe(true);
     expect(Number.isInteger(result.destructionPercent)).toBe(true);
+  });
+
+  // Branch coverage: unknown troop name fallback in calculateArmyPower
+  it('handles unknown troop names gracefully with fallback power', () => {
+    const army: TrainedTroop[] = [
+      { name: 'UnknownTroopXYZ', level: 2, count: 10 },
+    ];
+    const result = simulateCampaignBattle(army, 1);
+    expect(result).not.toBeNull();
+    // Should still produce a result using fallback power calculation
+    expect(typeof result!.stars).toBe('number');
+    expect(typeof result!.destructionPercent).toBe('number');
+  });
+
+  it('handles a mix of known and unknown troops', () => {
+    const army: TrainedTroop[] = [
+      { name: 'Barbarian', level: 1, count: 20 },
+      { name: 'FakeTroopABC', level: 3, count: 5 },
+    ];
+    const result = simulateCampaignBattle(army, 1);
+    expect(result).not.toBeNull();
+    expect(result!.stars).toBeGreaterThan(0);
   });
 });
