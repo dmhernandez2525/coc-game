@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.safe
+    image: ${COMPOSE_PROJECT_NAME:-safe-vite-app}:safe
+    ports:
+      - "127.0.0.1:${HOST_PORT:-5173}:5173"
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      npm_config_ignore_scripts: "true"
+      npm_config_audit: "false"
+      npm_config_fund: "false"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/node_modules/.vite
+    networks:
+      - safe_app
+    restart: "no"
+
+networks:
+  safe_app:
+    internal: true
