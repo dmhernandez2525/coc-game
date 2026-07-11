@@ -127,7 +127,7 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
   },
   freeze: (state, spellData, ls, x, y) => {
     const radius = spellData.radius ?? 3.5;
-    const freezeDuration = stat(ls, 'freezeTime', spellData.duration ?? 4);
+    const freezeDuration = stat(ls, 'freezeDuration', spellData.duration ?? 4);
     const elapsed = 180 - state.timeRemaining; // Current elapsed time
 
     // Freeze defenses in radius
@@ -265,7 +265,13 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
     const spd = spellStat(spell, 'speedIncrease', 0);
     return troops.map((t) => {
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
-      return { ...t, dps: t.baseDps * mult, movementSpeed: t.movementSpeed + spd };
+      return {
+        ...t,
+        preSpellDps: t.preSpellDps ?? t.dps,
+        dps: t.baseDps * mult,
+        baseMovementSpeed: t.baseMovementSpeed ?? t.movementSpeed,
+        movementSpeed: t.movementSpeed + spd,
+      };
     });
   },
   haste: (spell, troops) => {
@@ -273,18 +279,25 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
     const spd = spellStat(spell, 'speedIncrease', 28);
     return troops.map((t) => {
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
-      return { ...t, movementSpeed: t.movementSpeed + spd };
+      return {
+        ...t,
+        baseMovementSpeed: t.baseMovementSpeed ?? t.movementSpeed,
+        movementSpeed: t.movementSpeed + spd,
+      };
     });
   },
   debuff: (spell, troops, deltaSec) => {
     const dmg = spellStat(spell, 'maxDamagePerSecond', 0) * deltaSec;
-    const slowFactor = spellStat(spell, 'speedDecrease', 0.5);
+    const slowPct = spellStat(spell, 'speedDecrease', 50); // percentage slow
     return troops.map((t) => {
+      // Poison only affects defender troops, never the attacker's own army
+      if (!t.isDefender) return t;
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
       const hp = Math.max(0, t.currentHp - dmg);
       return {
         ...t, currentHp: hp,
-        movementSpeed: t.movementSpeed * slowFactor, // Poison slows movement
+        baseMovementSpeed: t.baseMovementSpeed ?? t.movementSpeed,
+        movementSpeed: t.movementSpeed * (1 - slowPct / 100), // Poison slows movement
         state: hp <= 0 ? 'dead' as const : t.state,
       };
     });
@@ -302,17 +315,40 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
     return troops.map((t) => {
       if (t.state === 'dead' || t.isFlying) return t;
       const inRadius = isInRadius(spell.x, spell.y, t.x, t.y, spell.radius);
-      return { ...t, jumpSpellActive: inRadius };
+      return { ...t, jumpSpellActive: inRadius || t.jumpSpellActive === true };
     });
   },
 };
+
+/**
+ * Restore spell-modified stats and flags before recomputing coverage for
+ * this tick. Keeps buffs from compounding and clears effects once a troop
+ * leaves a spell radius or the spell expires. Miner burrowing and hero
+ * cloak invisibility are managed elsewhere, so their flags are preserved.
+ */
+function clearSpellEffects(t: DeployedTroop): DeployedTroop {
+  if (t.state === 'dead') return t;
+  const cleared = { ...t };
+  if (cleared.preSpellDps !== undefined) {
+    cleared.dps = cleared.preSpellDps;
+    cleared.preSpellDps = undefined;
+  }
+  if (cleared.baseMovementSpeed !== undefined) {
+    cleared.movementSpeed = cleared.baseMovementSpeed;
+  }
+  if (cleared.name !== 'Miner' && cleared.invisibleUntil === undefined) {
+    cleared.isBurrowed = false;
+  }
+  cleared.jumpSpellActive = false;
+  return cleared;
+}
 
 export function tickSpells(
   spells: ActiveSpell[], troops: DeployedTroop[],
   buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
 ): TickResult {
   const deltaSec = deltaMs / 1000;
-  let updatedTroops = [...troops];
+  let updatedTroops = troops.map(clearSpellEffects);
 
   for (const spell of spells) {
     const effect = SPELL_EFFECTS[spell.name];

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { Screen } from '../App.tsx';
+import type { VillageState } from '../types/village.ts';
 import type { BattleState, BattleResult, BattleBuilding, DeployedTroop, ActiveSpell } from '../types/battle.ts';
 import { initBattleState, deployTroop, tickBattle, getBattleResult, isBattleOver } from '../engine/battle-engine.ts';
 import { deploySpell } from '../engine/spell-engine.ts';
@@ -10,6 +11,8 @@ import { BattleResultScreen } from './BattleResultScreen.tsx';
 
 interface BattleScreenProps {
   onNavigate: (screen: Screen) => void;
+  externalState?: VillageState;
+  onBattleComplete?: (result: BattleResult) => void;
 }
 
 const TICK_MS = 50;
@@ -80,7 +83,7 @@ function clearTimer(ref: React.MutableRefObject<ReturnType<typeof setInterval> |
   if (ref.current) { clearInterval(ref.current); ref.current = null; }
 }
 
-export function BattleScreen({ onNavigate }: BattleScreenProps) {
+export function BattleScreen({ onNavigate, externalState, onBattleComplete }: BattleScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [battleState, setBattleState] = useState<BattleState | null>(null);
@@ -92,7 +95,8 @@ export function BattleScreen({ onNavigate }: BattleScreenProps) {
   const stateRef = useRef<BattleState | null>(null);
   stateRef.current = battleState;
 
-  const villageState = useMemo(() => createStarterVillage(), []);
+  // Battle with the player's actual army/spells when provided by the host app
+  const villageState = useMemo(() => externalState ?? createStarterVillage(), [externalState]);
 
   useEffect(() => {
     const npcBase = getRandomNPCBase(villageState.townHallLevel);
@@ -173,8 +177,9 @@ export function BattleScreen({ onNavigate }: BattleScreenProps) {
   }, [battleState, trophyOffer]);
 
   const handleReturnHome = useCallback(() => {
+    if (result && onBattleComplete) onBattleComplete(result);
     onNavigate('village');
-  }, [onNavigate]);
+  }, [result, onBattleComplete, onNavigate]);
 
   if (!npcBaseFound) {
     return (

@@ -1,5 +1,5 @@
 import type { ActiveDefense, DeployedTroop } from '../types/battle.ts';
-import { distance, findDefenseTarget } from './targeting-ai.ts';
+import { distance, findDefenseTarget, canDefenseTarget } from './targeting-ai.ts';
 
 // --- Inferno Tower (Single Target) ---
 // Damage ramps over 2 seconds from base DPS to 5x. Negates healing on target.
@@ -18,6 +18,13 @@ function processInfernoSingle(
 
   const target = troops.find((t) => t.id === defense.targetTroopId);
   if (!target || target.state === 'dead') { defense.infernoRampTime = 0; return; }
+
+  // Drop locked targets that have left the tower's range
+  if (!isInRange(defense, target)) {
+    defense.targetTroopId = null;
+    defense.infernoRampTime = 0;
+    return;
+  }
 
   // Ramp damage
   defense.infernoRampTime = (defense.infernoRampTime ?? 0) + deltaMs / 1000;
@@ -62,7 +69,7 @@ function processInfernoMulti(
 // Invisible until attacker within range OR destruction >= 51%.
 
 function processHiddenTesla(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
   destructionPercent: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
@@ -81,7 +88,7 @@ function processHiddenTesla(
   }
 
   // Standard defense behavior after reveal
-  processStandardDefense(defense, troops, elapsed, deltaMs);
+  processStandardDefense(defense, troops, elapsed);
 }
 
 // --- Eagle Artillery ---
@@ -89,7 +96,7 @@ function processHiddenTesla(
 // Fires salvos dealing splash damage.
 
 function processEagleArtillery(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
   totalHousingDeployed: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
@@ -101,14 +108,14 @@ function processEagleArtillery(
   if (!defense.eagleActivated) return;
 
   // Eagle has min range 7, max range 50
-  processStandardDefense(defense, troops, elapsed, deltaMs);
+  processStandardDefense(defense, troops, elapsed);
 }
 
 // --- Mortar ---
 // Has a dead zone (min range 4). Fires splash shells.
 
 function processMortar(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, _deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
 
@@ -136,7 +143,7 @@ function processMortar(
 // Deals 0 damage but pushes back air troops in a cone.
 
 function processAirSweeper(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, _deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
 ): void {
   if (defense.isDestroyed || defense.isFrozen) return;
   if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
@@ -192,37 +199,41 @@ function retargetIfDead(defense: ActiveDefense, troops: DeployedTroop[]): void {
 }
 
 function processStandardDefense(
-  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number, deltaMs: number,
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
 ): void {
   retargetIfDead(defense, troops);
   if (!defense.targetTroopId) defense.targetTroopId = findDefenseTarget(defense, troops);
   if (!defense.targetTroopId) return;
-  if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
 
   const target = troops.find((t) => t.id === defense.targetTroopId);
   if (!target || target.state === 'dead') return;
+
+  // Drop locked targets that have left the defense's range
+  if (!isInRange(defense, target)) {
+    defense.targetTroopId = null;
+    return;
+  }
+  if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
+
+  // Each shot deals one attack cycle worth of damage (dps * seconds per shot)
+  const shotDamage = defense.dps * defense.attackSpeed;
 
   // Splash damage if applicable
   if (defense.splashRadius && defense.splashRadius > 0) {
     for (const t of troops) {
       if (t.state === 'dead') continue;
-      if (t.isFlying && !canTargetAir(defense.name)) continue;
+      if (!canDefenseTarget(defense, t)) continue;
       if (distance(target.x, target.y, t.x, t.y) <= defense.splashRadius) {
-        t.currentHp = Math.max(0, t.currentHp - defense.dps * (deltaMs / 1000));
+        t.currentHp = Math.max(0, t.currentHp - shotDamage);
         if (t.currentHp <= 0) { t.state = 'dead'; t.currentHp = 0; }
       }
     }
   } else {
-    target.currentHp = Math.max(0, target.currentHp - defense.dps * (deltaMs / 1000));
+    target.currentHp = Math.max(0, target.currentHp - shotDamage);
     if (target.currentHp <= 0) { target.state = 'dead'; target.currentHp = 0; defense.targetTroopId = null; }
   }
 
   defense.lastAttackTime = elapsed;
-}
-
-const GROUND_ONLY = new Set(['Cannon', 'Mortar', 'Bomb Tower']);
-function canTargetAir(name: string): boolean {
-  return !GROUND_ONLY.has(name);
 }
 
 // --- Defense behavior dispatch ---
@@ -247,10 +258,10 @@ const DEFENSE_HANDLERS: Record<string, DefenseHandler> = {
       processInfernoSingle(d, ctx.troops, ctx.elapsed, ctx.deltaMs);
     }
   },
-  'Hidden Tesla': (d, ctx) => processHiddenTesla(d, ctx.troops, ctx.elapsed, ctx.deltaMs, ctx.destructionPercent),
-  'Eagle Artillery': (d, ctx) => processEagleArtillery(d, ctx.troops, ctx.elapsed, ctx.deltaMs, ctx.totalHousingDeployed),
-  'Mortar': (d, ctx) => processMortar(d, ctx.troops, ctx.elapsed, ctx.deltaMs),
-  'Air Sweeper': (d, ctx) => processAirSweeper(d, ctx.troops, ctx.elapsed, ctx.deltaMs),
+  'Hidden Tesla': (d, ctx) => processHiddenTesla(d, ctx.troops, ctx.elapsed, ctx.destructionPercent),
+  'Eagle Artillery': (d, ctx) => processEagleArtillery(d, ctx.troops, ctx.elapsed, ctx.totalHousingDeployed),
+  'Mortar': (d, ctx) => processMortar(d, ctx.troops, ctx.elapsed),
+  'Air Sweeper': (d, ctx) => processAirSweeper(d, ctx.troops, ctx.elapsed),
 };
 
 /**
@@ -272,7 +283,8 @@ export function processDefenseSpecial(
 
   const handler = DEFENSE_HANDLERS[defense.name];
   if (handler) {
-    handler(defense, ctx);
+    // Burrowed/invisible troops are untargetable by special defenses too
+    handler(defense, { ...ctx, troops: ctx.troops.filter((t) => !t.isBurrowed) });
     return true;
   }
   return false;

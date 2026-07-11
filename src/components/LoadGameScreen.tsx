@@ -1,13 +1,15 @@
 import { useState, useCallback } from 'react';
 import type { Screen } from '../App.tsx';
+import type { VillageState } from '../types/village.ts';
 import { createSaveManager } from '../engine/save-manager.ts';
 import type { SaveSlot } from '../engine/save-manager.ts';
 
 interface LoadGameScreenProps {
   onNavigate: (screen: Screen) => void;
+  onLoadGame?: (state: VillageState) => void;
 }
 
-export function LoadGameScreen({ onNavigate }: LoadGameScreenProps) {
+export function LoadGameScreen({ onNavigate, onLoadGame }: LoadGameScreenProps) {
   const [manager] = useState(() => createSaveManager());
   const [slots, setSlots] = useState<SaveSlot[]>(() => manager.listSlots());
   const [message, setMessage] = useState<string | null>(null);
@@ -20,6 +22,8 @@ export function LoadGameScreen({ onNavigate }: LoadGameScreenProps) {
     (slotId: string) => {
       const state = manager.load(slotId);
       if (state) {
+        // Hand the loaded state to the host app so the village actually restores
+        onLoadGame?.(state);
         setMessage('Game loaded! Returning to village...');
         setTimeout(() => onNavigate('village'), 500);
       } else {
@@ -27,7 +31,7 @@ export function LoadGameScreen({ onNavigate }: LoadGameScreenProps) {
         setTimeout(() => setMessage(null), 2000);
       }
     },
-    [manager, onNavigate],
+    [manager, onNavigate, onLoadGame],
   );
 
   const handleDelete = useCallback(

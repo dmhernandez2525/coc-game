@@ -61,9 +61,8 @@ import type {
   BattleRewards,
 } from '../battle-result-handler.ts';
 import type { VillageState, ResourceAmounts } from '../../types/village.ts';
-import { calculateTotalLoot, calculateTrophyChange } from '../loot-calculator.ts';
+import { calculateTotalLoot } from '../loot-calculator.ts';
 import { getLeagueForTrophies, getLeagueBonus } from '../trophy-manager.ts';
-import { getStorageCapacity } from '../resource-manager.ts';
 
 // ---------------------------------------------------------------------------
 // Test helpers

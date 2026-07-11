@@ -105,6 +105,9 @@ export const useGameStore = create<GameStore>((set, get) => {
       const state = get();
       const village = state.village;
 
+      const building = village.buildings.find((b) => b.instanceId === instanceId);
+      if (!building || building.isUpgrading) return false;
+
       if (village.resources[resource] < cost) return false;
 
       const builder = getAvailableBuilder(village);
@@ -229,6 +232,23 @@ export const useGameStore = create<GameStore>((set, get) => {
         });
 
         village = { ...village, builders, buildings };
+
+        // Apply finished upgrades: level up buildings and free their builders
+        if (completedBuildings.length > 0) {
+          village = {
+            ...village,
+            buildings: village.buildings.map((b) =>
+              completedBuildings.includes(b.instanceId) && b.isUpgrading
+                ? { ...b, level: b.level + 1, isUpgrading: false, upgradeTimeRemaining: 0, assignedBuilder: null }
+                : b,
+            ),
+            builders: village.builders.map((b) =>
+              b.assignedTo !== null && completedBuildings.includes(b.assignedTo)
+                ? { ...b, assignedTo: null, timeRemaining: 0 }
+                : b,
+            ),
+          };
+        }
 
         // Tick super troop timers
         const superTroopState = tickSuperTroopTimers(s.superTroopState, deltaMs * village.gameClockSpeed);

@@ -5,19 +5,35 @@ import { BattleScreen } from './components/BattleScreen';
 import { CampaignScreen } from './components/CampaignScreen';
 import { LoadGameScreen } from './components/LoadGameScreen';
 import type { VillageState } from './types/village.ts';
+import type { BattleResult } from './types/battle.ts';
 import { createStarterVillage } from './engine/village-manager.ts';
+import { loadAutoSave } from './hooks/useAutoSave.ts';
 
 export type Screen = 'menu' | 'village' | 'battle' | 'campaign' | 'load';
 
 function App() {
   const [screen, setScreen] = useState<Screen>('menu');
-  const [villageState, setVillageState] = useState<VillageState>(createStarterVillage);
+  // Resume from the autosave so a page reload does not wipe progress
+  const [villageState, setVillageState] = useState<VillageState>(() => loadAutoSave() ?? createStarterVillage());
 
   const handleCampaignComplete = useCallback(
     (levelNumber: number, stars: number, loot: { gold: number; elixir: number; darkElixir: number } | null) => {
       setVillageState((prev) => {
+        // Loot is always awarded; the star record only updates on improvement
+        let resources = prev.resources;
+        if (loot) {
+          resources = {
+            ...prev.resources,
+            gold: prev.resources.gold + loot.gold,
+            elixir: prev.resources.elixir + loot.elixir,
+            darkElixir: prev.resources.darkElixir + loot.darkElixir,
+          };
+        }
+
         const existing = prev.campaignProgress.levels.find((l) => l.levelNumber === levelNumber);
-        if (existing && existing.stars >= stars) return prev;
+        if (existing && existing.stars >= stars) {
+          return { ...prev, resources };
+        }
 
         const updatedLevels = existing
           ? prev.campaignProgress.levels.map((l) =>
@@ -32,16 +48,6 @@ function App() {
 
         const totalStars = updatedLevels.reduce((sum, l) => sum + l.stars, 0);
 
-        let resources = prev.resources;
-        if (loot) {
-          resources = {
-            ...prev.resources,
-            gold: prev.resources.gold + loot.gold,
-            elixir: prev.resources.elixir + loot.elixir,
-            darkElixir: prev.resources.darkElixir + loot.darkElixir,
-          };
-        }
-
         return {
           ...prev,
           campaignProgress: { levels: updatedLevels, totalStars },
@@ -51,6 +57,19 @@ function App() {
     },
     [],
   );
+
+  const handleBattleComplete = useCallback((result: BattleResult) => {
+    setVillageState((prev) => ({
+      ...prev,
+      trophies: Math.max(0, prev.trophies + result.trophyChange),
+      resources: {
+        ...prev.resources,
+        gold: prev.resources.gold + result.loot.gold,
+        elixir: prev.resources.elixir + result.loot.elixir,
+        darkElixir: prev.resources.darkElixir + result.loot.darkElixir,
+      },
+    }));
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -62,7 +81,9 @@ function App() {
           externalSetState={setVillageState}
         />
       )}
-      {screen === 'battle' && <BattleScreen onNavigate={setScreen} />}
+      {screen === 'battle' && (
+        <BattleScreen onNavigate={setScreen} externalState={villageState} onBattleComplete={handleBattleComplete} />
+      )}
       {screen === 'campaign' && (
         <CampaignScreen
           onNavigate={setScreen}
@@ -71,7 +92,7 @@ function App() {
           onCampaignComplete={handleCampaignComplete}
         />
       )}
-      {screen === 'load' && <LoadGameScreen onNavigate={setScreen} />}
+      {screen === 'load' && <LoadGameScreen onNavigate={setScreen} onLoadGame={setVillageState} />}
     </div>
   );
 }

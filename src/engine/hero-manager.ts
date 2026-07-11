@@ -59,7 +59,7 @@ export interface AbilityResult {
   summonedTroops: DeployedTroop[];
 }
 
-type AbilityHandler = (hero: DeployedTroop, stats: HeroLevelStats) => AbilityResult;
+type AbilityHandler = (hero: DeployedTroop, stats: HeroLevelStats, elapsed: number) => AbilityResult;
 
 function createSummon(
   baseName: string, count: number, hero: DeployedTroop,
@@ -103,15 +103,17 @@ const ABILITY_HANDLERS: Record<string, AbilityHandler> = {
   },
 
   // Archer Queen - "Royal Cloak": Become invisible (untargetable), summon Archers, damage boost
-  'Archer Queen': (hero, stats) => {
+  'Archer Queen': (hero, stats, elapsed) => {
     const hpRecovery = (stats.abilityHPRecovery as number | null) ?? 0;
     const dmgIncrease = (stats.abilityDamageIncrease as number | null) ?? 0;
+    const cloakDurationSec = ((stats.abilityDurationMs as number | null) ?? 0) / 1000;
     const healedHp = Math.min(hero.currentHp + hpRecovery, hero.maxHp);
     const summons = createSummon('Archer', 6 + Math.floor((stats.abilityLevel ?? 1) / 2), hero, 50, 15, false);
     return {
       hero: {
         ...hero, currentHp: healedHp, dps: hero.baseDps + dmgIncrease,
         heroAbilityUsed: true, isBurrowed: true, // Reuse burrowed flag for invisibility
+        invisibleUntil: elapsed + cloakDurationSec, // Cloak expires; tickBattle clears the flag
       },
       summonedTroops: summons,
     };
@@ -142,11 +144,13 @@ const ABILITY_HANDLERS: Record<string, AbilityHandler> = {
 /**
  * Activate a hero's special ability.
  * Returns the modified hero and any summoned troops, or null if ability unavailable.
+ * elapsed is the current battle time in seconds, used for timed effects.
  */
 export function activateHeroAbility(
   hero: DeployedTroop,
   heroName: string,
   level: number,
+  elapsed = 0,
 ): AbilityResult | null {
   if (hero.heroAbilityUsed) return null;
 
@@ -157,7 +161,7 @@ export function activateHeroAbility(
   if (abilityLevel === null) return null;
 
   const handler = ABILITY_HANDLERS[heroName];
-  if (handler) return handler(hero, stats);
+  if (handler) return handler(hero, stats, elapsed);
 
   // Fallback: generic heal + damage boost
   const hpRecovery = (stats.abilityHPRecovery as number | null) ?? 0;

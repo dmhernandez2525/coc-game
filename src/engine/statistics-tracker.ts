@@ -50,14 +50,16 @@ interface BattleResult {
 /**
  * Records the outcome of an attack. Increments totalAttacks, totalStarsEarned,
  * looted resources, and updates highestTrophies when the new value exceeds
- * the current record. The caller should pass currentTrophies + trophyChange
- * via the trophyChange field, or simply pass the new trophy total.
+ * the current record. Pass the player's current trophy total (before applying
+ * trophyChange) so the record reflects the real post-battle count; when it is
+ * omitted, the previous record is used as the baseline.
  */
 export function recordBattleStats(
   stats: GameStatistics,
   result: BattleResult,
+  currentTrophies?: number,
 ): GameStatistics {
-  const newTrophies = stats.highestTrophies + result.trophyChange;
+  const newTrophies = (currentTrophies ?? stats.highestTrophies) + result.trophyChange;
 
   return {
     ...stats,

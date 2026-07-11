@@ -39,18 +39,43 @@ function saveIndex(slots: SaveSlot[]): void {
   localStorage.setItem(INDEX_KEY, JSON.stringify(slots));
 }
 
-const REQUIRED_KEYS: Array<keyof VillageState> = [
-  'version',
-  'townHallLevel',
-  'buildings',
-  'resources',
-  'builders',
-];
+const CURRENT_SAVE_VERSION = 1;
+
+const RESOURCE_KEYS = ['gold', 'elixir', 'darkElixir', 'gems'] as const;
 
 function isValidSave(data: unknown): data is VillageState {
   if (typeof data !== 'object' || data === null) return false;
   const record = data as Record<string, unknown>;
-  return REQUIRED_KEYS.every((key) => key in record);
+  if (record.version !== CURRENT_SAVE_VERSION) return false;
+  if (typeof record.townHallLevel !== 'number') return false;
+  if (!Array.isArray(record.buildings) || !Array.isArray(record.builders)) return false;
+  const resources = record.resources as Record<string, unknown> | null;
+  if (typeof resources !== 'object' || resources === null) return false;
+  return RESOURCE_KEYS.every((key) => typeof resources[key] === 'number');
+}
+
+/**
+ * Fill in fields that older or partial saves may lack so downstream
+ * consumers (storage math, army UI, campaign screens) never crash.
+ * Fields already present with the right shape are passed through untouched.
+ */
+function normalizeSave(data: VillageState): VillageState {
+  return {
+    ...data,
+    walls: Array.isArray(data.walls) ? data.walls : [],
+    traps: Array.isArray(data.traps) ? data.traps : [],
+    obstacles: Array.isArray(data.obstacles) ? data.obstacles : [],
+    army: Array.isArray(data.army) ? data.army : [],
+    spells: Array.isArray(data.spells) ? data.spells : [],
+    heroes: Array.isArray(data.heroes) ? data.heroes : [],
+    campaignProgress: data.campaignProgress ?? { levels: [], totalStars: 0 },
+    trophies: typeof data.trophies === 'number' ? data.trophies : 0,
+    league: typeof data.league === 'string' ? data.league : 'Unranked',
+    obstacleCounter: typeof data.obstacleCounter === 'number' ? data.obstacleCounter : 0,
+    lastSaveTimestamp: typeof data.lastSaveTimestamp === 'number' ? data.lastSaveTimestamp : 0,
+    totalPlayTime: typeof data.totalPlayTime === 'number' ? data.totalPlayTime : 0,
+    gameClockSpeed: typeof data.gameClockSpeed === 'number' ? data.gameClockSpeed : 1,
+  };
 }
 
 export function createSaveManager(): SaveManager {
@@ -90,7 +115,7 @@ export function createSaveManager(): SaveManager {
         if (!raw) return null;
         const parsed: unknown = JSON.parse(raw);
         if (!isValidSave(parsed)) return null;
-        return parsed;
+        return normalizeSave(parsed);
       } catch {
         return null;
       }

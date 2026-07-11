@@ -12,12 +12,17 @@ interface LabPanelProps {
   onClose: () => void;
 }
 
+const RES_MAP: Record<string, keyof ResourceAmounts> = {
+  Gold: 'gold', Elixir: 'elixir', 'Dark Elixir': 'darkElixir',
+};
+
 function canAffordUpgrade(
   cost: number,
   resource: string,
   resources: ResourceAmounts,
 ): boolean {
-  const key = resource as keyof ResourceAmounts;
+  const key = RES_MAP[resource];
+  if (!key) return false;
   return resources[key] >= cost;
 }
 

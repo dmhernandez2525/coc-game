@@ -137,6 +137,7 @@ export function deployDefensiveCCTroops(
         attackRange: 1,
         movementSpeed: data.movementSpeed,
         isFlying: data.isFlying,
+        isDefender: true,
       });
     }
   }

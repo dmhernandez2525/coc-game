@@ -82,7 +82,7 @@ export function placeBuilding(
   if (currentCount >= maxCount) return null;
 
   const tileSize = getBuildingTileSize(buildingId);
-  if (!canPlaceBuilding(gridX, gridY, tileSize.width, tileSize.height, state.buildings, state.walls)) {
+  if (!canPlaceBuilding(gridX, gridY, tileSize.width, tileSize.height, state.buildings, state.walls, state.traps, state.obstacles)) {
     return null;
   }
 
@@ -127,7 +127,7 @@ export function moveBuilding(
   const tileSize = getBuildingTileSize(building.buildingId);
   const otherBuildings = state.buildings.filter((b) => b.instanceId !== instanceId);
 
-  if (!canPlaceBuilding(newGridX, newGridY, tileSize.width, tileSize.height, otherBuildings, state.walls)) {
+  if (!canPlaceBuilding(newGridX, newGridY, tileSize.width, tileSize.height, otherBuildings, state.walls, state.traps, state.obstacles)) {
     return null;
   }
 
