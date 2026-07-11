@@ -114,3 +114,82 @@ export function getNextUncompletedLevel(progress: CampaignProgress): number | nu
   }
   return null;
 }
+
+// -- Campaign battle rules --
+
+/** Full result of applying a campaign attack to the campaign progress. */
+export interface CampaignBattleRewards {
+  progress: CampaignProgress;
+  loot: { gold: number; elixir: number; darkElixir: number };
+  gemsAwarded: number;
+  firstClear: boolean;
+  /** Campaign battles never change trophies. Always 0. */
+  trophyChange: 0;
+}
+
+const EMPTY_LOOT = { gold: 0, elixir: 0, darkElixir: 0 };
+
+/**
+ * Canonical star rules from MECHANICS-REFERENCE:
+ * 1 star for 50%+ destruction, 1 star for Town Hall destruction,
+ * 3 stars at 100% destruction (TH is always destroyed at 100%).
+ */
+export function calculateBattleStars(
+  destructionPercent: number,
+  townHallDestroyed: boolean,
+): number {
+  if (destructionPercent >= 100) return 3;
+
+  let stars = 0;
+  if (destructionPercent >= 50) stars += 1;
+  if (townHallDestroyed) stars += 1;
+  return stars;
+}
+
+/** A level is a first clear until it has been completed (1+ stars) once. */
+export function isFirstClear(progress: CampaignProgress, levelNumber: number): boolean {
+  return getLevelProgress(levelNumber, progress)?.completed !== true;
+}
+
+/**
+ * Gems earned by crossing star milestone tiers. Stars only ever increase,
+ * so a tier counts exactly once: when the total crosses its threshold.
+ */
+export function getMilestoneGems(
+  previousTotalStars: number,
+  newTotalStars: number,
+): number {
+  return starRewards
+    .filter((tier) => previousTotalStars < tier.stars && newTotalStars >= tier.stars)
+    .reduce((sum, tier) => sum + tier.gems, 0);
+}
+
+/**
+ * Apply a campaign attack outcome. Campaign rules:
+ * - Level loot is collected once, on the first clear only. Replays earn nothing.
+ * - Milestone gems are awarded when total stars cross a reward tier.
+ * - Trophies are never affected by campaign battles.
+ */
+export function applyCampaignBattleResult(
+  progress: CampaignProgress,
+  levelNumber: number,
+  stars: number,
+): CampaignBattleRewards {
+  const level = getCampaignLevel(levelNumber);
+  const firstClear = isFirstClear(progress, levelNumber);
+  const newProgress = completeCampaignLevel(progress, levelNumber, stars);
+  const gemsAwarded = getMilestoneGems(progress.totalStars, newProgress.totalStars);
+
+  const lootEarned = firstClear && stars > 0 && level;
+  const loot = lootEarned
+    ? { gold: level.goldLoot, elixir: level.elixirLoot, darkElixir: level.darkElixirLoot }
+    : EMPTY_LOOT;
+
+  return {
+    progress: newProgress,
+    loot,
+    gemsAwarded,
+    firstClear,
+    trophyChange: 0,
+  };
+}

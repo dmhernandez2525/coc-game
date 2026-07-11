@@ -55,6 +55,9 @@ export function createStarterVillage(): VillageState {
     army: [],
     spells: [],
     heroes: [],
+    ores: { shinyOre: 0, glowyOre: 0, starryOre: 0 },
+    ownedEquipment: [],
+    ownedPets: [],
     trophies: 0,
     league: 'Unranked',
     campaignProgress: { levels: [], totalStars: 0 },
@@ -185,7 +188,9 @@ export function startUpgrade(
 
 /**
  * Complete a building's upgrade. Increments the level, clears
- * upgrade state, and frees the assigned builder.
+ * upgrade state, and frees the assigned builder. Completing the
+ * Town Hall also raises the village's townHallLevel so TH-gated
+ * content unlocks immediately.
  */
 export function completeUpgrade(
   state: VillageState,
@@ -194,8 +199,11 @@ export function completeUpgrade(
   const building = state.buildings.find((b) => b.instanceId === instanceId);
   if (!building) return state;
 
+  const isTownHall = building.buildingId === 'Town Hall';
+
   let newState: VillageState = {
     ...state,
+    townHallLevel: isTownHall ? building.level + 1 : state.townHallLevel,
     buildings: state.buildings.map((b) =>
       b.instanceId === instanceId
         ? {

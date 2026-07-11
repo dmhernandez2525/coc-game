@@ -1,4 +1,5 @@
 import type { PlacedBuilding } from '../types/village.ts';
+import type { XBowMode } from '../types/common.ts';
 
 interface UpgradeCost {
   amount: number;
@@ -14,7 +15,13 @@ interface BuildingPanelProps {
   onClose: () => void;
   canUpgrade: boolean;
   upgradeCost: UpgradeCost | null;
+  onToggleXBowMode?: () => void;
 }
+
+const XBOW_MODE_LABELS: Record<XBowMode, string> = {
+  ground: 'Ground Only (14 tiles)',
+  ground_and_air: 'Ground & Air (11.5 tiles)',
+};
 
 function formatTime(seconds: number): string {
   if (seconds < 60) return `${seconds}s`;
@@ -39,7 +46,9 @@ export function BuildingPanel({
   onClose,
   canUpgrade,
   upgradeCost,
+  onToggleXBowMode,
 }: BuildingPanelProps) {
+  const xbowMode: XBowMode = building.xbowMode ?? 'ground_and_air';
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 border-t-2 border-amber-500/60 backdrop-blur-sm">
       <div className="max-w-2xl mx-auto px-4 py-3">
@@ -76,6 +85,20 @@ export function BuildingPanel({
             </span>
           )}
         </div>
+
+        {/* X-Bow targeting mode toggle */}
+        {building.buildingId === 'X-Bow' && onToggleXBowMode && (
+          <div className="flex items-center gap-3 text-sm mb-3">
+            <span className="text-slate-400">Targeting mode:</span>
+            <button
+              onClick={onToggleXBowMode}
+              className="px-3 py-1 rounded font-semibold text-sm transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+            >
+              {XBOW_MODE_LABELS[xbowMode]}
+            </button>
+            <span className="text-xs text-slate-500">Tap to switch</span>
+          </div>
+        )}
 
         {/* Upgrade info */}
         {upgradeCost && (

@@ -9,6 +9,10 @@ import {
   rearmTrap,
   removeTrap,
   getAllAvailableTraps,
+  getTrapRearmCost,
+  getDisarmedTraps,
+  getTotalRearmCost,
+  rearmAllTraps,
 } from '../trap-manager.ts';
 
 // All 8 trap names from traps.json for reference:
@@ -545,5 +549,81 @@ describe('getAllAvailableTraps', () => {
       expect(trap.levels.length).toBeGreaterThan(0);
       expect(trap.maxCountByTH).toBeDefined();
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTrapRearmCost
+// ---------------------------------------------------------------------------
+describe('getTrapRearmCost', () => {
+  it('returns the level 1 build cost for a Bomb', () => {
+    const cost = getTrapRearmCost('Bomb');
+    expect(cost).toEqual({ amount: 400, resource: 'Gold' });
+  });
+
+  it('does not scale with the placed level (always level 1 cost)', () => {
+    // The helper takes only a trapId, so a maxed Bomb still rearms for 400 Gold.
+    expect(getTrapRearmCost('Bomb')!.amount).toBe(400);
+  });
+
+  it('returns null for an unknown trap', () => {
+    expect(getTrapRearmCost('Fake Trap')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getDisarmedTraps / getTotalRearmCost / rearmAllTraps
+// ---------------------------------------------------------------------------
+describe('getDisarmedTraps', () => {
+  it('returns only traps that have fired', () => {
+    const traps: PlacedTrap[] = [
+      makeTrap({ instanceId: 'a', isArmed: true }),
+      makeTrap({ instanceId: 'b', isArmed: false }),
+    ];
+    const disarmed = getDisarmedTraps(traps);
+    expect(disarmed).toHaveLength(1);
+    expect(disarmed[0]!.instanceId).toBe('b');
+  });
+
+  it('returns an empty array when all traps are armed', () => {
+    expect(getDisarmedTraps([makeTrap({ isArmed: true })])).toHaveLength(0);
+  });
+});
+
+describe('getTotalRearmCost', () => {
+  it('sums rearm cost per resource across disarmed traps', () => {
+    const traps: PlacedTrap[] = [
+      makeTrap({ instanceId: 'a', trapId: 'Bomb', isArmed: false }),
+      makeTrap({ instanceId: 'b', trapId: 'Bomb', isArmed: false }),
+      makeTrap({ instanceId: 'c', trapId: 'Bomb', isArmed: true }),
+    ];
+    // Two disarmed Bombs at 400 Gold each.
+    expect(getTotalRearmCost(traps)).toEqual({ Gold: 800 });
+  });
+
+  it('returns an empty object when nothing needs rearming', () => {
+    expect(getTotalRearmCost([makeTrap({ isArmed: true })])).toEqual({});
+  });
+});
+
+describe('rearmAllTraps', () => {
+  it('arms every disarmed trap', () => {
+    const traps: PlacedTrap[] = [
+      makeTrap({ instanceId: 'a', isArmed: false }),
+      makeTrap({ instanceId: 'b', isArmed: false }),
+    ];
+    const result = rearmAllTraps(traps);
+    expect(result.every((t) => t.isArmed)).toBe(true);
+  });
+
+  it('returns the same reference when all traps are already armed', () => {
+    const traps: PlacedTrap[] = [makeTrap({ isArmed: true })];
+    expect(rearmAllTraps(traps)).toBe(traps);
+  });
+
+  it('does not mutate the original array', () => {
+    const traps: PlacedTrap[] = [makeTrap({ instanceId: 'a', isArmed: false })];
+    rearmAllTraps(traps);
+    expect(traps[0]!.isArmed).toBe(false);
   });
 });

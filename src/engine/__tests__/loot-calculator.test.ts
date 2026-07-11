@@ -4,6 +4,7 @@ import {
   applyTHPenalty,
   calculateTotalLoot,
   calculateTrophyChange,
+  distributeLootAcrossBuildings,
 } from '../loot-calculator.ts';
 import type { PlacedBuilding, ResourceAmounts, VillageState } from '../../types/village.ts';
 
@@ -348,5 +349,90 @@ describe('calculateTrophyChange', () => {
     expect(calculateTrophyChange(1, 25)).toBe(12);
     // 2 stars: 25 * 0.75 = 18.75 -> 18
     expect(calculateTrophyChange(2, 25)).toBe(18);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// distributeLootAcrossBuildings
+// ---------------------------------------------------------------------------
+
+describe('distributeLootAcrossBuildings', () => {
+  function makeStorage(instanceId: string, buildingId: string): PlacedBuilding {
+    return {
+      instanceId,
+      buildingId,
+      buildingType: 'resource_storage',
+      level: 1,
+      gridX: 0,
+      gridY: 0,
+      isUpgrading: false,
+      upgradeTimeRemaining: 0,
+      assignedBuilder: null,
+    };
+  }
+
+  it('splits gold evenly across gold holders, remainder to the first', () => {
+    const buildings = [
+      makeStorage('gs_1', 'Gold Storage'),
+      makeStorage('gs_2', 'Gold Storage'),
+      makeStorage('th_1', 'Town Hall'),
+    ];
+    const shares = distributeLootAcrossBuildings({ gold: 1000, elixir: 0, darkElixir: 0 }, buildings);
+
+    // 1000 / 3 = 333 each, remainder 1 goes to the first holder
+    expect(shares['gs_1']!.gold).toBe(334);
+    expect(shares['gs_2']!.gold).toBe(333);
+    expect(shares['th_1']!.gold).toBe(333);
+  });
+
+  it('assigns each resource type only to its own holders', () => {
+    const buildings = [
+      makeStorage('gs_1', 'Gold Storage'),
+      makeStorage('es_1', 'Elixir Storage'),
+      makeStorage('des_1', 'Dark Elixir Storage'),
+    ];
+    const shares = distributeLootAcrossBuildings(
+      { gold: 500, elixir: 300, darkElixir: 40 }, buildings,
+    );
+
+    expect(shares['gs_1']).toEqual({ gold: 500, elixir: 0, darkElixir: 0 });
+    expect(shares['es_1']).toEqual({ gold: 0, elixir: 300, darkElixir: 0 });
+    expect(shares['des_1']).toEqual({ gold: 0, elixir: 0, darkElixir: 40 });
+  });
+
+  it('conserves the exact total across all shares', () => {
+    const buildings = [
+      makeStorage('gs_1', 'Gold Storage'),
+      makeStorage('gs_2', 'Gold Storage'),
+      makeStorage('gm_1', 'Gold Mine'),
+      makeStorage('es_1', 'Elixir Storage'),
+      makeStorage('th_1', 'Town Hall'),
+    ];
+    const total = { gold: 12347, elixir: 8899, darkElixir: 101 };
+    const shares = distributeLootAcrossBuildings(total, buildings);
+
+    const summed = Object.values(shares).reduce(
+      (acc, s) => ({
+        gold: acc.gold + s.gold,
+        elixir: acc.elixir + s.elixir,
+        darkElixir: acc.darkElixir + s.darkElixir,
+      }),
+      { gold: 0, elixir: 0, darkElixir: 0 },
+    );
+    expect(summed).toEqual(total);
+  });
+
+  it('falls back to all buildings when no dedicated holder exists', () => {
+    const buildings = [makeStorage('cn_1', 'Cannon')];
+    const shares = distributeLootAcrossBuildings({ gold: 100, elixir: 0, darkElixir: 0 }, buildings);
+
+    expect(shares['cn_1']!.gold).toBe(100);
+  });
+
+  it('returns no shares for empty loot or an empty base', () => {
+    expect(distributeLootAcrossBuildings({ gold: 0, elixir: 0, darkElixir: 0 }, [
+      makeStorage('gs_1', 'Gold Storage'),
+    ])).toEqual({});
+    expect(distributeLootAcrossBuildings({ gold: 100, elixir: 0, darkElixir: 0 }, [])).toEqual({});
   });
 });

@@ -60,6 +60,7 @@ function processHealer(
 
   for (const t of allTroops) {
     if (t.state === 'dead' || t.id === troop.id) continue;
+    if ((t.isDefender === true) !== (troop.isDefender === true)) continue; // Only heal own side
     if (t.name === 'Healer') continue; // Anti-chain: cannot heal other Healers
     if (t.isFlying) continue; // Healers only heal ground troops
     if (t.healingNerfed) continue; // Inferno Tower negates healing
@@ -297,6 +298,16 @@ const TROOP_HANDLERS: Record<string, TroopMechanicHandler> = {
   },
   'Valkyrie': (troop, ctx) => {
     return processValkyrieAttack(troop, ctx.buildings, ctx.defenses, ctx.deltaMs);
+  },
+  // Pets: Electro Owl's High Voltage zap reuses the chain-lightning mechanic
+  // (chainTargets/chainDamageDecay set at deploy); Unicorn heals its side
+  // like a Healer instead of dealing damage.
+  'Electro Owl': (troop, ctx) => {
+    return processElectroDragonAttack(troop, ctx.allTroops, ctx.buildings, ctx.defenses, ctx.deltaMs);
+  },
+  'Unicorn': (troop, ctx) => {
+    processHealer(troop, ctx.allTroops, ctx.deltaMs);
+    return true; // Unicorns don't deal normal damage
   },
 };
 

@@ -1,14 +1,20 @@
-import type { OwnedHero } from '../../types/village.ts';
+import type { OwnedHero, PlacedBuilding } from '../../types/village.ts';
 import {
   getAvailablePets,
+  getPetHouseLevel,
+  isPetUnlocked,
+  getUnlockedPets,
   getPetStats,
   canAssignPet,
   assignPet,
   unassignPet,
+  createPetTroop,
   deployPet,
   getPetUpgradeCost,
   isPetMaxLevel,
   upgradePet,
+  upgradeOwnedPet,
+  getOwnedPetLevel,
 } from '../pet-manager.ts';
 import type { OwnedPet } from '../pet-manager.ts';
 
@@ -266,5 +272,146 @@ describe('upgradePet', () => {
     const owned: OwnedPet[] = [{ name: 'L.A.S.S.I', level: 1 }];
     upgradePet(owned, 'L.A.S.S.I', 10000000);
     expect(owned[0]!.level).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getPetHouseLevel / isPetUnlocked / getUnlockedPets
+// ---------------------------------------------------------------------------
+
+function makePetHouse(level: number): PlacedBuilding {
+  return {
+    instanceId: 'bld_ph',
+    buildingId: 'Pet House',
+    buildingType: 'army',
+    level,
+    gridX: 10,
+    gridY: 10,
+    isUpgrading: false,
+    upgradeTimeRemaining: 0,
+    assignedBuilder: null,
+  };
+}
+
+describe('getPetHouseLevel', () => {
+  it('returns 0 when no Pet House is placed', () => {
+    expect(getPetHouseLevel([])).toBe(0);
+  });
+
+  it('returns the placed Pet House level', () => {
+    expect(getPetHouseLevel([makePetHouse(3)])).toBe(3);
+  });
+});
+
+describe('isPetUnlocked', () => {
+  it('requires both Town Hall and Pet House levels', () => {
+    // L.A.S.S.I: TH14, Pet House 1
+    expect(isPetUnlocked('L.A.S.S.I', 14, 1)).toBe(true);
+    expect(isPetUnlocked('L.A.S.S.I', 13, 1)).toBe(false);
+    expect(isPetUnlocked('L.A.S.S.I', 14, 0)).toBe(false);
+  });
+
+  it('gates later pets behind higher Pet House levels', () => {
+    // Electro Owl requires Pet House 2
+    expect(isPetUnlocked('Electro Owl', 14, 1)).toBe(false);
+    expect(isPetUnlocked('Electro Owl', 14, 2)).toBe(true);
+  });
+
+  it('returns false for unknown pets', () => {
+    expect(isPetUnlocked('FakePet', 17, 11)).toBe(false);
+  });
+});
+
+describe('getUnlockedPets', () => {
+  it('returns nothing without a Pet House', () => {
+    expect(getUnlockedPets(14, 0)).toHaveLength(0);
+  });
+
+  it('grows with the Pet House level', () => {
+    expect(getUnlockedPets(14, 1).map((p) => p.name)).toEqual(['L.A.S.S.I']);
+    expect(getUnlockedPets(14, 2)).toHaveLength(2);
+  });
+
+  it('still respects the Town Hall gate', () => {
+    // Frosty needs TH15 even though Pet House 5 would allow it
+    const names = getUnlockedPets(14, 11).map((p) => p.name);
+    expect(names).not.toContain('Frosty');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// createPetTroop battle traits
+// ---------------------------------------------------------------------------
+describe('createPetTroop', () => {
+  it('marks the unit as a pet', () => {
+    const troop = createPetTroop('L.A.S.S.I', 1, 10, 20);
+    expect(troop).not.toBeNull();
+    expect(troop!.isPet).toBe(true);
+  });
+
+  it('returns null for unknown pets and invalid levels', () => {
+    expect(createPetTroop('FakePet', 1, 0, 0)).toBeNull();
+    expect(createPetTroop('L.A.S.S.I', 999, 0, 0)).toBeNull();
+  });
+
+  it('gives L.A.S.S.I its wall spring', () => {
+    const troop = createPetTroop('L.A.S.S.I', 1, 0, 0);
+    expect(troop!.canJumpWalls).toBe(true);
+    expect(troop!.chainTargets).toBeUndefined();
+  });
+
+  it('gives Electro Owl its chain zap', () => {
+    const troop = createPetTroop('Electro Owl', 1, 0, 0);
+    expect(troop!.chainTargets).toBe(2);
+    expect(troop!.chainDamageDecay).toBe(0.8);
+    expect(troop!.isFlying).toBe(true);
+  });
+
+  it('gives Mighty Yak its wall busting traits', () => {
+    const troop = createPetTroop('Mighty Yak', 1, 0, 0);
+    expect(troop!.canJumpWalls).toBe(true);
+    expect(troop!.wallDamageMultiplier).toBe(20);
+  });
+
+  it('turns Unicorn into a healer that deals no damage', () => {
+    const stats = getPetStats('Unicorn', 1)!;
+    const troop = createPetTroop('Unicorn', 1, 0, 0);
+    expect(troop!.dps).toBe(0);
+    expect(troop!.healPerSecond).toBe(stats.healingPerSecond);
+    expect(troop!.healPerSecond).toBeGreaterThan(0);
+    expect(troop!.healRadius).toBeGreaterThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// upgradeOwnedPet / getOwnedPetLevel
+// ---------------------------------------------------------------------------
+describe('upgradeOwnedPet', () => {
+  it('seeds a level 1 entry for never-upgraded pets and upgrades it', () => {
+    const result = upgradeOwnedPet([], 'L.A.S.S.I', 10000000);
+    expect(result).not.toBeNull();
+    expect(result!.pets).toEqual([{ name: 'L.A.S.S.I', level: 2 }]);
+  });
+
+  it('upgrades an existing entry like upgradePet', () => {
+    const owned: OwnedPet[] = [{ name: 'L.A.S.S.I', level: 2 }];
+    const result = upgradeOwnedPet(owned, 'L.A.S.S.I', 10000000);
+    expect(result).not.toBeNull();
+    expect(result!.pets[0]!.level).toBe(3);
+  });
+
+  it('returns null for unknown pets and insufficient resources', () => {
+    expect(upgradeOwnedPet([], 'FakePet', 10000000)).toBeNull();
+    expect(upgradeOwnedPet([], 'L.A.S.S.I', 0)).toBeNull();
+  });
+});
+
+describe('getOwnedPetLevel', () => {
+  it('returns the tracked level', () => {
+    expect(getOwnedPetLevel([{ name: 'L.A.S.S.I', level: 4 }], 'L.A.S.S.I')).toBe(4);
+  });
+
+  it('defaults to level 1 for untracked pets', () => {
+    expect(getOwnedPetLevel([], 'Electro Owl')).toBe(1);
   });
 });

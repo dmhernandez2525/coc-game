@@ -10,6 +10,7 @@ import {
   getArmyBuilding,
 } from '../data/loaders/index.ts';
 import { canPlaceBuilding, buildOccupiedSet } from '../utils/grid-utils.ts';
+import { placeTrap, getTrapStats } from '../engine/trap-manager.ts';
 
 /** Default building sizes. Fallback to 3x3 for unknown buildings. */
 const BUILDING_SIZES: Record<string, { w: number; h: number }> = {
@@ -105,7 +106,7 @@ export function useVillage(
     if (!selectedBuilding || !upgradeCost || !canUpgrade) return;
     // Engine startUpgrade deducts resources and assigns an idle builder
     setState((prev) => startUpgrade(prev, selectedBuilding.instanceId) ?? prev);
-  }, [selectedBuilding, upgradeCost, canUpgrade]);
+  }, [selectedBuilding, upgradeCost, canUpgrade, setState]);
 
   const handleRemove = useCallback(() => {
     if (!selectedBuilding || selectedBuilding.buildingId === 'Town Hall') return;
@@ -114,7 +115,7 @@ export function useVillage(
       buildings: prev.buildings.filter((b) => b.instanceId !== selectedBuilding.instanceId),
     }));
     setSelectedId(null);
-  }, [selectedBuilding]);
+  }, [selectedBuilding, setState]);
 
   const handleClosePanel = useCallback(() => {
     setSelectedId(null);
@@ -150,6 +151,24 @@ export function useVillage(
         return;
       }
 
+      // Traps route through the same placement flow as buildings, but the
+      // engine's placeTrap enforces TH unlock and per-type caps, and the level 1
+      // stats give the build cost. The player picks the tile just like a building.
+      if (placementMode.kind === 'trap' && placementMode.trapId) {
+        const trapId = placementMode.trapId;
+        setState((prev) => {
+          const placed = placeTrap(prev.traps ?? [], trapId, gridX, gridY, prev.townHallLevel);
+          if (!placed) return prev;
+          const lvl1 = getTrapStats(trapId, 1);
+          if (!lvl1) return prev;
+          const deducted = deductResources(prev.resources, lvl1.upgradeCost, lvl1.upgradeResource);
+          if (!deducted) return prev;
+          return { ...prev, resources: deducted, traps: placed };
+        });
+        setPlacementMode(null);
+        return;
+      }
+
       instanceCounter += 1;
       const newBuilding: PlacedBuilding = {
         instanceId: `bld_${instanceCounter}`,
@@ -181,8 +200,23 @@ export function useVillage(
       });
       setPlacementMode(null);
     },
-    [placementMode, placementType, placementFree, state.buildings],
+    [
+      placementMode,
+      placementType,
+      placementFree,
+      state.buildings,
+      state.walls,
+      state.traps,
+      state.obstacles,
+      setState,
+    ],
   );
+
+  const startTrapPlacement = useCallback((trapId: string) => {
+    setPlacementMode({ buildingId: trapId, width: 1, height: 1, kind: 'trap', trapId });
+    setSelectedId(null);
+    setShopOpen(false);
+  }, []);
 
   const cancelPlacement = useCallback(() => {
     setPlacementMode(null);
@@ -204,6 +238,7 @@ export function useVillage(
     handleRemove,
     handleClosePanel,
     startPlacement,
+    startTrapPlacement,
     handlePlacementClick,
     cancelPlacement,
   };

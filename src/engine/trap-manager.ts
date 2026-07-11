@@ -96,6 +96,44 @@ export function rearmTrap(traps: PlacedTrap[], instanceId: string): PlacedTrap[]
   );
 }
 
+/**
+ * Cost to rearm a single trap after it fires. Traps rearm for their base
+ * (level 1) build cost, so the price never depends on how far a trap has been
+ * upgraded. Returns null for unknown traps or traps with no level data.
+ */
+export function getTrapRearmCost(
+  trapId: string,
+): { amount: number; resource: TrapLevelStats['upgradeResource'] } | null {
+  const stats = getTrapStats(trapId, 1);
+  if (!stats) return null;
+  return { amount: stats.upgradeCost, resource: stats.upgradeResource };
+}
+
+/** All placed traps that have fired and need rearming. */
+export function getDisarmedTraps(traps: PlacedTrap[]): PlacedTrap[] {
+  return traps.filter((t) => !t.isArmed);
+}
+
+/**
+ * Total cost to rearm every disarmed trap, grouped by resource. Returns an
+ * empty object when nothing needs rearming.
+ */
+export function getTotalRearmCost(traps: PlacedTrap[]): Record<string, number> {
+  const totals: Record<string, number> = {};
+  for (const trap of getDisarmedTraps(traps)) {
+    const cost = getTrapRearmCost(trap.trapId);
+    if (!cost) continue;
+    totals[cost.resource] = (totals[cost.resource] ?? 0) + cost.amount;
+  }
+  return totals;
+}
+
+/** Rearms every disarmed trap in one pass. Returns a new array. */
+export function rearmAllTraps(traps: PlacedTrap[]): PlacedTrap[] {
+  if (traps.every((t) => t.isArmed)) return traps;
+  return traps.map((t) => (t.isArmed ? t : { ...t, isArmed: true }));
+}
+
 /** Removes a trap by instanceId. Returns a new filtered array. */
 export function removeTrap(traps: PlacedTrap[], instanceId: string): PlacedTrap[] {
   return traps.filter((t) => t.instanceId !== instanceId);

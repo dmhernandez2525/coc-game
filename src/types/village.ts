@@ -1,3 +1,9 @@
+import type { XBowMode } from './common';
+import type { WarState } from '../engine/clan-war-manager.ts';
+import type { WarLeagueState } from '../engine/war-league-manager.ts';
+import type { GameStatistics } from '../engine/statistics-tracker.ts';
+import type { AchievementProgress } from '../engine/achievement-manager.ts';
+
 export interface ResourceAmounts {
   gold: number;
   elixir: number;
@@ -17,6 +23,7 @@ export interface PlacedBuilding {
   assignedBuilder: number | null;
   uncollectedResources?: number;
   lastCollectionTime?: number;
+  xbowMode?: XBowMode;            // X-Bow only: player-selected targeting mode
 }
 
 export interface PlacedWall {
@@ -48,6 +55,19 @@ export interface TrainedTroop {
   count: number;
 }
 
+/** Ore currencies earned from battles and spent on equipment upgrades. */
+export interface OreAmounts {
+  shinyOre: number;
+  glowyOre: number;
+  starryOre: number;
+}
+
+/** A named item tracked with its current upgrade level (equipment, pets). */
+export interface OwnedLevelEntry {
+  name: string;
+  level: number;
+}
+
 export interface OwnedHero {
   name: string;
   level: number;
@@ -71,6 +91,35 @@ export interface CampaignProgress {
   totalStars: number;
 }
 
+/** Loot pool held by the Treasury (war loot, league bonuses, star bonuses). */
+export interface TreasuryAmounts {
+  gold: number;
+  elixir: number;
+  darkElixir: number;
+}
+
+/** A super troop boost currently active in the village. */
+export interface ActiveSuperTroopBoost {
+  baseTroopName: string;
+  superTroopName: string;
+  remainingDurationMs: number;
+}
+
+/** A magic potion effect currently running on the game clock. */
+export interface ActivePotionBoost {
+  itemId: string;
+  remainingMs: number;
+}
+
+/** Player clan (single-player donate simulation), persisted with the village. */
+export interface VillageClanState {
+  name: string;
+  level: number;
+  xp: number;
+  badgeIndex: number;
+  castleTroops: Array<{ name: string; level: number; count: number }>;
+}
+
 export interface VillageObstacle {
   instanceId: string;
   type: string;
@@ -92,6 +141,27 @@ export interface VillageState {
   army: TrainedTroop[];
   spells: TrainedTroop[];
   heroes: OwnedHero[];
+  // Optional: saves created before the ore/equipment/pet economy lack these
+  ores?: OreAmounts;
+  ownedEquipment?: OwnedLevelEntry[];
+  ownedPets?: OwnedLevelEntry[];
+  // Optional: saves created before the economy/progression systems lack these
+  treasury?: TreasuryAmounts;
+  // Optional: saves created before the clan castle / siege systems lack these
+  clan?: VillageClanState;
+  // Optional: saves created before the clan war / war league systems lack these
+  war?: WarState;
+  warLeague?: WarLeagueState;
+  /** Set while the player is fighting a war attack in the battle screen. */
+  pendingWarAttack?: { defenderIndex: number };
+  siegeMachines?: TrainedTroop[];
+  superTroopBoosts?: ActiveSuperTroopBoost[];
+  magicItems?: Record<string, number>;
+  activePotions?: ActivePotionBoost[];
+  starBonusStars?: number;
+  // Optional: saves created before the statistics / achievement wiring lack these
+  statistics?: GameStatistics;
+  achievements?: AchievementProgress[];
   trophies: number;
   league: string;
   campaignProgress: CampaignProgress;

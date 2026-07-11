@@ -29,7 +29,27 @@ export function autoFillCastleTroops(
   const capacity = getCastleCapacity(thLevel);
   if (capacity <= 0) return clan;
 
-  // Pick sensible troops based on TH level
+  return { ...clan, castleTroops: buildGarrisonForTH(thLevel, capacity) };
+}
+
+/**
+ * Build a defender clan castle garrison for a base at the given TH level.
+ * Used by NPC battles so enemy bases field defensive troops. Returns an
+ * empty list when the TH has no castle capacity yet.
+ */
+export function getDefensiveGarrisonForTH(
+  thLevel: number,
+): Array<{ name: string; level: number; count: number }> {
+  const capacity = getCastleCapacity(thLevel);
+  if (capacity <= 0) return [];
+  return buildGarrisonForTH(thLevel, capacity);
+}
+
+/** Pack the TH-appropriate troop picks into the given housing capacity. */
+function buildGarrisonForTH(
+  thLevel: number,
+  capacity: number,
+): Array<{ name: string; level: number; count: number }> {
   const troopPicks = getTroopPicksForTH(thLevel);
   let remaining = capacity;
   const troops: Array<{ name: string; level: number; count: number }> = [];
@@ -47,7 +67,7 @@ export function autoFillCastleTroops(
     remaining -= count * data.housingSpace;
   }
 
-  return { ...clan, castleTroops: troops };
+  return troops;
 }
 
 /** Get sensible troop picks for a TH level. */
@@ -79,7 +99,8 @@ function getTroopPicksForTH(
 
 /**
  * Check if any attacker troop is within aggro range of the Clan Castle building.
- * Returns true if defensive CC troops should deploy.
+ * Defender-owned units (already-deployed CC troops, defending heroes) never
+ * trigger the garrison. Returns true if defensive CC troops should deploy.
  */
 export function shouldDeployDefensiveCC(
   state: BattleState,
@@ -88,7 +109,7 @@ export function shouldDeployDefensiveCC(
   config: CCDeployConfig = DEFAULT_CC_CONFIG,
 ): boolean {
   for (const troop of state.deployedTroops) {
-    if (troop.state === 'dead') continue;
+    if (troop.state === 'dead' || troop.isDefender) continue;
     const dx = troop.x - ccX;
     const dy = troop.y - ccY;
     const dist = Math.sqrt(dx * dx + dy * dy);

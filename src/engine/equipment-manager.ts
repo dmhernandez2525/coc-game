@@ -3,6 +3,7 @@
 
 import type { HeroEquipmentData, EquipmentLevelStats } from '../types/troops.ts';
 import type { OwnedHero } from '../types/village.ts';
+import type { DeployedTroop, HeroBattleBoost } from '../types/battle.ts';
 import { getEquipment, heroEquipment } from '../data/loaders/hero-loader.ts';
 
 // -- Types --
@@ -90,6 +91,19 @@ export function getUpgradeCost(
   };
 }
 
+/** Check whether an ore wallet covers the next upgrade's cost. */
+export function canAffordUpgrade(
+  equipmentName: string,
+  currentLevel: number,
+  ores: { shinyOre: number; glowyOre: number; starryOre: number },
+): boolean {
+  const cost = getUpgradeCost(equipmentName, currentLevel);
+  if (!cost) return false;
+  return ores.shinyOre >= cost.shinyOre
+    && ores.glowyOre >= cost.glowyOre
+    && ores.starryOre >= cost.starryOre;
+}
+
 /** Get the blacksmith level required to upgrade to the next level. */
 export function getBlacksmithRequirement(
   equipmentName: string, currentLevel: number,
@@ -139,6 +153,25 @@ export function upgradeEquipment(
   };
 }
 
+/**
+ * Upgrade an equipment item by one level, seeding a level 1 entry when the
+ * item has never been upgraded before. Same contract as upgradeEquipment.
+ */
+export function upgradeOwnedEquipment(
+  ownedEquipment: OwnedEquipment[],
+  equipmentName: string,
+  ores: { shinyOre: number; glowyOre: number; starryOre: number },
+  blacksmithLevel: number,
+): { equipment: OwnedEquipment[]; remainingOres: typeof ores } | null {
+  if (!getEquipment(equipmentName)) return null;
+
+  const withEntry = ownedEquipment.some((e) => e.name === equipmentName)
+    ? ownedEquipment
+    : [...ownedEquipment, { name: equipmentName, level: 1 }];
+
+  return upgradeEquipment(withEntry, equipmentName, ores, blacksmithLevel);
+}
+
 /** Parse a numeric stat from equipment level data, handling percentage strings. */
 function parseNumericStat(value: unknown): number {
   if (typeof value === 'number') return value;
@@ -176,6 +209,70 @@ export function getEquipmentBonuses(
   }
 
   return bonuses;
+}
+
+/** Split a damage stat that may be flat (number) or percent ("18%" string). */
+function splitDamageStat(value: unknown): { flat: number; percent: number } {
+  if (typeof value === 'number') return { flat: value, percent: 0 };
+  if (typeof value === 'string' && value.trim().endsWith('%')) {
+    const pct = parseFloat(value);
+    return Number.isNaN(pct) ? { flat: 0, percent: 0 } : { flat: 0, percent: pct };
+  }
+  return { flat: 0, percent: 0 };
+}
+
+// Equipment data uses several key spellings for the same kind of stat.
+const HP_STAT_KEYS = ['hitpointIncrease', 'hpIncrease'] as const;
+const DAMAGE_STAT_KEYS = ['damageIncrease', 'dpsIncrease'] as const;
+
+/**
+ * Build the battle boost a hero gains from its equipped items.
+ * Flat HP/speed stats add directly; percentage damage stats multiply.
+ */
+export function getHeroBattleBoost(
+  hero: OwnedHero, equipmentLevels: Record<string, number>,
+): HeroBattleBoost {
+  const boost: HeroBattleBoost = {
+    hitpointIncrease: 0,
+    dpsIncrease: 0,
+    dpsMultiplier: 1,
+    speedIncrease: 0,
+  };
+
+  for (const itemName of hero.equippedItems) {
+    if (!itemName) continue;
+    const level = equipmentLevels[itemName] ?? 1;
+    const stats = getEquipmentStats(itemName, level);
+    if (!stats) continue;
+
+    for (const key of HP_STAT_KEYS) {
+      boost.hitpointIncrease += parseNumericStat(stats[key]);
+    }
+    for (const key of DAMAGE_STAT_KEYS) {
+      const damage = splitDamageStat(stats[key]);
+      boost.dpsIncrease += damage.flat;
+      boost.dpsMultiplier *= 1 + damage.percent / 100;
+    }
+    boost.speedIncrease += parseNumericStat(stats['speedIncrease']);
+  }
+
+  return boost;
+}
+
+/** Apply an equipment boost to a deployed hero. Returns a new troop. */
+export function applyBattleBoost(
+  troop: DeployedTroop, boost: HeroBattleBoost,
+): DeployedTroop {
+  const dps = Math.round((troop.dps + boost.dpsIncrease) * boost.dpsMultiplier);
+  const baseDps = Math.round((troop.baseDps + boost.dpsIncrease) * boost.dpsMultiplier);
+  return {
+    ...troop,
+    currentHp: troop.currentHp + boost.hitpointIncrease,
+    maxHp: troop.maxHp + boost.hitpointIncrease,
+    dps,
+    baseDps,
+    movementSpeed: troop.movementSpeed + boost.speedIncrease,
+  };
 }
 
 /** Check if an equipment item is at its max level. */

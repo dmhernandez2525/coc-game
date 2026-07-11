@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { VillageState, PlacedBuilding } from '../../types/village';
-import { tickBuildingUpgrades } from '../useResources';
+import { tickBuildingUpgrades, tickVillage } from '../useResources';
 
 /**
  * Returns a minimal but complete VillageState. Any fields passed in
@@ -150,5 +150,115 @@ describe('tickBuildingUpgrades', () => {
 
     expect(state.buildings[0]?.upgradeTimeRemaining).toBe(60);
     expect(state.buildings[0]?.isUpgrading).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickVillage (the real game-loop composition: potions, production, upgrades,
+// hero recovery, and super troop boost timers all advance together)
+// ---------------------------------------------------------------------------
+
+/** A Gold Mine collector (produces 200/hour, 1000 capacity, at level 1). */
+function makeGoldMine(): PlacedBuilding {
+  return makeBuilding({
+    instanceId: 'mine_1',
+    buildingId: 'Gold Mine',
+    buildingType: 'resource_collector',
+    level: 1,
+    uncollectedResources: 0,
+  });
+}
+
+describe('tickVillage', () => {
+  it('ticks down active potion timers by the elapsed game-clock time', () => {
+    const state = makeVillageState({
+      activePotions: [{ itemId: 'resource_potion', remainingMs: 10_000 }],
+    });
+
+    const next = tickVillage(state, 1000);
+
+    expect(next.activePotions?.[0]?.remainingMs).toBe(9000);
+  });
+
+  it('removes a potion once its timer runs out', () => {
+    const state = makeVillageState({
+      activePotions: [{ itemId: 'research_potion', remainingMs: 1000 }],
+    });
+
+    const next = tickVillage(state, 1000);
+
+    expect(next.activePotions).toEqual([]);
+  });
+
+  it('applies the resource potion collector-speed multiplier to production', () => {
+    const base = makeVillageState({ buildings: [makeGoldMine()] });
+    const boosted = makeVillageState({
+      buildings: [makeGoldMine()],
+      activePotions: [{ itemId: 'resource_potion', remainingMs: 60_000 }],
+    });
+
+    const plain = tickVillage(base, 1000);
+    const withPotion = tickVillage(boosted, 1000);
+
+    const plainProduced = plain.buildings[0]?.uncollectedResources ?? 0;
+    const boostedProduced = withPotion.buildings[0]?.uncollectedResources ?? 0;
+
+    // resource_potion grants a 2x collector-speed multiplier
+    expect(plainProduced).toBeGreaterThan(0);
+    expect(boostedProduced).toBeCloseTo(plainProduced * 2, 6);
+  });
+
+  it('expires a super troop boost when its timer runs out (real loop path)', () => {
+    const state = makeVillageState({
+      superTroopBoosts: [
+        { baseTroopName: 'Barbarian', superTroopName: 'Super Barbarian', remainingDurationMs: 500 },
+      ],
+    });
+
+    const next = tickVillage(state, 1000);
+
+    expect(next.superTroopBoosts).toEqual([]);
+  });
+
+  it('keeps an unexpired super troop boost ticking down', () => {
+    const state = makeVillageState({
+      superTroopBoosts: [
+        { baseTroopName: 'Archer', superTroopName: 'Super Archer', remainingDurationMs: 10_000 },
+      ],
+    });
+
+    const next = tickVillage(state, 1000);
+
+    expect(next.superTroopBoosts?.[0]?.remainingDurationMs).toBe(9000);
+    expect(next.superTroopBoosts?.[0]?.superTroopName).toBe('Super Archer');
+  });
+
+  it('scales super troop boost decay by the game clock speed', () => {
+    const state = makeVillageState({
+      gameClockSpeed: 10,
+      superTroopBoosts: [
+        { baseTroopName: 'Archer', superTroopName: 'Super Archer', remainingDurationMs: 30_000 },
+      ],
+    });
+
+    const next = tickVillage(state, 1000);
+
+    expect(next.superTroopBoosts?.[0]?.remainingDurationMs).toBe(20_000);
+  });
+
+  it('does not mutate the input state', () => {
+    const state = makeVillageState({
+      buildings: [makeGoldMine()],
+      activePotions: [{ itemId: 'resource_potion', remainingMs: 10_000 }],
+      superTroopBoosts: [
+        { baseTroopName: 'Barbarian', superTroopName: 'Super Barbarian', remainingDurationMs: 10_000 },
+      ],
+    });
+
+    tickVillage(state, 1000);
+
+    expect(state.activePotions?.[0]?.remainingMs).toBe(10_000);
+    expect(state.superTroopBoosts?.[0]?.remainingDurationMs).toBe(10_000);
+    expect(state.buildings[0]?.uncollectedResources).toBe(0);
   });
 });

@@ -11,24 +11,41 @@ const saveManager = createSaveManager();
 
 /**
  * Periodically auto-saves the village state to localStorage.
- * Also saves on component unmount for safety.
+ * Also saves on component unmount for safety. When `onSaved` is supplied it is
+ * called with the save timestamp after each successful write, letting the UI
+ * surface a "Saved" indicator.
  */
 export function useAutoSave(
   state: VillageState,
   intervalMs: number = DEFAULT_INTERVAL_MS,
+  onSaved?: (timestamp: number) => void,
 ): void {
   const stateRef = useRef(state);
-  stateRef.current = state;
+  const onSavedRef = useRef(onSaved);
+
+  // Keep the refs in sync after each committed render (refs must not be
+  // written during render)
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      saveManager.save(stateRef.current, 'autosave');
-    }, intervalMs);
+    onSavedRef.current = onSaved;
+  }, [onSaved]);
+
+  const persist = () => {
+    if (saveManager.save(stateRef.current, 'autosave')) {
+      onSavedRef.current?.(Date.now());
+    }
+  };
+
+  useEffect(() => {
+    const id = setInterval(persist, intervalMs);
 
     return () => {
       clearInterval(id);
       // Save one last time on unmount
-      saveManager.save(stateRef.current, 'autosave');
+      persist();
     };
   }, [intervalMs]);
 }

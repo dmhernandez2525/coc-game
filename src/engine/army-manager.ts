@@ -5,6 +5,7 @@ import type { VillageState, TrainedTroop, ResourceAmounts } from '../types/villa
 import type { TroopData } from '../types/troops.ts';
 import { getTroop, getAllTroops } from '../data/loaders/troop-loader.ts';
 import { getArmyBuilding } from '../data/loaders/army-building-loader.ts';
+import { getVillageActiveSuperTroop } from './super-troop-manager.ts';
 
 export interface TrainingQueueItem {
   troopName: string;
@@ -73,7 +74,7 @@ export function getCurrentHousingUsed(state: VillageState): number {
 export function getAvailableTroops(state: VillageState): TroopData[] {
   const maxBarracksLevels = getMaxBuildingLevels(state);
 
-  return getAllTroops().filter((troop) => {
+  const unlocked = getAllTroops().filter((troop) => {
     if (troop.thUnlock > state.townHallLevel) return false;
 
     const cfg = TROOP_TYPE_CONFIG[troop.type];
@@ -84,6 +85,13 @@ export function getAvailableTroops(state: VillageState): TroopData[] {
 
     const maxLevel = maxBarracksLevels.get(cfg.barracks) ?? 0;
     return maxLevel >= required;
+  });
+
+  // Active super troop boosts replace the base troop in the training roster
+  return unlocked.map((troop) => {
+    const superName = getVillageActiveSuperTroop(state, troop.name);
+    if (!superName) return troop;
+    return getTroop(superName) ?? troop;
   });
 }
 
@@ -121,7 +129,9 @@ export function trainTroop(state: VillageState, troopName: string): VillageState
       i === existingIndex ? { ...t, count: t.count + 1 } : t,
     );
   } else {
-    army = [...state.army, { name: troopName, level: 1, count: 1 }];
+    // Super troop stat tables start above level 1, so new entries begin at
+    // the troop's lowest defined level (level 1 for regular troops)
+    army = [...state.army, { name: troopName, level: troop.levels[0]?.level ?? 1, count: 1 }];
   }
 
   return { ...state, resources, army };

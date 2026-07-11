@@ -3,6 +3,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ClanWarPanel } from '../ClanWarPanel';
 import type { WarState } from '../../engine/clan-war-manager.ts';
+import { getSelectableWarBases } from '../../engine/clan-war-manager.ts';
+import { createWarLeagueState } from '../../engine/war-league-manager.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -44,9 +46,13 @@ const defaultProps = {
   war: null as WarState | null,
   clanName: 'Test Clan' as string | null,
   townHallLevel: 8,
+  warLeague: createWarLeagueState(),
+  availableWarBases: getSelectableWarBases(8),
   onStartWar: vi.fn(),
+  onSelectWarBase: vi.fn(),
   onAttack: vi.fn(),
   onEndWar: vi.fn(),
+  onStartNewWar: vi.fn(),
   onClose: vi.fn(),
 };
 
@@ -115,5 +121,67 @@ describe('ClanWarPanel', () => {
     renderPanel({ war });
 
     expect(screen.getByText('VS')).toBeDefined();
+  });
+
+  it('shows the war league badge for a clan', () => {
+    renderPanel();
+    expect(screen.getByText('War League')).toBeDefined();
+    expect(screen.getByText('Bronze League III')).toBeDefined();
+  });
+
+  it('offers war base selection during preparation', () => {
+    const war = makeWarState({ phase: 'preparation' });
+    renderPanel({ war });
+
+    expect(screen.getByText('War Base')).toBeDefined();
+    expect(screen.getByText('No war base selected. Pick a layout before battle day.')).toBeDefined();
+  });
+
+  it('calls onSelectWarBase when a layout is chosen', () => {
+    const onSelectWarBase = vi.fn();
+    const war = makeWarState({ phase: 'preparation' });
+    renderPanel({ war, onSelectWarBase });
+
+    const baseId = defaultProps.availableWarBases[0]!.id;
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0]!, { target: { value: baseId } });
+
+    expect(onSelectWarBase).toHaveBeenCalledWith(baseId);
+  });
+
+  it('shows the defense rating once a war base is selected', () => {
+    const war = makeWarState({
+      phase: 'preparation',
+      playerWarBaseId: defaultProps.availableWarBases[0]!.id,
+    });
+    renderPanel({ war });
+
+    expect(screen.getByText(/Defense rating \d+%/)).toBeDefined();
+  });
+
+  it('calls onAttack with the defender index when an enemy base is tapped', () => {
+    const onAttack = vi.fn();
+    const war = makeWarState({ phase: 'battle' });
+    renderPanel({ war, onAttack });
+
+    fireEvent.click(screen.getByText('Enemy 2'));
+
+    expect(onAttack).toHaveBeenCalledWith(1);
+  });
+
+  it('shows the persisted result and a Start New War button when ended', () => {
+    const onStartNewWar = vi.fn();
+    const war = makeWarState({
+      phase: 'ended',
+      result: 'victory',
+      lootAwarded: { gold: 123000, elixir: 45000, darkElixir: 0 },
+    });
+    renderPanel({ war, onStartNewWar });
+
+    expect(screen.getByText('Victory')).toBeDefined();
+    expect(screen.getByText('123,000')).toBeDefined();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start New War' }));
+    expect(onStartNewWar).toHaveBeenCalledTimes(1);
   });
 });

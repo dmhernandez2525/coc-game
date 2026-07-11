@@ -1,4 +1,4 @@
-import type { TargetType } from './common';
+import type { TargetType, XBowMode } from './common';
 
 export type BattlePhase = 'scout' | 'active' | 'ended';
 export type TroopState = 'idle' | 'moving' | 'attacking' | 'dead';
@@ -42,6 +42,12 @@ export interface DeployedTroop {
   baseMovementSpeed?: number;     // Unbuffed movement speed (captured by the spell engine)
   preSpellDps?: number;           // DPS before spell buffs; restored when buffs lapse
   invisibleUntil?: number;        // Elapsed seconds when hero cloak invisibility ends
+  invincibleUntil?: number;       // Grand Warden Eternal Tome: takes no damage until this elapsed second
+  isClone?: boolean;              // Clone Spell copy
+  cloneLifespanRemaining?: number; // Clone Spell: seconds before the copy expires
+  isPet?: boolean;                // Hero pet deployed alongside its hero
+  isSiegeMachine?: boolean;       // Siege machine: paths to the Town Hall, ignores defenders
+  carriedTroops?: Array<{ name: string; level: number; count: number }>; // CC troops riding in a siege
 }
 
 export interface ActiveDefense {
@@ -75,6 +81,9 @@ export interface ActiveDefense {
   isFrozen?: boolean;             // Freeze spell applied
   frozenUntil?: number;           // Elapsed time when freeze ends
   targetType?: TargetType;        // Air/ground targeting legality from defense data
+  xbowMode?: XBowMode;            // X-Bow: ground-only (14 tiles) or ground+air (11.5 tiles)
+  scatterSplashDamage?: number;   // Scattershot: shrapnel damage behind the impact point
+  scatterSplashRadius?: number;   // Scattershot: shrapnel spread radius around the target
 }
 
 export interface BattleBuilding {
@@ -87,6 +96,64 @@ export interface BattleBuilding {
   isDestroyed: boolean;
   weight: number;
   earthquakeHitCount?: number;    // Tracks successive Earthquake hits for diminishing returns
+  storedLoot?: LootBundle;        // Loot awarded to the attacker when this building falls
+}
+
+export interface LootBundle {
+  gold: number;
+  elixir: number;
+  darkElixir: number;
+}
+
+/** Stat boosts a hero carries into battle from its equipped items. */
+export interface HeroBattleBoost {
+  hitpointIncrease: number;   // Flat HP added to the hero
+  dpsIncrease: number;        // Flat DPS added to the hero
+  dpsMultiplier: number;      // Multiplier from percentage damage stats (1 = none)
+  speedIncrease: number;      // Flat movement speed added to the hero
+}
+
+/** Pet assigned to an attacker hero, deployed alongside it. */
+export interface PetAssignment {
+  name: string;
+  level: number;
+}
+
+/** Hero the attacker can still deploy this battle (one deploy per hero). */
+export interface AvailableHero {
+  name: string;
+  level: number;
+  deployed: boolean;
+  boost?: HeroBattleBoost;
+  pet?: PetAssignment;
+}
+
+/** Defender clan castle garrison waiting to deploy when attackers come near. */
+export interface DefenderCCState {
+  troops: Array<{ name: string; level: number; count: number }>;
+  x: number;
+  y: number;
+  deployed: boolean;
+}
+
+/** Attacker clan castle troops available for one offensive deploy per battle. */
+export interface AttackerCCState {
+  troops: Array<{ name: string; level: number; count: number }>;
+  deployed: boolean;
+}
+
+/** Siege machine the attacker brought (one per attack). */
+export interface AvailableSiege {
+  name: string;
+  level: number;
+  deployed: boolean;
+}
+
+/** Post-battle status of an attacker hero, used for recovery timers. */
+export interface HeroBattleStatus {
+  name: string;
+  level: number;
+  remainingHp: number;
 }
 
 export interface ActiveSpell {
@@ -110,6 +177,7 @@ export interface BattleResult {
   };
   trophyChange: number;
   timeUsed: number;
+  heroesDeployed?: HeroBattleStatus[];
 }
 
 export interface BattleState {
@@ -128,4 +196,8 @@ export interface BattleState {
   };
   availableTroops: Array<{ name: string; level: number; count: number }>;
   availableSpells: Array<{ name: string; level: number; count: number }>;
+  availableHeroes?: AvailableHero[];
+  defenderCC?: DefenderCCState;
+  attackerCC?: AttackerCCState;
+  attackerSiege?: AvailableSiege;
 }

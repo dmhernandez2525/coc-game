@@ -1,4 +1,5 @@
 import type { OwnedHero } from '../../types/village.ts';
+import type { DeployedTroop } from '../../types/battle.ts';
 import {
   getEquipmentForHero,
   getEquipmentStats,
@@ -6,9 +7,13 @@ import {
   equipItem,
   unequipItem,
   getUpgradeCost,
+  canAffordUpgrade,
   getBlacksmithRequirement,
   upgradeEquipment,
+  upgradeOwnedEquipment,
   getEquipmentBonuses,
+  getHeroBattleBoost,
+  applyBattleBoost,
   isMaxLevel,
   getMaxLevel,
 } from '../equipment-manager.ts';
@@ -356,5 +361,158 @@ describe('getMaxLevel', () => {
 
   it('returns 0 for unknown equipment', () => {
     expect(getMaxLevel('FakeEquipment')).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// canAffordUpgrade
+// ---------------------------------------------------------------------------
+describe('canAffordUpgrade', () => {
+  it('returns true when the wallet covers the next level cost', () => {
+    // Barbarian Puppet level 1 -> 2 costs 120 shiny ore
+    expect(canAffordUpgrade('Barbarian Puppet', 1, { shinyOre: 120, glowyOre: 0, starryOre: 0 })).toBe(true);
+  });
+
+  it('returns false when the wallet falls short', () => {
+    expect(canAffordUpgrade('Barbarian Puppet', 1, { shinyOre: 119, glowyOre: 0, starryOre: 0 })).toBe(false);
+  });
+
+  it('returns false at max level and for unknown equipment', () => {
+    const wallet = { shinyOre: 99999, glowyOre: 99999, starryOre: 99999 };
+    expect(canAffordUpgrade('Barbarian Puppet', getMaxLevel('Barbarian Puppet'), wallet)).toBe(false);
+    expect(canAffordUpgrade('FakeEquipment', 1, wallet)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// upgradeOwnedEquipment
+// ---------------------------------------------------------------------------
+describe('upgradeOwnedEquipment', () => {
+  const richOres = { shinyOre: 10000, glowyOre: 10000, starryOre: 10000 };
+
+  it('seeds a level 1 entry for never-upgraded equipment and upgrades it', () => {
+    const result = upgradeOwnedEquipment([], 'Barbarian Puppet', richOres, 10);
+    expect(result).not.toBeNull();
+    expect(result!.equipment).toEqual([{ name: 'Barbarian Puppet', level: 2 }]);
+  });
+
+  it('upgrades an existing entry like upgradeEquipment', () => {
+    const owned: OwnedEquipment[] = [{ name: 'Barbarian Puppet', level: 3 }];
+    const result = upgradeOwnedEquipment(owned, 'Barbarian Puppet', richOres, 10);
+    expect(result).not.toBeNull();
+    expect(result!.equipment[0]!.level).toBe(4);
+  });
+
+  it('returns null for unknown equipment', () => {
+    expect(upgradeOwnedEquipment([], 'FakeEquipment', richOres, 10)).toBeNull();
+  });
+
+  it('still enforces ore costs and blacksmith gating', () => {
+    const broke = { shinyOre: 0, glowyOre: 0, starryOre: 0 };
+    expect(upgradeOwnedEquipment([], 'Barbarian Puppet', broke, 10)).toBeNull();
+    expect(upgradeOwnedEquipment([], 'Barbarian Puppet', richOres, 0)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getHeroBattleBoost / applyBattleBoost
+// ---------------------------------------------------------------------------
+describe('getHeroBattleBoost', () => {
+  it('returns a neutral boost when nothing is equipped', () => {
+    expect(getHeroBattleBoost(makeHero(), {})).toEqual({
+      hitpointIncrease: 0,
+      dpsIncrease: 0,
+      dpsMultiplier: 1,
+      speedIncrease: 0,
+    });
+  });
+
+  it('reads flat HP, percent damage, and speed from Barbarian Puppet', () => {
+    const hero = makeHero({ equippedItems: ['Barbarian Puppet', null] });
+    const boost = getHeroBattleBoost(hero, {});
+    // Level 1: hitpointIncrease 309, damageIncrease "100%", speedIncrease 9.5
+    expect(boost.hitpointIncrease).toBe(309);
+    expect(boost.dpsIncrease).toBe(0);
+    expect(boost.dpsMultiplier).toBe(2);
+    expect(boost.speedIncrease).toBe(9.5);
+  });
+
+  it('reads flat dpsIncrease and hpIncrease aliases from Earthquake Boots', () => {
+    const hero = makeHero({ equippedItems: ['Earthquake Boots', null] });
+    const boost = getHeroBattleBoost(hero, {});
+    // Level 1: dpsIncrease 13, hpIncrease 209
+    expect(boost.hitpointIncrease).toBe(209);
+    expect(boost.dpsIncrease).toBe(13);
+  });
+
+  it('combines both equipped slots', () => {
+    const hero = makeHero({ equippedItems: ['Barbarian Puppet', 'Earthquake Boots'] });
+    const boost = getHeroBattleBoost(hero, {});
+    expect(boost.hitpointIncrease).toBe(309 + 209);
+    expect(boost.dpsIncrease).toBe(13);
+    expect(boost.dpsMultiplier).toBe(2);
+  });
+
+  it('uses the tracked equipment level when provided', () => {
+    const hero = makeHero({ equippedItems: ['Barbarian Puppet', null] });
+    const level1 = getHeroBattleBoost(hero, { 'Barbarian Puppet': 1 });
+    const level5 = getHeroBattleBoost(hero, { 'Barbarian Puppet': 5 });
+    expect(level5.hitpointIncrease).toBeGreaterThan(level1.hitpointIncrease);
+  });
+});
+
+describe('applyBattleBoost', () => {
+  function makeDeployedHero(overrides?: Partial<DeployedTroop>): DeployedTroop {
+    return {
+      id: 'hero_Barbarian King_1',
+      name: 'Barbarian King',
+      level: 5,
+      currentHp: 1000,
+      maxHp: 1000,
+      x: 10,
+      y: 10,
+      targetId: null,
+      state: 'idle',
+      dps: 100,
+      baseDps: 100,
+      attackRange: 1,
+      movementSpeed: 16,
+      isFlying: false,
+      isHero: true,
+      ...overrides,
+    };
+  }
+
+  it('applies flat HP, flat and percent damage, and speed', () => {
+    const boosted = applyBattleBoost(makeDeployedHero(), {
+      hitpointIncrease: 300,
+      dpsIncrease: 20,
+      dpsMultiplier: 2,
+      speedIncrease: 4,
+    });
+    expect(boosted.currentHp).toBe(1300);
+    expect(boosted.maxHp).toBe(1300);
+    expect(boosted.dps).toBe(240);
+    expect(boosted.baseDps).toBe(240);
+    expect(boosted.movementSpeed).toBe(20);
+  });
+
+  it('leaves the troop unchanged under a neutral boost', () => {
+    const hero = makeDeployedHero();
+    const boosted = applyBattleBoost(hero, {
+      hitpointIncrease: 0, dpsIncrease: 0, dpsMultiplier: 1, speedIncrease: 0,
+    });
+    expect(boosted.currentHp).toBe(hero.currentHp);
+    expect(boosted.dps).toBe(hero.dps);
+    expect(boosted.movementSpeed).toBe(hero.movementSpeed);
+  });
+
+  it('does not mutate the original troop', () => {
+    const hero = makeDeployedHero();
+    applyBattleBoost(hero, {
+      hitpointIncrease: 300, dpsIncrease: 20, dpsMultiplier: 2, speedIncrease: 4,
+    });
+    expect(hero.currentHp).toBe(1000);
+    expect(hero.dps).toBe(100);
   });
 });

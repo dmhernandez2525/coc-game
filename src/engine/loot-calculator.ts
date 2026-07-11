@@ -1,4 +1,5 @@
 import type { VillageState, ResourceAmounts, PlacedBuilding } from '../types/village.ts';
+import { getTreasury, calculateTreasurySteal } from './treasury-manager.ts';
 
 const STORAGE_LOOT_PCT: Record<number, { goldElixir: number; darkElixir: number }> = {
   1: { goldElixir: 0.20, darkElixir: 0 },
@@ -107,7 +108,58 @@ export function calculateTotalLoot(
     darkElixir: storageLoot.darkElixir + collectorLoot.darkElixir,
   };
 
-  return applyTHPenalty(combined, attackerTHLevel, defenderVillage.townHallLevel);
+  const penalized = applyTHPenalty(combined, attackerTHLevel, defenderVillage.townHallLevel);
+
+  // Treasury contents are far better protected: only 3% is stealable,
+  // and the TH-difference penalty does not apply to it
+  const treasuryLoot = calculateTreasurySteal(getTreasury(defenderVillage));
+
+  return {
+    gold: penalized.gold + treasuryLoot.gold,
+    elixir: penalized.elixir + treasuryLoot.elixir,
+    darkElixir: penalized.darkElixir + treasuryLoot.darkElixir,
+  };
+}
+
+// Buildings that hold each resource type during a raid, in priority order.
+const LOOT_HOLDER_IDS: Record<'gold' | 'elixir' | 'darkElixir', string[]> = {
+  gold: ['Gold Storage', 'Gold Mine', 'Town Hall'],
+  elixir: ['Elixir Storage', 'Elixir Collector', 'Town Hall'],
+  darkElixir: ['Dark Elixir Storage', 'Dark Elixir Drill', 'Town Hall'],
+};
+
+/**
+ * Spread the total available loot across the defender buildings that hold each
+ * resource. The attacker earns a building's share when it is destroyed.
+ * Splits evenly per resource; any rounding remainder goes to the first holder
+ * so the distributed total always matches the input exactly.
+ */
+export function distributeLootAcrossBuildings(
+  totalLoot: { gold: number; elixir: number; darkElixir: number },
+  buildings: PlacedBuilding[],
+): Record<string, { gold: number; elixir: number; darkElixir: number }> {
+  const shares: Record<string, { gold: number; elixir: number; darkElixir: number }> = {};
+
+  for (const resource of ['gold', 'elixir', 'darkElixir'] as const) {
+    const amount = totalLoot[resource];
+    if (amount <= 0) continue;
+
+    const holderIds = LOOT_HOLDER_IDS[resource];
+    let holders = buildings.filter((b) => holderIds.includes(b.buildingId));
+    if (holders.length === 0) holders = buildings;
+    if (holders.length === 0) continue;
+
+    const perBuilding = Math.floor(amount / holders.length);
+    const remainder = amount - perBuilding * holders.length;
+
+    holders.forEach((holder, i) => {
+      const share = shares[holder.instanceId] ?? { gold: 0, elixir: 0, darkElixir: 0 };
+      share[resource] += perBuilding + (i === 0 ? remainder : 0);
+      shares[holder.instanceId] = share;
+    });
+  }
+
+  return shares;
 }
 
 export function calculateTrophyChange(stars: number, trophyOffer: number): number {

@@ -9,6 +9,12 @@ import {
   deploySiegeMachine,
   getMaxSiegePerAttack,
   getMinTHForSiege,
+  getSiegeTrainingCost,
+  getSiegeCapacity,
+  getTrainedSiegeMachines,
+  getTrainedSiegeCount,
+  trainSiegeMachine,
+  removeSiegeMachine,
 } from '../siege-manager.ts';
 
 // ---------------------------------------------------------------------------
@@ -359,5 +365,180 @@ describe('getMaxSiegePerAttack', () => {
 describe('getMinTHForSiege', () => {
   it('returns 12', () => {
     expect(getMinTHForSiege()).toBe(12);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// deploySiegeMachine (carried CC troops)
+// ---------------------------------------------------------------------------
+
+describe('deploySiegeMachine carried troops', () => {
+  it('flags the unit as a siege machine', () => {
+    const troop = deploySiegeMachine('Wall Wrecker', 1, 0, 0);
+
+    expect(troop).not.toBeNull();
+    expect(troop!.isSiegeMachine).toBe(true);
+  });
+
+  it('carries CC troops when provided', () => {
+    const cargo = [{ name: 'Archer', level: 2, count: 5 }];
+    const troop = deploySiegeMachine('Wall Wrecker', 1, 0, 0, cargo);
+
+    expect(troop).not.toBeNull();
+    expect(troop!.carriedTroops).toEqual(cargo);
+  });
+
+  it('omits carriedTroops when none are provided', () => {
+    const troop = deploySiegeMachine('Wall Wrecker', 1, 0, 0);
+
+    expect(troop).not.toBeNull();
+    expect(troop!.carriedTroops).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getSiegeTrainingCost
+// ---------------------------------------------------------------------------
+
+describe('getSiegeTrainingCost', () => {
+  it('returns an elixir cost for a valid siege machine', () => {
+    const cost = getSiegeTrainingCost('Wall Wrecker');
+
+    expect(cost).toBeDefined();
+    expect(cost!.amount).toBeGreaterThan(0);
+    expect(cost!.resource).toBe('Elixir');
+    expect(cost!.time).toBeGreaterThan(0);
+  });
+
+  it('returns undefined for an unknown siege machine', () => {
+    expect(getSiegeTrainingCost('Fake Machine')).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getSiegeCapacity
+// ---------------------------------------------------------------------------
+
+describe('getSiegeCapacity', () => {
+  it('returns 0 when there is no Workshop', () => {
+    const state = makeVillage({ buildings: [] });
+
+    expect(getSiegeCapacity(state)).toBe(0);
+  });
+
+  it('returns the siegeCapacity of the current Workshop level', () => {
+    // Workshop level 1 holds 1 siege machine, level 3 holds 3
+    const lvl1 = makeVillage({ buildings: [makeBuilding('Workshop', 'army', 1)] });
+    const lvl3 = makeVillage({ buildings: [makeBuilding('Workshop', 'army', 3)] });
+
+    expect(getSiegeCapacity(lvl1)).toBe(1);
+    expect(getSiegeCapacity(lvl3)).toBe(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// trainSiegeMachine
+// ---------------------------------------------------------------------------
+
+describe('trainSiegeMachine', () => {
+  it('trains a siege machine and deducts elixir', () => {
+    const state = makeVillage({
+      resources: { gold: 0, elixir: 500000, darkElixir: 0, gems: 0 },
+    });
+    const next = trainSiegeMachine(state, 'Wall Wrecker');
+
+    expect(next).not.toBeNull();
+    expect(next!.siegeMachines).toEqual([{ name: 'Wall Wrecker', level: 1, count: 1 }]);
+    expect(next!.resources.elixir).toBe(500000 - getSiegeTrainingCost('Wall Wrecker')!.amount);
+  });
+
+  it('increments the count when training the same machine twice', () => {
+    const state = makeVillage();
+    const next = trainSiegeMachine(trainSiegeMachine(state, 'Wall Wrecker')!, 'Wall Wrecker');
+
+    expect(next).not.toBeNull();
+    expect(next!.siegeMachines).toEqual([{ name: 'Wall Wrecker', level: 1, count: 2 }]);
+  });
+
+  it('returns null when the Workshop is at capacity', () => {
+    // Workshop level 1: capacity 1
+    const state = makeVillage({
+      buildings: [makeBuilding('Workshop', 'army', 1)],
+      siegeMachines: [{ name: 'Wall Wrecker', level: 1, count: 1 }],
+    });
+
+    expect(trainSiegeMachine(state, 'Wall Wrecker')).toBeNull();
+  });
+
+  it('returns null when elixir is insufficient', () => {
+    const state = makeVillage({
+      resources: { gold: 0, elixir: 100, darkElixir: 0, gems: 0 },
+    });
+
+    expect(trainSiegeMachine(state, 'Wall Wrecker')).toBeNull();
+  });
+
+  it('returns null when the siege machine is not unlocked yet', () => {
+    // Siege Barracks needs workshop level 4, village has level 3
+    const state = makeVillage();
+
+    expect(trainSiegeMachine(state, 'Siege Barracks')).toBeNull();
+  });
+
+  it('does not mutate the input state', () => {
+    const state = makeVillage();
+    trainSiegeMachine(state, 'Wall Wrecker');
+
+    expect(state.siegeMachines).toBeUndefined();
+    expect(state.resources.elixir).toBe(500000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// removeSiegeMachine / getTrainedSiegeMachines / getTrainedSiegeCount
+// ---------------------------------------------------------------------------
+
+describe('removeSiegeMachine', () => {
+  it('decrements the count and drops empty entries', () => {
+    const state = makeVillage({
+      siegeMachines: [
+        { name: 'Wall Wrecker', level: 1, count: 2 },
+        { name: 'Battle Blimp', level: 1, count: 1 },
+      ],
+    });
+
+    const once = removeSiegeMachine(state, 'Battle Blimp');
+    expect(once.siegeMachines).toEqual([{ name: 'Wall Wrecker', level: 1, count: 2 }]);
+
+    const twice = removeSiegeMachine(once, 'Wall Wrecker');
+    expect(twice.siegeMachines).toEqual([{ name: 'Wall Wrecker', level: 1, count: 1 }]);
+  });
+
+  it('is a no-op for names that are not trained', () => {
+    const state = makeVillage({
+      siegeMachines: [{ name: 'Wall Wrecker', level: 1, count: 1 }],
+    });
+
+    expect(removeSiegeMachine(state, 'Battle Blimp').siegeMachines)
+      .toEqual([{ name: 'Wall Wrecker', level: 1, count: 1 }]);
+  });
+});
+
+describe('getTrainedSiegeMachines', () => {
+  it('returns an empty array for saves that predate the system', () => {
+    const state = makeVillage();
+
+    expect(getTrainedSiegeMachines(state)).toEqual([]);
+  });
+
+  it('sums counts across machine types', () => {
+    const state = makeVillage({
+      siegeMachines: [
+        { name: 'Wall Wrecker', level: 1, count: 2 },
+        { name: 'Battle Blimp', level: 1, count: 1 },
+      ],
+    });
+
+    expect(getTrainedSiegeCount(state)).toBe(3);
   });
 });

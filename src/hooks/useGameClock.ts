@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useReducer, useSyncExternalStore } from 'react';
+import { useState, useEffect, useCallback, useReducer, useSyncExternalStore } from 'react';
 import { createTimerSystem } from '../engine/timer-system';
 import type { TimerSystem } from '../engine/timer-system';
 
@@ -21,23 +21,21 @@ export interface UseGameClockReturn {
 }
 
 export function useGameClock(config?: UseGameClockConfig): UseGameClockReturn {
-  const timerRef = useRef<TimerSystem | null>(null);
-
-  if (timerRef.current === null) {
-    timerRef.current = createTimerSystem({
+  // Lazy state initializer keeps a single TimerSystem instance per hook
+  // instance without writing to a ref during render
+  const [timer] = useState<TimerSystem>(() =>
+    createTimerSystem({
       speedMultiplier: config?.speedMultiplier,
       tickIntervalMs: config?.tickIntervalMs,
-    });
-  }
-
-  const timer = timerRef.current;
+    }),
+  );
 
   // Stop the timer on unmount so its setInterval does not keep ticking
   useEffect(() => {
     return () => {
-      timerRef.current?.stop();
+      timer.stop();
     };
-  }, []);
+  }, [timer]);
 
   const elapsedMs = useSyncExternalStore(
     timer.subscribe,

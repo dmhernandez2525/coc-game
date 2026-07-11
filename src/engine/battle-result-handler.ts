@@ -3,9 +3,11 @@
 // All functions are pure: they return new state, never mutate.
 
 import type { VillageState, ResourceAmounts } from '../types/village.ts';
+import type { BattleResult } from '../types/battle.ts';
 import { calculateTotalLoot, calculateTrophyChange } from './loot-calculator.ts';
-import { getLeagueForTrophies, getLeagueBonus } from './trophy-manager.ts';
+import { getLeagueForTrophies, getLeagueBonus, processBattleResult } from './trophy-manager.ts';
 import { getStorageCapacity } from './resource-manager.ts';
+import { addToTreasury } from './treasury-manager.ts';
 
 // -- Types --
 
@@ -142,6 +144,40 @@ export function applyDefenseLosses(
     trophies: newTrophies,
     league: getLeagueForTrophies(newTrophies),
   };
+}
+
+/**
+ * Apply the full economy outcome of a multiplayer battle to the village:
+ * loot into storages (capped), trophies and league recalculated, star bonus
+ * stars accumulated, and the league win bonus deposited into the treasury.
+ * Hero recovery and ore rewards are applied separately by the caller.
+ */
+export function applyBattleOutcome(
+  state: VillageState,
+  result: BattleResult,
+): VillageState {
+  const trophyResult = processBattleResult(
+    state,
+    result.trophyChange,
+    result.destructionPercent,
+    result.stars,
+  );
+
+  const caps = getStorageCapacity(state);
+  const withLoot: VillageState = {
+    ...trophyResult.state,
+    resources: {
+      ...trophyResult.state.resources,
+      gold: Math.min(trophyResult.state.resources.gold + result.loot.gold, caps.gold),
+      elixir: Math.min(trophyResult.state.resources.elixir + result.loot.elixir, caps.elixir),
+      darkElixir: Math.min(
+        trophyResult.state.resources.darkElixir + result.loot.darkElixir,
+        caps.darkElixir,
+      ),
+    },
+  };
+
+  return addToTreasury(withLoot, trophyResult.leagueBonus);
 }
 
 /** Get shield duration (seconds) based on stars received in defense. */

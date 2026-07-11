@@ -2,6 +2,8 @@
 // All functions are pure: they return new state, never mutate.
 
 import type { TrainedTroop } from '../types/village.ts';
+import type { NPCBase } from '../data/npc-bases.ts';
+import { getCampaignBase } from '../data/npc-base-generator.ts';
 import { getCampaignLevel } from './campaign-manager.ts';
 
 // -- Types --
@@ -10,6 +12,8 @@ export interface CampaignBattleConfig {
   levelNumber: number;
   npcArmy: TrainedTroop[];
   npcTownHallLevel: number;
+  /** The level's distinct defensive base layout. */
+  npcBase: NPCBase | null;
   timeLimit: number; // seconds
   starThresholds: { one: number; two: number; three: number }; // destruction %
 }
@@ -91,6 +95,7 @@ export function getCampaignBattleConfig(levelNumber: number): CampaignBattleConf
     levelNumber,
     npcArmy,
     npcTownHallLevel: npcTH,
+    npcBase: getCampaignBase(levelNumber),
     timeLimit: BASE_TIME_LIMIT,
     starThresholds: thresholds,
   };

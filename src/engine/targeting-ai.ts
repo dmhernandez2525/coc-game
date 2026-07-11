@@ -59,6 +59,7 @@ const TARGET_FILTERS: Record<string, (t: Targetable, defenses: ActiveDefense[]) 
   Defenses: (t, defenses) => defenses.some((d) => d.buildingInstanceId === t.id),
   Resources: (t) => RESOURCE_KEYWORDS.some((kw) => t.name.includes(kw)),
   Walls: (t) => t.name === 'Wall',
+  'Town Hall': (t) => t.name === 'Town Hall',
 };
 
 /**
