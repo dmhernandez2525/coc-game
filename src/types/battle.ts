@@ -1,3 +1,5 @@
+import type { TargetType } from './common';
+
 export type BattlePhase = 'scout' | 'active' | 'ended';
 export type TroopState = 'idle' | 'moving' | 'attacking' | 'dead';
 
@@ -36,6 +38,10 @@ export interface DeployedTroop {
   heroAbilityUsed?: boolean;
   canJumpWalls?: boolean;         // Hog Rider, Royal Champion: ignore walls
   jumpSpellActive?: boolean;      // Troop is inside a Jump Spell radius
+  isDefender?: boolean;           // Defender-owned troop (e.g. defensive CC troops)
+  baseMovementSpeed?: number;     // Unbuffed movement speed (captured by the spell engine)
+  preSpellDps?: number;           // DPS before spell buffs; restored when buffs lapse
+  invisibleUntil?: number;        // Elapsed seconds when hero cloak invisibility ends
 }
 
 export interface ActiveDefense {
@@ -68,6 +74,7 @@ export interface ActiveDefense {
   eagleActivated?: boolean;
   isFrozen?: boolean;             // Freeze spell applied
   frozenUntil?: number;           // Elapsed time when freeze ends
+  targetType?: TargetType;        // Air/ground targeting legality from defense data
 }
 
 export interface BattleBuilding {

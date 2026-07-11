@@ -211,6 +211,28 @@ describe('recordBattleStats', () => {
     expect(stats.highestTrophies).toBe(100);
   });
 
+  it('does not inflate highestTrophies when the current total is below the record', () => {
+    // Record is 130, but the player has since dropped to 100 trophies.
+    // A +30 win brings them back to exactly 130, not 160.
+    const stats = { ...createStatistics(), highestTrophies: 130 };
+    const updated = recordBattleStats(stats, {
+      stars: 2,
+      loot: { gold: 0, elixir: 0, darkElixir: 0 },
+      trophyChange: 30,
+    }, 100);
+    expect(updated.highestTrophies).toBe(130);
+  });
+
+  it('raises highestTrophies when the real post-battle total exceeds the record', () => {
+    const stats = { ...createStatistics(), highestTrophies: 130 };
+    const updated = recordBattleStats(stats, {
+      stars: 3,
+      loot: { gold: 0, elixir: 0, darkElixir: 0 },
+      trophyChange: 30,
+    }, 125);
+    expect(updated.highestTrophies).toBe(155);
+  });
+
   it('does not mutate the original statistics object', () => {
     const original = createStatistics();
     const updated = recordBattleStats(original, baseBattleResult);

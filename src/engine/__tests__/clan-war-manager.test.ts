@@ -297,6 +297,38 @@ describe('recordPlayerAttack', () => {
     expect(result.playerClan.totalStars).toBe(3);
   });
 
+  it('updates bestAttackDestruction on an equal-star attack with higher destruction', () => {
+    const playerMembers = [
+      makeMember({ attacksRemaining: 2 }),
+      makeMember({ bestAttackStars: 2, bestAttackDestruction: 55 }),
+    ];
+    const war = makeWarState({
+      playerClan: makeClan({ name: 'Player Clan', members: playerMembers, totalStars: 2 }),
+      enemyClan: makeClan({ name: 'Enemy Clan', members: [makeMember(), makeMember()] }),
+    });
+    // Same star count as the existing best (no new stars), but higher destruction
+    const result = recordPlayerAttack(war, 0, 1, 2, 95);
+
+    expect(result.playerClan.totalStars).toBe(2);
+    expect(result.playerClan.members[1]!.bestAttackDestruction).toBe(95);
+    expect(result.playerClan.totalDestruction).toBe(95);
+  });
+
+  it('keeps the higher destruction record when a later attack scores lower destruction', () => {
+    const playerMembers = [
+      makeMember({ attacksRemaining: 2 }),
+      makeMember({ bestAttackStars: 2, bestAttackDestruction: 80 }),
+    ];
+    const war = makeWarState({
+      playerClan: makeClan({ name: 'Player Clan', members: playerMembers, totalStars: 2 }),
+      enemyClan: makeClan({ name: 'Enemy Clan', members: [makeMember(), makeMember()] }),
+    });
+    const result = recordPlayerAttack(war, 0, 1, 1, 40);
+
+    expect(result.playerClan.members[1]!.bestAttackStars).toBe(2);
+    expect(result.playerClan.members[1]!.bestAttackDestruction).toBe(80);
+  });
+
   it('updates the total stars on the player clan', () => {
     const playerMembers = [makeMember({ attacksRemaining: 2 }), makeMember()];
     const war = makeWarState({

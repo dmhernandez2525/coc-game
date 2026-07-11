@@ -6,8 +6,33 @@ import {
   collectAllResources,
   getStorageCapacity,
 } from '../engine/resource-manager.ts';
+import { completeUpgrade } from '../engine/village-manager.ts';
 
 const TICK_INTERVAL_MS = 1000;
+
+/**
+ * Advance in-progress building upgrades by the elapsed time and complete
+ * any that reach zero. Pure: returns a new state (or the same state if
+ * nothing is upgrading).
+ */
+export function tickBuildingUpgrades(state: VillageState, deltaMs: number): VillageState {
+  const elapsedSeconds = (deltaMs / 1000) * state.gameClockSpeed;
+  if (!state.buildings.some((b) => b.isUpgrading)) return state;
+
+  const buildings = state.buildings.map((b) =>
+    b.isUpgrading
+      ? { ...b, upgradeTimeRemaining: Math.max(0, b.upgradeTimeRemaining - elapsedSeconds) }
+      : b,
+  );
+
+  let next: VillageState = { ...state, buildings };
+  for (const b of buildings) {
+    if (b.isUpgrading && b.upgradeTimeRemaining <= 0) {
+      next = completeUpgrade(next, b.instanceId);
+    }
+  }
+  return next;
+}
 
 /**
  * Hook that drives resource production ticks and provides collection actions.
@@ -21,8 +46,13 @@ export function useResources(
   stateRef.current = state;
 
   useEffect(() => {
+    // Track real elapsed time so throttled background tabs still produce correctly
+    let lastTick = Date.now();
     const id = setInterval(() => {
-      onStateUpdate((prev) => tickResourceProduction(prev, TICK_INTERVAL_MS));
+      const now = Date.now();
+      const deltaMs = now - lastTick;
+      lastTick = now;
+      onStateUpdate((prev) => tickBuildingUpgrades(tickResourceProduction(prev, deltaMs), deltaMs));
     }, TICK_INTERVAL_MS);
 
     return () => clearInterval(id);

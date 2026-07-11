@@ -33,21 +33,6 @@ function makeBuilding(overrides?: Partial<PlacedBuilding>): PlacedBuilding {
   };
 }
 
-function makeCollector(overrides?: Partial<PlacedBuilding>): PlacedBuilding {
-  return {
-    instanceId: 'test_collector_1',
-    buildingId: 'Gold Mine',
-    buildingType: 'resource_collector',
-    level: 1,
-    gridX: 5,
-    gridY: 5,
-    isUpgrading: false,
-    upgradeTimeRemaining: 0,
-    assignedBuilder: null,
-    ...overrides,
-  };
-}
-
 function makeStorage(name: string, overrides?: Partial<PlacedBuilding>): PlacedBuilding {
   return {
     instanceId: `test_${name}`,
@@ -213,6 +198,7 @@ describe('setVillageState', () => {
 
     const capsAfter = useGameStore.getState().storageCaps;
     // The new caps may differ from original; at minimum they are recomputed (not stale)
+    expect(capsAfter).not.toBe(capsBefore);
     expect(capsAfter).toBeDefined();
     expect(typeof capsAfter.gold).toBe('number');
     expect(typeof capsAfter.elixir).toBe('number');
@@ -928,7 +914,6 @@ describe('setInventory', () => {
 describe('save and load', () => {
   it('saves the current village and loads it back', () => {
     useGameStore.getState().setTrophies(1234);
-    const villageBefore = useGameStore.getState().village;
 
     const saveResult = useGameStore.getState().save('test_slot');
     expect(saveResult).toBe(true);

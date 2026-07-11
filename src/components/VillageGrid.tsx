@@ -51,7 +51,7 @@ export function VillageGrid({
   const [camera, setCamera] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1.0);
   const [mouseGrid, setMouseGrid] = useState<{ x: number; y: number } | null>(null);
-  const dragRef = useRef({ dragging: false, lastX: 0, lastY: 0 });
+  const dragRef = useRef({ dragging: false, lastX: 0, lastY: 0, startX: 0, startY: 0 });
 
   const canvasWidth = 960;
   const canvasHeight = 640;
@@ -87,6 +87,13 @@ export function VillageGrid({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Scale the backing store by devicePixelRatio so HiDPI displays render crisply
+    const dpr = window.devicePixelRatio || 1;
+    if (canvas.width !== canvasWidth * dpr || canvas.height !== canvasHeight * dpr) {
+      canvas.width = canvasWidth * dpr;
+      canvas.height = canvasHeight * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     // Draw grass tiles
@@ -150,12 +157,14 @@ export function VillageGrid({
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const cx = e.clientX - rect.left;
-      const cy = e.clientY - rect.top;
+      // Convert client coordinates to canvas coordinates (accounts for CSS scaling)
+      const scale = canvasWidth / rect.width;
+      const cx = (e.clientX - rect.left) * scale;
+      const cy = (e.clientY - rect.top) * scale;
 
       if (dragRef.current.dragging) {
-        const dx = e.clientX - dragRef.current.lastX;
-        const dy = e.clientY - dragRef.current.lastY;
+        const dx = (e.clientX - dragRef.current.lastX) * scale;
+        const dy = (e.clientY - dragRef.current.lastY) * scale;
         dragRef.current.lastX = e.clientX;
         dragRef.current.lastY = e.clientY;
         setCamera((prev) => ({ x: prev.x + dx / zoom, y: prev.y + dy / zoom }));
@@ -171,15 +180,26 @@ export function VillageGrid({
   );
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    dragRef.current = { dragging: true, lastX: e.clientX, lastY: e.clientY };
+    dragRef.current = {
+      dragging: true,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      startX: e.clientX,
+      startY: e.clientY,
+    };
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    dragRef.current.dragging = false;
   }, []);
 
   const handleMouseUp = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const wasDragging = dragRef.current.dragging;
+      // Compare against where the drag started, not the last mousemove position
       const movedFar =
-        Math.abs(e.clientX - dragRef.current.lastX) > 4 ||
-        Math.abs(e.clientY - dragRef.current.lastY) > 4;
+        Math.abs(e.clientX - dragRef.current.startX) > 4 ||
+        Math.abs(e.clientY - dragRef.current.startY) > 4;
       dragRef.current.dragging = false;
 
       // If the mouse moved significantly, treat it as a drag (not a click)
@@ -187,8 +207,9 @@ export function VillageGrid({
 
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
-      const cx = e.clientX - rect.left;
-      const cy = e.clientY - rect.top;
+      const scale = canvasWidth / rect.width;
+      const cx = (e.clientX - rect.left) * scale;
+      const cy = (e.clientY - rect.top) * scale;
       const g = fromCanvas(cx, cy);
 
       if (placementMode) {
@@ -213,9 +234,17 @@ export function VillageGrid({
     [state.buildings, placementMode, onPlacementClick, onBuildingClick, fromCanvas],
   );
 
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
-    e.preventDefault();
-    setZoom((prev) => Math.max(0.4, Math.min(2.5, prev - e.deltaY * 0.001)));
+  // Wheel zoom needs a native non-passive listener: React registers root wheel
+  // listeners as passive, so preventDefault() would be ignored and the page scrolls.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setZoom((prev) => Math.max(0.4, Math.min(2.5, prev - e.deltaY * 0.001)));
+    };
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', handleWheel);
   }, []);
 
   return (
@@ -224,10 +253,11 @@ export function VillageGrid({
       width={canvasWidth}
       height={canvasHeight}
       className="block mx-auto cursor-grab active:cursor-grabbing rounded-lg border border-slate-700"
+      style={{ width: '100%', maxWidth: canvasWidth, height: 'auto' }}
       onMouseMove={handleMouseMove}
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
-      onWheel={handleWheel}
+      onMouseLeave={handleMouseLeave}
     />
   );
 }

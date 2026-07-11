@@ -7,6 +7,7 @@ interface ClanWarPanelProps {
   clanName: string | null;
   townHallLevel: number;
   onStartWar: (warSize: number) => void;
+  onStartBattle?: () => void;
   onAttack: (defenderIndex: number) => void;
   onEndWar: () => void;
   onClose: () => void;
@@ -123,7 +124,7 @@ function Scoreboard({ war }: { war: WarState }) {
   );
 }
 
-function PreparationView({ war }: { war: WarState }) {
+function PreparationView({ war, onStartBattle }: { war: WarState; onStartBattle?: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="px-4">
@@ -134,6 +135,17 @@ function PreparationView({ war }: { war: WarState }) {
           </span>
         </div>
       </div>
+
+      {onStartBattle && (
+        <div className="px-4">
+          <button
+            onClick={onStartBattle}
+            className="w-full px-4 py-2 rounded font-semibold bg-red-600 hover:bg-red-500 text-white transition-colors"
+          >
+            Start Battle Day
+          </button>
+        </div>
+      )}
 
       <Scoreboard war={war} />
 
@@ -348,6 +360,7 @@ function WarContent({
   clanName,
   townHallLevel,
   onStartWar,
+  onStartBattle,
   onAttack,
   onEndWar,
 }: Omit<ClanWarPanelProps, 'onClose'>) {
@@ -360,7 +373,7 @@ function WarContent({
   }
 
   const phaseViews: Record<string, React.ReactNode> = {
-    preparation: <PreparationView war={war} />,
+    preparation: <PreparationView war={war} onStartBattle={onStartBattle} />,
     battle: <BattleView war={war} onAttack={onAttack} onEndWar={onEndWar} />,
     ended: <EndedView war={war} townHallLevel={townHallLevel} />,
   };
@@ -373,6 +386,7 @@ export function ClanWarPanel({
   clanName,
   townHallLevel,
   onStartWar,
+  onStartBattle,
   onAttack,
   onEndWar,
   onClose,
@@ -398,6 +412,7 @@ export function ClanWarPanel({
           clanName={clanName}
           townHallLevel={townHallLevel}
           onStartWar={onStartWar}
+          onStartBattle={onStartBattle}
           onAttack={onAttack}
           onEndWar={onEndWar}
         />

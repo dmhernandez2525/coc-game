@@ -12,7 +12,6 @@ import {
   getBoostDurationMs,
   getMaxActiveBoosts,
   type SuperTroopState,
-  type SuperTroopBoost,
 } from '../super-troop-manager.ts';
 
 // ---------------------------------------------------------------------------

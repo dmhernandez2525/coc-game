@@ -61,7 +61,10 @@ import {
   recordPlayerAttack,
   simulateNPCAttacks,
   endWar,
+  calculateWarLoot,
 } from '../engine/clan-war-manager.ts';
+import { deductResources } from '../engine/village-helpers.ts';
+import { traps as trapDataList, wallData } from '../data/loaders/index.ts';
 import type { OwnedHero } from '../types/village.ts';
 
 type ActivePanel =
@@ -203,11 +206,13 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       buildings: prev.buildings.filter((b) => b.instanceId !== instanceToMove),
     }));
     handleClosePanel();
-    startPlacement(buildingId, buildingType);
+    startPlacement(buildingId, buildingType, { free: true });
   }, [selectedBuilding, setState, handleClosePanel, startPlacement]);
 
   // Trap placement handler
   const handleSelectTrap = useCallback((trapId: string) => {
+    const trapLvl1 = trapDataList.find((t) => t.name === trapId)?.levels[0];
+    if (!trapLvl1) return;
     let trapCounter = (state.traps?.length ?? 0) + 1;
     const newTrap: PlacedTrap = {
       instanceId: `trap_${trapCounter++}`,
@@ -217,15 +222,22 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       gridY: Math.floor(Math.random() * 28) + 2,
       isArmed: true,
     };
-    setState((prev) => ({
-      ...prev,
-      traps: [...(prev.traps ?? []), newTrap],
-    }));
+    setState((prev) => {
+      const newResources = deductResources(prev.resources, trapLvl1.upgradeCost, trapLvl1.upgradeResource);
+      if (!newResources) return prev;
+      return {
+        ...prev,
+        resources: newResources,
+        traps: [...(prev.traps ?? []), newTrap],
+      };
+    });
     setActivePanel('none');
   }, [state.traps, setState]);
 
   // Wall placement handler
   const handleSelectWall = useCallback(() => {
+    const wallLvl1 = wallData.levels[0];
+    if (!wallLvl1) return;
     let wallCounter = (state.walls?.length ?? 0) + 1;
     const newWall: PlacedWall = {
       instanceId: `wall_${wallCounter++}`,
@@ -233,10 +245,15 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       gridX: Math.floor(Math.random() * 30) + 1,
       gridY: Math.floor(Math.random() * 30) + 1,
     };
-    setState((prev) => ({
-      ...prev,
-      walls: [...(prev.walls ?? []), newWall],
-    }));
+    setState((prev) => {
+      const newResources = deductResources(prev.resources, wallLvl1.upgradeCost, wallLvl1.upgradeResource);
+      if (!newResources) return prev;
+      return {
+        ...prev,
+        resources: newResources,
+        walls: [...(prev.walls ?? []), newWall],
+      };
+    });
     setActivePanel('none');
   }, [state.walls, setState]);
 
@@ -252,15 +269,17 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
   const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
 
   const handleClaimAchievement = useCallback((achievementId: string) => {
-    setAchievementProgress((prev) => {
-      const result = claimReward(prev, achievementId);
+    // Compute the claim outside the updater; updaters must stay pure
+    // (StrictMode double-invokes them, which would double-award gems)
+    const result = claimReward(achievementProgress, achievementId);
+    setAchievementProgress(result.progress);
+    if (result.gemsEarned > 0) {
       setState((vs) => ({
         ...vs,
         resources: { ...vs.resources, gems: vs.resources.gems + result.gemsEarned },
       }));
-      return result.progress;
-    });
-  }, [setState]);
+    }
+  }, [achievementProgress, setState]);
 
   // Magic items state and handlers
   const [inventory, setInventory] = useState<MagicItemInventory>(createInventory);
@@ -312,26 +331,39 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setWarState(startWar(clan.name, playerTHLevels, warSize));
   }, [clan, state.townHallLevel]);
 
+  const handleStartBattleDay = useCallback(() => {
+    if (!warState || warState.phase !== 'preparation') return;
+    // Enemy attacks are rolled once when battle day begins
+    setWarState(simulateNPCAttacks(startBattlePhase(warState)));
+  }, [warState]);
+
   const handleWarAttack = useCallback((defenderIndex: number) => {
     if (!warState || warState.phase !== 'battle') return;
-    // Start battle phase if still in preparation
-    let war = warState;
-    if (war.phase === 'preparation') {
-      war = startBattlePhase(war);
-    }
+    // Use the next clan member with attacks remaining
+    const attackerIndex = warState.playerClan.members.findIndex((m) => m.attacksRemaining > 0);
+    if (attackerIndex < 0) return;
     // Simulate a player attack (simplified: random 1-3 stars, 40-100% destruction)
     const stars = Math.min(3, Math.max(1, Math.floor(Math.random() * 3) + 1));
     const destruction = Math.min(100, Math.floor(40 + Math.random() * 60));
-    war = recordPlayerAttack(war, 0, defenderIndex, stars, destruction);
-    war = simulateNPCAttacks(war);
-    setWarState(war);
+    setWarState(recordPlayerAttack(warState, attackerIndex, defenderIndex, stars, destruction));
   }, [warState]);
 
   const handleEndWar = useCallback(() => {
     if (!warState) return;
-    const result = endWar(warState);
-    setWarState(result.war);
-  }, [warState]);
+    const { war, result } = endWar(warState);
+    setWarState(war);
+    // Credit the war loot shown on the ended-war screen
+    const loot = calculateWarLoot(result, state.townHallLevel);
+    setState((prev) => ({
+      ...prev,
+      resources: {
+        ...prev.resources,
+        gold: prev.resources.gold + loot.gold,
+        elixir: prev.resources.elixir + loot.elixir,
+        darkElixir: prev.resources.darkElixir + loot.darkElixir,
+      },
+    }));
+  }, [warState, state.townHallLevel, setState]);
 
   // Count walls and traps for the shop panel
   const wallCount = state.walls?.length ?? 0;
@@ -638,6 +670,7 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
           clanName={clan?.name ?? null}
           townHallLevel={state.townHallLevel}
           onStartWar={handleStartWar}
+          onStartBattle={handleStartBattleDay}
           onAttack={handleWarAttack}
           onEndWar={handleEndWar}
           onClose={closePanel}

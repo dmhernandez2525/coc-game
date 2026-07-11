@@ -210,6 +210,75 @@ describe('corruption handling', () => {
 
     expect(manager.isValidSave(minimal)).toBe(true);
   });
+
+  it('isValidSave rejects a save where a required key has the wrong type (buildings: null)', () => {
+    const manager = createSaveManager();
+    const corrupt = {
+      version: 1,
+      townHallLevel: 1,
+      buildings: null,
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    };
+
+    expect(manager.isValidSave(corrupt)).toBe(false);
+  });
+
+  it('isValidSave rejects a save with an unknown schema version', () => {
+    const manager = createSaveManager();
+    const futureSave = {
+      version: 99,
+      townHallLevel: 1,
+      buildings: [],
+      resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+      builders: [],
+    };
+
+    expect(manager.isValidSave(futureSave)).toBe(false);
+  });
+
+  it('load returns null when buildings is null instead of an array', () => {
+    localStorage.setItem(
+      'coc_save_badtype',
+      JSON.stringify({
+        version: 1,
+        townHallLevel: 1,
+        buildings: null,
+        resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
+        builders: [],
+      }),
+    );
+    const manager = createSaveManager();
+
+    expect(manager.load('badtype')).toBeNull();
+  });
+
+  it('load fills missing optional fields with defaults for legacy saves', () => {
+    // Legacy save with only the required keys; walls, army, heroes, etc. absent
+    localStorage.setItem(
+      'coc_save_legacy',
+      JSON.stringify({
+        version: 1,
+        townHallLevel: 3,
+        buildings: [],
+        resources: { gold: 10, elixir: 10, darkElixir: 0, gems: 0 },
+        builders: [],
+      }),
+    );
+    const manager = createSaveManager();
+    const loaded = manager.load('legacy');
+
+    expect(loaded).not.toBeNull();
+    expect(loaded!.walls).toEqual([]);
+    expect(loaded!.traps).toEqual([]);
+    expect(loaded!.obstacles).toEqual([]);
+    expect(loaded!.army).toEqual([]);
+    expect(loaded!.spells).toEqual([]);
+    expect(loaded!.heroes).toEqual([]);
+    expect(loaded!.campaignProgress).toEqual({ levels: [], totalStars: 0 });
+    expect(loaded!.trophies).toBe(0);
+    expect(loaded!.gameClockSpeed).toBe(1);
+  });
 });
 
 // ---------------------------------------------------------------------------

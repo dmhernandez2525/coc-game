@@ -3,7 +3,7 @@
 // resolves tile sizes from the game data loaders.
 
 import type { TileSize } from '../types/common.ts';
-import type { PlacedBuilding, PlacedWall } from '../types/village.ts';
+import type { PlacedBuilding, PlacedWall, PlacedTrap, VillageObstacle } from '../types/village.ts';
 import { parseTileSize } from '../types/common.ts';
 import { getDefense } from '../data/loaders/defense-loader.ts';
 import {
@@ -56,13 +56,15 @@ export function getBuildingTileSize(buildingId: string): TileSize {
 }
 
 /**
- * Build a combined occupied tile set from existing buildings and walls.
- * Each building's footprint is resolved via getBuildingTileSize, and
- * each wall occupies a single 1x1 tile.
+ * Build a combined occupied tile set from existing buildings, walls,
+ * traps, and obstacles. Each building's footprint is resolved via
+ * getBuildingTileSize; walls, traps, and obstacles occupy 1x1 tiles.
  */
 function buildFullOccupiedSet(
   existingBuildings: PlacedBuilding[],
   existingWalls: PlacedWall[],
+  existingTraps: PlacedTrap[],
+  existingObstacles: VillageObstacle[],
 ): Set<string> {
   const rects = existingBuildings.map((b) => {
     const size = getBuildingTileSize(b.buildingId);
@@ -74,20 +76,19 @@ function buildFullOccupiedSet(
     };
   });
 
-  const wallRects = existingWalls.map((w) => ({
-    gridX: w.gridX,
-    gridY: w.gridY,
-    width: 1,
-    height: 1,
-  }));
+  const singleTileRects = [
+    ...existingWalls.map((w) => ({ gridX: w.gridX, gridY: w.gridY })),
+    ...existingTraps.map((t) => ({ gridX: t.gridX, gridY: t.gridY })),
+    ...existingObstacles.map((o) => ({ gridX: o.gridX, gridY: o.gridY })),
+  ].map((pos) => ({ ...pos, width: 1, height: 1 }));
 
-  return buildOccupiedSet([...rects, ...wallRects]);
+  return buildOccupiedSet([...rects, ...singleTileRects]);
 }
 
 /**
  * Check whether a building of the given tile dimensions can be placed
  * at (gridX, gridY) without going out of bounds or overlapping any
- * existing building or wall segment.
+ * existing building, wall segment, trap, or obstacle.
  */
 export function canPlaceBuilding(
   gridX: number,
@@ -96,8 +97,10 @@ export function canPlaceBuilding(
   height: number,
   existingBuildings: PlacedBuilding[],
   existingWalls: PlacedWall[],
+  existingTraps: PlacedTrap[] = [],
+  existingObstacles: VillageObstacle[] = [],
 ): boolean {
-  const occupied = buildFullOccupiedSet(existingBuildings, existingWalls);
+  const occupied = buildFullOccupiedSet(existingBuildings, existingWalls, existingTraps, existingObstacles);
   return canPlaceOnGrid(gridX, gridY, width, height, occupied);
 }
 

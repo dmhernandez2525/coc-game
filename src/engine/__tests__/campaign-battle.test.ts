@@ -6,7 +6,6 @@ import {
   calculateCampaignStars,
   calculateCampaignLoot,
 } from '../campaign-battle.ts';
-import type { CampaignBattleConfig } from '../campaign-battle.ts';
 
 // ---------------------------------------------------------------------------
 // getCampaignNPCTownHall

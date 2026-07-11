@@ -5,7 +5,7 @@ import { distance } from './targeting-ai.ts';
 // 40x damage to walls, self-destructs on impact.
 
 function processWallBreaker(
-  troop: DeployedTroop, buildings: BattleBuilding[], _defenses: ActiveDefense[], deltaMs: number,
+  troop: DeployedTroop, buildings: BattleBuilding[],
 ): void {
   if (troop.state === 'dead') return;
   // Wall Breakers only attack walls; wallDamageMultiplier should be set to 40
@@ -13,7 +13,8 @@ function processWallBreaker(
     const targetBuilding = buildings.find((b) => b.instanceId === troop.targetId && !b.isDestroyed);
     if (targetBuilding) {
       const mult = targetBuilding.name === 'Wall' ? (troop.wallDamageMultiplier ?? 40) : 1;
-      const damage = troop.dps * mult * (deltaMs / 1000);
+      // Fixed one-shot detonation: one full attack's damage, not tick-scaled
+      const damage = troop.dps * mult;
       targetBuilding.currentHp = Math.max(0, targetBuilding.currentHp - damage);
       if (targetBuilding.currentHp <= 0) targetBuilding.isDestroyed = true;
     }
@@ -114,10 +115,12 @@ function processElectroDragonAttack(
   const decay = troop.chainDamageDecay ?? 0.75;
   const baseDamage = troop.dps * (deltaMs / 1000);
 
-  // Primary target gets full damage (handled by normal processTroop)
-  // Chain to nearby buildings/defenses
+  // Chain to nearby buildings/defenses starting from the primary target
   const targetPos = findBuildingPos(troop.targetId, buildings, defenses);
   if (!targetPos) return false;
+
+  // Primary target gets full damage
+  applyBuildingDamage(troop.targetId, baseDamage, buildings, defenses);
 
   let chainX = targetPos.x;
   let chainY = targetPos.y;
@@ -270,7 +273,7 @@ type TroopMechanicHandler = (
 
 const TROOP_HANDLERS: Record<string, TroopMechanicHandler> = {
   'Wall Breaker': (troop, ctx) => {
-    processWallBreaker(troop, ctx.buildings, ctx.defenses, ctx.deltaMs);
+    processWallBreaker(troop, ctx.buildings);
     return true;
   },
   'Goblin': (troop, ctx) => {

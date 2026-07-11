@@ -2,7 +2,8 @@ import type React from 'react';
 import { useState, useCallback, useMemo } from 'react';
 import type { VillageState, PlacedBuilding } from '../types/village.ts';
 import type { PlacementMode } from '../components/VillageGrid.tsx';
-import { createStarterVillage } from '../engine/village-manager.ts';
+import { createStarterVillage, startUpgrade } from '../engine/village-manager.ts';
+import { getUpgradeCost, deductResources } from '../engine/village-helpers.ts';
 import {
   getDefense,
   getResourceBuilding,
@@ -67,6 +68,7 @@ export function useVillage(
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placementMode, setPlacementMode] = useState<PlacementMode | null>(null);
   const [placementType, setPlacementType] = useState<PlacedBuilding['buildingType']>('other');
+  const [placementFree, setPlacementFree] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
 
   const selectedBuilding = useMemo(() => {
@@ -101,16 +103,8 @@ export function useVillage(
 
   const handleUpgrade = useCallback(() => {
     if (!selectedBuilding || !upgradeCost || !canUpgrade) return;
-    setState((prev) => {
-      const resKey = upgradeCost.resource === 'Gold' ? 'gold' as const : 'elixir' as const;
-      const newResources = { ...prev.resources, [resKey]: prev.resources[resKey] - upgradeCost.amount };
-      const newBuildings = prev.buildings.map((b) =>
-        b.instanceId === selectedBuilding.instanceId
-          ? { ...b, isUpgrading: true, upgradeTimeRemaining: upgradeCost.time }
-          : b,
-      );
-      return { ...prev, resources: newResources, buildings: newBuildings };
-    });
+    // Engine startUpgrade deducts resources and assigns an idle builder
+    setState((prev) => startUpgrade(prev, selectedBuilding.instanceId) ?? prev);
   }, [selectedBuilding, upgradeCost, canUpgrade]);
 
   const handleRemove = useCallback(() => {
@@ -127,10 +121,11 @@ export function useVillage(
   }, []);
 
   const startPlacement = useCallback(
-    (buildingId: string, buildingType: PlacedBuilding['buildingType']) => {
+    (buildingId: string, buildingType: PlacedBuilding['buildingType'], options?: { free?: boolean }) => {
       const size = getBuildingSize(buildingId);
       setPlacementMode({ buildingId, width: size.w, height: size.h });
       setPlacementType(buildingType);
+      setPlacementFree(options?.free ?? false);
       setSelectedId(null);
       setShopOpen(false);
     },
@@ -140,12 +135,17 @@ export function useVillage(
   const handlePlacementClick = useCallback(
     (gridX: number, gridY: number) => {
       if (!placementMode) return;
-      const occupied = buildOccupiedSet(
-        state.buildings.map((b) => {
+      // Walls, traps, and obstacles occupy tiles too (1x1 each), matching the
+      // engine's collision rules; without them placement stacks onto them.
+      const occupied = buildOccupiedSet([
+        ...state.buildings.map((b) => {
           const s = getBuildingSize(b.buildingId);
           return { gridX: b.gridX, gridY: b.gridY, width: s.w, height: s.h };
         }),
-      );
+        ...state.walls.map((w) => ({ gridX: w.gridX, gridY: w.gridY, width: 1, height: 1 })),
+        ...state.traps.map((t) => ({ gridX: t.gridX, gridY: t.gridY, width: 1, height: 1 })),
+        ...state.obstacles.map((o) => ({ gridX: o.gridX, gridY: o.gridY, width: 1, height: 1 })),
+      ]);
       if (!canPlaceBuilding(gridX, gridY, placementMode.width, placementMode.height, occupied)) {
         return;
       }
@@ -163,13 +163,25 @@ export function useVillage(
         assignedBuilder: null,
       };
 
-      setState((prev) => ({
-        ...prev,
-        buildings: [...prev.buildings, newBuilding],
-      }));
+      setState((prev) => {
+        // New buildings cost their level 1 price; moves (placementFree) are free
+        let newResources = prev.resources;
+        if (!placementFree) {
+          const costInfo = getUpgradeCost(placementMode.buildingId, 1);
+          if (!costInfo) return prev;
+          const deducted = deductResources(prev.resources, costInfo.cost, costInfo.resource);
+          if (!deducted) return prev;
+          newResources = deducted;
+        }
+        return {
+          ...prev,
+          resources: newResources,
+          buildings: [...prev.buildings, newBuilding],
+        };
+      });
       setPlacementMode(null);
     },
-    [placementMode, placementType, state.buildings],
+    [placementMode, placementType, placementFree, state.buildings],
   );
 
   const cancelPlacement = useCallback(() => {

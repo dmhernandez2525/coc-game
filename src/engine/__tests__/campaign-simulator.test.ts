@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { simulateCampaignBattle } from '../campaign-simulator.ts';
-import type { CampaignBattleResult } from '../campaign-simulator.ts';
 import type { TrainedTroop } from '../../types/village.ts';
 
 // ---------------------------------------------------------------------------

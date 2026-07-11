@@ -673,8 +673,8 @@ describe('Electro Dragon', () => {
 
     processTroopSpecial(edrag, [edrag], [primary, chain1, chain2], [], 1000);
 
-    // Primary building: untouched by chain (handled by normal processTroop)
-    expect(primary.currentHp).toBe(1000);
+    // Primary building takes full damage: 100 dps * 1s = 100
+    expect(primary.currentHp).toBe(900);
 
     // chain1 gets: 100 * 0.75 = 75 damage
     expect(chain1.currentHp).toBe(925);

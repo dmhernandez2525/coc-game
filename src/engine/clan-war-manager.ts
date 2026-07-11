@@ -164,15 +164,14 @@ export function recordPlayerAttack(
   const existingBest = war.playerClan.members[defenderIndex]?.bestAttackStars ?? 0;
   const newStars = Math.max(0, stars - existingBest);
 
-  // Track best attack per defender position
-  if (stars > existingBest) {
+  // Track best attack per defender position. Destruction is tracked
+  // independently of stars so the war tiebreaker counts every attack.
+  const defenderRecord = updatedPlayerMembers[defenderIndex];
+  if (defenderRecord) {
     updatedPlayerMembers[defenderIndex] = {
-      ...updatedPlayerMembers[defenderIndex]!,
-      bestAttackStars: stars,
-      bestAttackDestruction: Math.max(
-        updatedPlayerMembers[defenderIndex]!.bestAttackDestruction,
-        destructionPercent,
-      ),
+      ...defenderRecord,
+      bestAttackStars: Math.max(defenderRecord.bestAttackStars, stars),
+      bestAttackDestruction: Math.max(defenderRecord.bestAttackDestruction, destructionPercent),
     };
   }
 
@@ -199,7 +198,7 @@ export function recordPlayerAttack(
 export function simulateNPCAttacks(war: WarState): WarState {
   if (war.phase !== 'battle') return war;
 
-  let updatedEnemyClan = { ...war.enemyClan, members: [...war.enemyClan.members] };
+  const updatedEnemyClan = { ...war.enemyClan, members: [...war.enemyClan.members] };
   let totalStars = 0;
   let totalDestruction = 0;
 

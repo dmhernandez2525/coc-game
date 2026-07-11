@@ -1,4 +1,4 @@
-import type { PlacedBuilding, PlacedWall } from '../../types/village.ts';
+import type { PlacedBuilding, PlacedWall, PlacedTrap, VillageObstacle } from '../../types/village.ts';
 import {
   getBuildingTileSize,
   canPlaceBuilding,
@@ -35,6 +35,28 @@ function makeWall(gridX: number, gridY: number): PlacedWall {
     gridX,
     gridY,
     level: 1,
+  };
+}
+
+function makeTrap(gridX: number, gridY: number): PlacedTrap {
+  return {
+    instanceId: `trap_${gridX}_${gridY}`,
+    trapId: 'Bomb',
+    level: 1,
+    gridX,
+    gridY,
+    isArmed: true,
+  };
+}
+
+function makeObstacle(gridX: number, gridY: number): VillageObstacle {
+  return {
+    instanceId: `obstacle_${gridX}_${gridY}`,
+    type: 'Tree',
+    gridX,
+    gridY,
+    removalCost: 100,
+    removalTime: 30,
   };
 }
 
@@ -111,6 +133,26 @@ describe('canPlaceBuilding', () => {
     // 3x3 building at (9,9) occupies (9,9) through (11,11), which includes (10,10)
     const result = canPlaceBuilding(9, 9, 3, 3, [], walls);
     expect(result).toBe(false);
+  });
+
+  it('rejects placement that overlaps a placed trap', () => {
+    const traps = [makeTrap(11, 11)];
+    // 3x3 building at (10,10) occupies (10,10) through (12,12), which includes (11,11)
+    const result = canPlaceBuilding(10, 10, 3, 3, [], [], traps, []);
+    expect(result).toBe(false);
+  });
+
+  it('rejects placement that overlaps an obstacle', () => {
+    const obstacles = [makeObstacle(12, 12)];
+    const result = canPlaceBuilding(10, 10, 3, 3, [], [], [], obstacles);
+    expect(result).toBe(false);
+  });
+
+  it('allows placement clear of traps and obstacles', () => {
+    const traps = [makeTrap(20, 20)];
+    const obstacles = [makeObstacle(25, 25)];
+    const result = canPlaceBuilding(10, 10, 3, 3, [], [], traps, obstacles);
+    expect(result).toBe(true);
   });
 
   it('rejects placement that goes out of the grid bounds (negative coordinates)', () => {

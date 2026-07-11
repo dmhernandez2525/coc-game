@@ -4,13 +4,38 @@ import type {
 import type { PlacedBuilding, TrainedTroop } from '../types/village.ts';
 import { getDefense } from '../data/loaders/defense-loader.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
-import { findTroopTarget, findDefenseTarget, moveToward, distance, findBlockingWall } from './targeting-ai.ts';
+import { findTroopTarget, findDefenseTarget, canDefenseTarget, moveToward, distance, findBlockingWall } from './targeting-ai.ts';
 import { tickSpells } from './spell-engine.ts';
 import { processDefenseSpecial, processBombTowerDeath } from './defense-behaviors.ts';
 import { processTroopSpecial, processDeathSpawns, processDeathDamage } from './troop-mechanics.ts';
 
 const BATTLE_DURATION = 180;
 const DEFAULT_BUILDING_HP = 500;
+
+// Fallback ranges for defenses whose JSON data has a null range.
+const DEFAULT_DEFENSE_RANGES: Record<string, { min: number; max: number }> = {
+  'X-Bow': { min: 0, max: 11.5 },
+  'Inferno Tower': { min: 0, max: 9 },
+};
+
+/** Normalize raw range data (object, plain number, or null) into {min, max}. */
+function normalizeRange(name: string, range: unknown): { min: number; max: number } {
+  if (typeof range === 'number') return { min: 0, max: range };
+  if (range && typeof range === 'object') {
+    const r = range as { min?: number; max?: number };
+    if (typeof r.min === 'number' && typeof r.max === 'number') {
+      return { min: r.min, max: r.max };
+    }
+  }
+  return DEFAULT_DEFENSE_RANGES[name] ?? { min: 0, max: 9 };
+}
+
+/** Normalize targetType data into the three values the engine understands. */
+function normalizeTargetType(raw: unknown): 'ground' | 'air' | 'ground_and_air' {
+  if (raw === 'ground' || raw === 'ground_only') return 'ground';
+  if (raw === 'air') return 'air';
+  return 'ground_and_air';
+}
 
 /** Initialize a fresh battle state from the defender's village and attacker's army. */
 export function initBattleState(
@@ -37,8 +62,10 @@ export function initBattleState(
         level: placed.level, currentHp: levelStats.hp, maxHp: levelStats.hp,
         x: placed.gridX, y: placed.gridY, targetTroopId: null,
         dps, baseDps: dps,
-        range: { ...defData.range }, attackSpeed: defData.attackSpeed,
+        range: normalizeRange(placed.buildingId, defData.range),
+        attackSpeed: typeof defData.attackSpeed === 'number' ? defData.attackSpeed : 1,
         lastAttackTime: 0, isDestroyed: false,
+        targetType: normalizeTargetType(defData.targetType),
       };
 
       // Set special defense properties
@@ -288,13 +315,34 @@ function processDefense(
   const targetable = troops.filter((t) => !t.isBurrowed);
   if (!defense.targetTroopId) defense.targetTroopId = findDefenseTarget(defense, targetable);
   if (!defense.targetTroopId) return;
-  if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
 
   const target = troops.find((t) => t.id === defense.targetTroopId);
   if (!target || target.state === 'dead') return;
 
-  target.currentHp = Math.max(0, target.currentHp - defense.dps * (deltaMs / 1000));
-  if (target.currentHp <= 0) { target.state = 'dead'; target.currentHp = 0; defense.targetTroopId = null; }
+  // Drop locked targets that have left the defense's range
+  const targetDist = distance(defense.x, defense.y, target.x, target.y);
+  if (targetDist < defense.range.min || targetDist > defense.range.max) {
+    defense.targetTroopId = null;
+    return;
+  }
+  if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
+
+  // Each shot deals one attack cycle worth of damage (dps * seconds per shot)
+  const shotDamage = defense.dps * defense.attackSpeed;
+  if (defense.splashRadius && defense.splashRadius > 0) {
+    // Splash defenses (Wizard Tower, Bomb Tower) hit everything near the target
+    for (const t of targetable) {
+      if (t.state === 'dead') continue;
+      if (!canDefenseTarget(defense, t)) continue;
+      if (distance(target.x, target.y, t.x, t.y) > defense.splashRadius) continue;
+      t.currentHp = Math.max(0, t.currentHp - shotDamage);
+      if (t.currentHp <= 0) { t.state = 'dead'; t.currentHp = 0; }
+    }
+    if (target.currentHp <= 0) defense.targetTroopId = null;
+  } else {
+    target.currentHp = Math.max(0, target.currentHp - shotDamage);
+    if (target.currentHp <= 0) { target.state = 'dead'; target.currentHp = 0; defense.targetTroopId = null; }
+  }
   defense.lastAttackTime = elapsed;
 }
 
@@ -316,6 +364,18 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   // Calculate housing deployed for Eagle Artillery activation
   const totalHousingDeployed = state.deployedTroops.length * 5; // Approximation: 5 housing per troop
   const currentDestruction = calculateStars(buildings).destructionPercent;
+
+  for (const troop of troops) {
+    // Expire hero cloak invisibility (Archer Queen's Royal Cloak)
+    if (troop.invisibleUntil !== undefined && elapsed >= troop.invisibleUntil) {
+      troop.invisibleUntil = undefined;
+      troop.isBurrowed = false;
+    }
+    // Healing block only lasts while a single-target Inferno stays locked on
+    troop.healingNerfed = defenses.some((d) =>
+      d.name === 'Inferno Tower' && !d.isDestroyed && !d.isFrozen
+      && d.infernoMode !== 'multi' && d.targetTroopId === troop.id);
+  }
 
   for (const troop of troops) processTroop(troop, troops, buildings, defenses, deltaMs);
 

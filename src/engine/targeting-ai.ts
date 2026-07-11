@@ -129,19 +129,30 @@ export function findTroopTarget(
 }
 
 /**
+ * Check whether a defense may legally target a troop based on its data
+ * targetType ('ground', 'air', or ground-and-air). Falls back to the
+ * hardcoded ground-only name set when no targetType is available.
+ */
+export function canDefenseTarget(defense: ActiveDefense, troop: DeployedTroop): boolean {
+  const targetType = defense.targetType
+    ?? (GROUND_ONLY_DEFENSES.has(defense.name) ? 'ground' : 'ground_and_air');
+  if (troop.isFlying) return targetType !== 'ground' && targetType !== 'ground_only';
+  return targetType !== 'air';
+}
+
+/**
  * Find the nearest alive troop within a defense's range.
- * Cannons and Mortars cannot target flying troops.
+ * Ground-only defenses skip flying troops; air-only defenses skip ground troops.
  */
 export function findDefenseTarget(
   defense: ActiveDefense, troops: DeployedTroop[],
 ): string | null {
-  const canTargetAir = !GROUND_ONLY_DEFENSES.has(defense.name);
   let best: DeployedTroop | null = null;
   let bestDist = Infinity;
 
   for (const troop of troops) {
     if (troop.state === 'dead') continue;
-    if (troop.isFlying && !canTargetAir) continue;
+    if (!canDefenseTarget(defense, troop)) continue;
     const d = distance(defense.x, defense.y, troop.x, troop.y);
     if (d < defense.range.min || d > defense.range.max) continue;
     if (d < bestDist) { bestDist = d; best = troop; }

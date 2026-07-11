@@ -413,7 +413,7 @@ describe('tickSpells', () => {
       name: 'Poison Spell', level: 1, x: 5, y: 5, radius: 4,
       remainingDuration: 10, totalDuration: 16,
     });
-    const troop = makeTroop({ x: 5, y: 5, currentHp: 100, maxHp: 100 });
+    const troop = makeTroop({ x: 5, y: 5, currentHp: 100, maxHp: 100, isDefender: true });
 
     // Poison Spell level 1: maxDamagePerSecond = 90
     // deltaMs = 1000 => deltaSec = 1 => damage = 90
@@ -422,12 +422,25 @@ describe('tickSpells', () => {
     expect(result.troops[0]!.currentHp).toBe(10);
   });
 
+  it('Poison never damages the attacker\'s own troops', () => {
+    const spell = makeSpell({
+      name: 'Poison Spell', level: 1, x: 5, y: 5, radius: 4,
+      remainingDuration: 10, totalDuration: 16,
+    });
+    // No isDefender flag: this is one of the attacker's own troops
+    const troop = makeTroop({ x: 5, y: 5, currentHp: 100, maxHp: 100 });
+
+    const result = tickSpells([spell], [troop], [], [], 1000);
+
+    expect(result.troops[0]!.currentHp).toBe(100);
+  });
+
   it('kills troops when Poison damage reduces hp to 0', () => {
     const spell = makeSpell({
       name: 'Poison Spell', level: 1, x: 5, y: 5, radius: 4,
       remainingDuration: 10, totalDuration: 16,
     });
-    const troop = makeTroop({ x: 5, y: 5, currentHp: 50, maxHp: 100 });
+    const troop = makeTroop({ x: 5, y: 5, currentHp: 50, maxHp: 100, isDefender: true });
 
     // Poison level 1: 90 damage per second. 50 hp troop should die.
     const result = tickSpells([spell], [troop], [], [], 1000);
@@ -506,7 +519,7 @@ describe('tickSpells', () => {
       remainingDuration: 8, totalDuration: 16,
     });
     const friendlyTroop = makeTroop({ x: 0, y: 0, currentHp: 60, maxHp: 100 });
-    const enemyTroop = makeTroop({ x: 50, y: 50, currentHp: 100, maxHp: 100 });
+    const enemyTroop = makeTroop({ x: 50, y: 50, currentHp: 100, maxHp: 100, isDefender: true });
 
     const result = tickSpells(
       [healSpell, poisonSpell], [friendlyTroop, enemyTroop], [], [], 1000,
@@ -923,13 +936,13 @@ describe('tickSpells - Poison Spell slowdown', () => {
       name: 'Poison Spell', level: 1, x: 5, y: 5, radius: 4,
       remainingDuration: 10, totalDuration: 16,
     });
-    // Poison Spell level 1: speedDecrease = 26 (used as a multiplier in the code)
-    const troop = makeTroop({ x: 5, y: 5, currentHp: 1000, maxHp: 1000, movementSpeed: 100 });
+    // Poison Spell level 1: speedDecrease = 26 (percentage slow)
+    const troop = makeTroop({ x: 5, y: 5, currentHp: 1000, maxHp: 1000, movementSpeed: 100, isDefender: true });
 
     const result = tickSpells([spell], [troop], [], [], 1000);
 
-    // movementSpeed = 100 * 26 = 2600 (speedDecrease is used as multiplicative factor)
-    expect(result.troops[0]!.movementSpeed).not.toBe(100);
+    // movementSpeed = 100 * (1 - 26 / 100) = 74
+    expect(result.troops[0]!.movementSpeed).toBeCloseTo(74);
   });
 });
 
@@ -975,17 +988,29 @@ describe('tickSpells - Invisibility Spell', () => {
     expect(result.troops[0]!.isBurrowed).toBe(false);
   });
 
-  it('preserves existing isBurrowed state from a previous tick', () => {
+  it('clears spell invisibility once the troop is outside every active spell radius', () => {
     const spell = makeSpell({
       name: 'Invisibility Spell', level: 1, x: 0, y: 0, radius: 2,
       remainingDuration: 3, totalDuration: 3.5,
     });
-    // Troop is outside radius but was already burrowed
+    // Troop was invisible last tick but has left the radius
     const troop = makeTroop({ x: 100, y: 100, isBurrowed: true });
 
     const result = tickSpells([spell], [troop], [], [], 1000);
 
-    // isBurrowed should remain true because of the `|| t.isBurrowed` logic
+    // Coverage is recomputed each tick, so the flag drops off
+    expect(result.troops[0]!.isBurrowed).toBe(false);
+  });
+
+  it('preserves Miner burrow state managed outside the spell system', () => {
+    const spell = makeSpell({
+      name: 'Invisibility Spell', level: 1, x: 0, y: 0, radius: 2,
+      remainingDuration: 3, totalDuration: 3.5,
+    });
+    const miner = makeTroop({ name: 'Miner', x: 100, y: 100, isBurrowed: true });
+
+    const result = tickSpells([spell], [miner], [], [], 1000);
+
     expect(result.troops[0]!.isBurrowed).toBe(true);
   });
 });
