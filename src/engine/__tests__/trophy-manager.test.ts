@@ -10,6 +10,11 @@ import {
   calculateTrophyOffer,
   checkLeagueChange,
   processBattleResult,
+  STAR_BONUS_STARS_REQUIRED,
+  getStarBonusStars,
+  addStarBonusStars,
+  isStarBonusReady,
+  claimStarBonus,
 } from '../trophy-manager.ts';
 
 // ---------------------------------------------------------------------------
@@ -387,5 +392,72 @@ describe('processBattleResult', () => {
     const state = makeVillage({ trophies: 1000 });
     processBattleResult(state, 30, 50, 2);
     expect(state.trophies).toBe(1000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Star bonus progress
+// ---------------------------------------------------------------------------
+describe('star bonus progress', () => {
+  it('starts at zero stars', () => {
+    expect(getStarBonusStars(makeVillage())).toBe(0);
+    expect(isStarBonusReady(makeVillage())).toBe(false);
+  });
+
+  it('accumulates stars from battles', () => {
+    const state = addStarBonusStars(makeVillage(), 3);
+    expect(getStarBonusStars(state)).toBe(3);
+    expect(isStarBonusReady(state)).toBe(false);
+  });
+
+  it('caps at the required star count', () => {
+    const state = addStarBonusStars(addStarBonusStars(makeVillage(), 3), 3);
+    expect(getStarBonusStars(state)).toBe(STAR_BONUS_STARS_REQUIRED);
+    expect(isStarBonusReady(state)).toBe(true);
+  });
+
+  it('ignores non-positive star amounts', () => {
+    const state = makeVillage({ starBonusStars: 2 });
+    expect(addStarBonusStars(state, 0)).toBe(state);
+    expect(addStarBonusStars(state, -1)).toBe(state);
+  });
+
+  it('processBattleResult adds earned stars to the counter', () => {
+    const state = makeVillage({ trophies: 1400, league: 'Gold III' });
+    const result = processBattleResult(state, 30, 80, 3);
+    expect(getStarBonusStars(result.state)).toBe(3);
+  });
+});
+
+describe('claimStarBonus', () => {
+  it('returns null when the bonus is not ready', () => {
+    expect(claimStarBonus(makeVillage({ starBonusStars: 4 }))).toBeNull();
+  });
+
+  it('deposits the league reward into the treasury and resets the counter', () => {
+    const state = makeVillage({
+      trophies: 450,
+      league: 'Bronze III',
+      starBonusStars: STAR_BONUS_STARS_REQUIRED,
+    });
+    const claimed = claimStarBonus(state);
+    expect(claimed).not.toBeNull();
+    // Bronze III star bonus: 100000 gold and elixir, 250 dark elixir
+    expect(claimed!.reward).toEqual({ gold: 100000, elixir: 100000, darkElixir: 250 });
+    expect(claimed!.state.treasury?.gold).toBe(100000);
+    expect(claimed!.state.treasury?.darkElixir).toBe(250);
+    expect(getStarBonusStars(claimed!.state)).toBe(0);
+  });
+
+  it('scales the reward with the league', () => {
+    const bronze = claimStarBonus(makeVillage({
+      league: 'Bronze III',
+      starBonusStars: STAR_BONUS_STARS_REQUIRED,
+    }));
+    const silver = claimStarBonus(makeVillage({
+      league: 'Silver III',
+      starBonusStars: STAR_BONUS_STARS_REQUIRED,
+    }));
+    expect(silver!.reward.gold).toBeGreaterThan(bronze!.reward.gold);
   });
 });

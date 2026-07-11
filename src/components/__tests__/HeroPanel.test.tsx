@@ -26,7 +26,16 @@ function makeHero(overrides?: Partial<OwnedHero>): OwnedHero {
 const defaultProps = {
   heroes: [] as OwnedHero[],
   townHallLevel: 5,
+  ores: { shinyOre: 0, glowyOre: 0, starryOre: 0 },
+  ownedEquipment: [],
+  ownedPets: [],
+  blacksmithLevel: 0,
+  petHouseLevel: 0,
+  resources: { gold: 0, elixir: 0, darkElixir: 0, gems: 0 },
   onUpdateHero: vi.fn(),
+  onUpgradeHero: vi.fn(),
+  onUpgradeEquipment: vi.fn(),
+  onUpgradePet: vi.fn(),
   onClose: vi.fn(),
 };
 

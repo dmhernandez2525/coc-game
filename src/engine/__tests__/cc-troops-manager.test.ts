@@ -6,6 +6,7 @@ import {
   deployDefensiveCCTroops,
   deployOffensiveCCTroops,
   getCCTroopHousing,
+  getDefensiveGarrisonForTH,
 } from '../cc-troops-manager.ts';
 import type { CCDeployConfig } from '../cc-troops-manager.ts';
 
@@ -507,5 +508,28 @@ describe('getCCTroopHousing', () => {
     ]);
 
     expect(housing).toBe(20);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getDefensiveGarrisonForTH
+// ---------------------------------------------------------------------------
+
+describe('getDefensiveGarrisonForTH', () => {
+  it('returns an empty garrison when the TH has no castle capacity', () => {
+    expect(getDefensiveGarrisonForTH(1)).toEqual([]);
+  });
+
+  it('returns TH-appropriate troops within the castle housing capacity', () => {
+    const garrison = getDefensiveGarrisonForTH(8);
+
+    expect(garrison.length).toBeGreaterThan(0);
+    expect(getCCTroopHousing(garrison)).toBeLessThanOrEqual(35); // TH8 castle capacity
+  });
+
+  it('matches the autoFillCastleTroops picks for the same TH level', () => {
+    const clan = autoFillCastleTroops(makeClan(), 8);
+
+    expect(getDefensiveGarrisonForTH(8)).toEqual(clan.castleTroops);
   });
 });

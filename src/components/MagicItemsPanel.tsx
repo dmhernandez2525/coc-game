@@ -1,12 +1,19 @@
 import { useState, useMemo } from 'react';
 import type { MagicItemType, MagicItemInventory } from '../engine/magic-items-manager.ts';
-import { getAllMagicItems, getInventoryContents, getItemCount } from '../engine/magic-items-manager.ts';
+import {
+  getAllMagicItems,
+  getInventoryContents,
+  getItemCount,
+  getItemGemCost,
+} from '../engine/magic-items-manager.ts';
 
 type CategoryFilter = 'all' | MagicItemType;
 
 interface MagicItemsPanelProps {
   inventory: MagicItemInventory;
+  gems?: number;
   onUseItem: (itemId: string) => void;
+  onBuyItem?: (itemId: string) => void;
   onClose: () => void;
 }
 
@@ -41,7 +48,7 @@ const TYPE_COLORS: Record<MagicItemType, { border: string; badge: string; text: 
   },
 };
 
-export function MagicItemsPanel({ inventory, onUseItem, onClose }: MagicItemsPanelProps) {
+export function MagicItemsPanel({ inventory, gems, onUseItem, onBuyItem, onClose }: MagicItemsPanelProps) {
   const [filter, setFilter] = useState<CategoryFilter>('all');
 
   const allItems = useMemo(() => getAllMagicItems(), []);
@@ -91,7 +98,7 @@ export function MagicItemsPanel({ inventory, onUseItem, onClose }: MagicItemsPan
 
       {/* Item list */}
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {!hasAnyItems && filter === 'all' ? (
+        {!hasAnyItems && filter === 'all' && !onBuyItem ? (
           <p className="text-center text-slate-500 py-8 text-sm">
             No magic items yet. Win them from clan wars and events!
           </p>
@@ -114,17 +121,38 @@ export function MagicItemsPanel({ inventory, onUseItem, onClose }: MagicItemsPan
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mb-2">{item.description}</p>
-                <button
-                  onClick={() => onUseItem(item.id)}
-                  disabled={!canUse}
-                  className={`w-full text-center text-xs font-semibold py-1.5 rounded transition-colors ${
-                    canUse
-                      ? 'bg-amber-600 hover:bg-amber-500 text-white cursor-pointer'
-                      : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
-                  }`}
-                >
-                  Use
-                </button>
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={() => onUseItem(item.id)}
+                    disabled={!canUse}
+                    className={`flex-1 text-center text-xs font-semibold py-1.5 rounded transition-colors ${
+                      canUse
+                        ? 'bg-amber-600 hover:bg-amber-500 text-white cursor-pointer'
+                        : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                    }`}
+                  >
+                    Use
+                  </button>
+                  {onBuyItem && (() => {
+                    const gemCost = getItemGemCost(item.id);
+                    if (gemCost === undefined) return null;
+                    const canBuy = (gems ?? 0) >= gemCost && count < item.maxStack;
+                    return (
+                      <button
+                        onClick={() => onBuyItem(item.id)}
+                        disabled={!canBuy}
+                        title={count >= item.maxStack ? 'Stack full' : `Buy for ${gemCost} gems`}
+                        className={`flex-1 text-center text-xs font-semibold py-1.5 rounded transition-colors ${
+                          canBuy
+                            ? 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer'
+                            : 'bg-slate-700/50 text-slate-500 cursor-not-allowed'
+                        }`}
+                      >
+                        Buy ({gemCost})
+                      </button>
+                    );
+                  })()}
+                </div>
               </div>
             );
           })

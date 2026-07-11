@@ -524,6 +524,26 @@ describe('getBattleResult', () => {
     expect(result.loot).not.toBe(state.loot);
     expect(result.loot).toEqual(loot);
   });
+
+  it('omits heroesDeployed when no attacker heroes fought', () => {
+    const state = makeBattleState({ deployedTroops: [makeDeployedTroop()] });
+    const result = getBattleResult(state, 10);
+
+    expect(result.heroesDeployed).toBeUndefined();
+  });
+
+  it('includes heroesDeployed with remaining HP for attacker heroes', () => {
+    const hero = makeDeployedTroop({
+      id: 'hero_Barbarian King_1', name: 'Barbarian King', level: 5,
+      currentHp: 640, maxHp: 1595, isHero: true,
+    });
+    const state = makeBattleState({ deployedTroops: [hero] });
+    const result = getBattleResult(state, 10);
+
+    expect(result.heroesDeployed).toEqual([
+      { name: 'Barbarian King', level: 5, remainingHp: 640 },
+    ]);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1129,5 +1149,161 @@ describe('tickBattle - wall collision', () => {
     // The wall should NOT have taken damage since Hog Rider jumps walls
     const wallAfter = result.buildings.find((b) => b.instanceId === 'wall_1');
     expect(wallAfter!.currentHp).toBe(300);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// initBattleState - X-Bow modes
+// ---------------------------------------------------------------------------
+
+describe('initBattleState - X-Bow modes', () => {
+  it('ground mode gets 14 tile range and targets ground only', () => {
+    const xbow = makePlacedBuilding('X-Bow', 'defense', 1, { xbowMode: 'ground' });
+    const state = initBattleState({ buildings: [xbow] }, [], []);
+
+    const def = state.defenses[0]!;
+    expect(def.xbowMode).toBe('ground');
+    expect(def.range).toEqual({ min: 0, max: 14 });
+    expect(def.targetType).toBe('ground');
+  });
+
+  it('ground and air mode gets 11.5 tile range and targets both domains', () => {
+    const xbow = makePlacedBuilding('X-Bow', 'defense', 1, { xbowMode: 'ground_and_air' });
+    const state = initBattleState({ buildings: [xbow] }, [], []);
+
+    const def = state.defenses[0]!;
+    expect(def.xbowMode).toBe('ground_and_air');
+    expect(def.range).toEqual({ min: 0, max: 11.5 });
+    expect(def.targetType).toBe('ground_and_air');
+  });
+
+  it('defaults to ground and air when the village never set a mode', () => {
+    const xbow = makePlacedBuilding('X-Bow', 'defense', 1);
+    const state = initBattleState({ buildings: [xbow] }, [], []);
+
+    const def = state.defenses[0]!;
+    expect(def.xbowMode).toBe('ground_and_air');
+    expect(def.range.max).toBe(11.5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// initBattleState - Scattershot
+// ---------------------------------------------------------------------------
+
+describe('initBattleState - Scattershot', () => {
+  it('reads hitpoints from data and wires the shrapnel splash stats', () => {
+    const scatter = makePlacedBuilding('Scattershot', 'defense', 1);
+    const state = initBattleState({ buildings: [scatter] }, [], []);
+
+    const def = state.defenses[0]!;
+    // Level 1 Scattershot data: hitpoints 3600, splashDamage 300, range 3-10
+    expect(def.currentHp).toBe(3600);
+    expect(def.maxHp).toBe(3600);
+    expect(def.scatterSplashDamage).toBe(300);
+    expect(def.scatterSplashRadius).toBeGreaterThan(0);
+    expect(def.range).toEqual({ min: 3, max: 10 });
+
+    const building = state.buildings.find((b) => b.name === 'Scattershot');
+    expect(building!.maxHp).toBe(3600);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickBattle - Clone Spell lifespan
+// ---------------------------------------------------------------------------
+
+describe('tickBattle - clone lifespan', () => {
+  it('counts down clone lifespans each tick', () => {
+    const clone = makeDeployedTroop({
+      id: 'clone_troop_1_0', isClone: true, cloneLifespanRemaining: 10, x: 5, y: 5,
+    });
+    const state = makeBattleState({ deployedTroops: [clone] });
+
+    const result = tickBattle(state, 1000);
+
+    const after = result.deployedTroops.find((t) => t.id === 'clone_troop_1_0');
+    expect(after!.cloneLifespanRemaining).toBeCloseTo(9);
+    expect(after!.state).not.toBe('dead');
+  });
+
+  it('kills clones whose lifespan runs out', () => {
+    const clone = makeDeployedTroop({
+      id: 'clone_troop_1_0', isClone: true, cloneLifespanRemaining: 0.5, x: 5, y: 5,
+    });
+    const state = makeBattleState({ deployedTroops: [clone] });
+
+    const result = tickBattle(state, 1000);
+
+    const after = result.deployedTroops.find((t) => t.id === 'clone_troop_1_0');
+    expect(after!.state).toBe('dead');
+    expect(after!.currentHp).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickBattle - Eternal Tome invincibility
+// ---------------------------------------------------------------------------
+
+describe('tickBattle - Eternal Tome invincibility', () => {
+  it('restores HP lost this tick while invincibleUntil is in the future', () => {
+    // timeRemaining 175 puts elapsed past the Cannon's 0.8s attack cooldown
+    const troop = makeDeployedTroop({ x: 20, y: 21, currentHp: 100, invincibleUntil: 60 });
+    const cannon = makeDefense({ x: 20, y: 20 });
+    const state = makeBattleState({
+      timeRemaining: 175,
+      deployedTroops: [troop],
+      defenses: [cannon],
+    });
+
+    const result = tickBattle(state, 50);
+
+    expect(result.deployedTroops[0]!.currentHp).toBe(100);
+  });
+
+  it('lets damage through once invincibleUntil has expired', () => {
+    const troop = makeDeployedTroop({ x: 20, y: 21, currentHp: 100, invincibleUntil: 1 });
+    const cannon = makeDefense({ x: 20, y: 20 });
+    const state = makeBattleState({
+      timeRemaining: 175,
+      deployedTroops: [troop],
+      defenses: [cannon],
+    });
+
+    const result = tickBattle(state, 50);
+
+    // Cannon shot: dps 9 * attackSpeed 0.8 = 7.2 damage
+    expect(result.deployedTroops[0]!.currentHp).toBeCloseTo(92.8);
+    expect(result.deployedTroops[0]!.invincibleUntil).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickBattle - Royal Champion Seeking Shield
+// ---------------------------------------------------------------------------
+
+describe('tickBattle - Seeking Shield on auto-activation', () => {
+  it('damages the nearest defenses when the ability fires', () => {
+    // Royal Champion below the 50% HP threshold auto-fires Seeking Shield
+    const champion = makeDeployedTroop({
+      id: 'hero_rc', name: 'Royal Champion', level: 5,
+      currentHp: 1000, maxHp: 2678, dps: 375, baseDps: 375,
+      x: 10, y: 10, isHero: true, heroAbilityUsed: false,
+    });
+    const cannon = makeDefense({ buildingInstanceId: 'def_target', x: 25, y: 25, currentHp: 400, maxHp: 400 });
+    const mirror = makeBuilding('Cannon', { instanceId: 'def_target', x: 25, y: 25 });
+    const state = makeBattleState({
+      deployedTroops: [champion],
+      defenses: [cannon],
+      buildings: [makeBuilding('Town Hall', { instanceId: 'th_1' }), mirror],
+    });
+
+    const result = tickBattle(state, 50);
+
+    // Level 5 Seeking Shield deals 1700, far beyond the Cannon's 400 HP
+    const hitDefense = result.defenses.find((d) => d.buildingInstanceId === 'def_target');
+    expect(hitDefense!.isDestroyed).toBe(true);
+    const hero = result.deployedTroops.find((t) => t.id === 'hero_rc');
+    expect(hero!.heroAbilityUsed).toBe(true);
   });
 });

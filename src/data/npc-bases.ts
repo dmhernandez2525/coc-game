@@ -1,4 +1,5 @@
 import type { PlacedBuilding } from '../types/village.ts';
+import { generateMultiplayerBases } from './npc-base-generator.ts';
 
 export interface NPCBase {
   id: string;
@@ -544,14 +545,34 @@ export const npcBases: NPCBase[] = [
   ...th1Bases, ...th2Bases, ...th3Bases, ...th4Bases, ...th5Bases,
   ...th6Bases, ...th7Bases, ...th8Bases, ...th9Bases, ...th10Bases,
   ...th11Bases, ...th12Bases, ...th13Bases, ...th14Bases, ...th15Bases,
+  ...generateMultiplayerBases(),
 ];
 
 export function getNPCBasesForTH(thLevel: number): NPCBase[] {
   return npcBases.filter((base) => base.townHallLevel <= thLevel + 1);
 }
 
+/** Bases whose Town Hall exactly matches the given level (war matchmaking). */
+export function getNPCBasesMatchingTH(thLevel: number): NPCBase[] {
+  const exact = npcBases.filter((base) => base.townHallLevel === thLevel);
+  return exact.length > 0 ? exact : getNPCBasesForTH(thLevel);
+}
+
+export function getNPCBaseById(id: string): NPCBase | undefined {
+  return npcBases.find((base) => base.id === id);
+}
+
 export function getRandomNPCBase(thLevel: number): NPCBase | undefined {
   const available = getNPCBasesForTH(thLevel);
   if (available.length === 0) return undefined;
   return available[Math.floor(Math.random() * available.length)];
+}
+
+/**
+ * Trophy offer for attacking a base, scaled by the Town Hall difference.
+ * Hitting up pays more; hitting down pays less.
+ */
+export function getBaseTrophyOffer(base: NPCBase, attackerTHLevel: number): number {
+  const thDiff = base.townHallLevel - attackerTHLevel;
+  return Math.min(60, Math.max(5, base.trophyOffer + thDiff * 4));
 }

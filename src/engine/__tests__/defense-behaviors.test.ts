@@ -165,7 +165,7 @@ describe('processDefenseSpecial - unknown defense names', () => {
   });
 
   it('returns true for all known special defenses', () => {
-    const specialNames = ['Inferno Tower', 'Hidden Tesla', 'Eagle Artillery', 'Mortar', 'Air Sweeper'];
+    const specialNames = ['Inferno Tower', 'Hidden Tesla', 'Eagle Artillery', 'Mortar', 'Air Sweeper', 'Scattershot'];
     for (const name of specialNames) {
       const defense = makeDefense({ name });
       const ctx = makeCtx();
@@ -898,5 +898,117 @@ describe('processBombTowerDeath', () => {
     processBombTowerDeath(defense, [troop]);
 
     expect(troop.currentHp).toBe(500); // deathDmg <= 0 returns early
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Scattershot
+// ---------------------------------------------------------------------------
+
+function makeScattershot(overrides: Partial<ActiveDefense> = {}): ActiveDefense {
+  return makeDefense({
+    name: 'Scattershot',
+    dps: 125,
+    baseDps: 125,
+    attackSpeed: 3.2,
+    range: { min: 3, max: 10 },
+    targetType: 'ground_and_air',
+    scatterSplashDamage: 300,
+    scatterSplashRadius: 2.5,
+    ...overrides,
+  });
+}
+
+describe('processDefenseSpecial - Scattershot', () => {
+  it('deals one attack cycle of damage to the primary target', () => {
+    const target = makeTroop({ id: 'primary', x: 24, y: 20, currentHp: 500 });
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [target], elapsed: 5 });
+
+    expect(processDefenseSpecial(defense, ctx)).toBe(true);
+    // dps 125 * attackSpeed 3.2 = 400 per shot
+    expect(target.currentHp).toBe(100);
+    expect(defense.lastAttackTime).toBe(5);
+  });
+
+  it('splashes shrapnel onto troops behind the impact point', () => {
+    const target = makeTroop({ id: 'primary', x: 24, y: 20, currentHp: 500 });
+    const behind = makeTroop({ id: 'behind', x: 26, y: 20, currentHp: 500 });
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [target, behind], elapsed: 5 });
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(target.currentHp).toBe(100); // Primary hit
+    expect(behind.currentHp).toBe(200); // 500 - 300 shrapnel
+  });
+
+  it('spares troops in front of or beside the target', () => {
+    const target = makeTroop({ id: 'primary', x: 24, y: 20, currentHp: 500 });
+    const inFront = makeTroop({ id: 'front', x: 22, y: 20, currentHp: 500 });
+    const beside = makeTroop({ id: 'side', x: 24, y: 22.4, currentHp: 500 });
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [target, inFront, beside], elapsed: 5 });
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(inFront.currentHp).toBe(500);
+    expect(beside.currentHp).toBe(500);
+  });
+
+  it('only splashes troops in the same domain as the target', () => {
+    const target = makeTroop({ id: 'primary', x: 24, y: 20, currentHp: 500, isFlying: false });
+    const flyingBehind = makeTroop({ id: 'air', x: 26, y: 20, currentHp: 500, isFlying: true });
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [target, flyingBehind], elapsed: 5 });
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(target.currentHp).toBe(100);
+    expect(flyingBehind.currentHp).toBe(500); // Ground shot cannot hit air
+  });
+
+  it('respects the attack cooldown between shots', () => {
+    const target = makeTroop({ id: 'primary', x: 24, y: 20, currentHp: 500 });
+    const defense = makeScattershot({ lastAttackTime: 4 });
+    const ctx = makeCtx({ troops: [target], elapsed: 5 }); // 1s since last shot < 3.2s
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(target.currentHp).toBe(500);
+  });
+
+  it('does not fire inside its dead zone (min range)', () => {
+    const tooClose = makeTroop({ id: 'close', x: 21, y: 20, currentHp: 500 }); // distance 1 < min 3
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [tooClose], elapsed: 5 });
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(tooClose.currentHp).toBe(500);
+    expect(defense.targetTroopId).toBeNull();
+  });
+
+  it('never targets defender-side units', () => {
+    const defenderUnit = makeTroop({ id: 'cc', x: 24, y: 20, currentHp: 500, isDefender: true });
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [defenderUnit], elapsed: 5 });
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(defenderUnit.currentHp).toBe(500);
+    expect(defense.targetTroopId).toBeNull();
+  });
+
+  it('marks the target dead and clears the lock when the shot kills it', () => {
+    const target = makeTroop({ id: 'primary', x: 24, y: 20, currentHp: 300 });
+    const defense = makeScattershot();
+    const ctx = makeCtx({ troops: [target], elapsed: 5 });
+
+    processDefenseSpecial(defense, ctx);
+
+    expect(target.state).toBe('dead');
+    expect(target.currentHp).toBe(0);
+    expect(defense.targetTroopId).toBeNull();
   });
 });

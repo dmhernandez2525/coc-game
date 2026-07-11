@@ -7,6 +7,8 @@ interface HUDProps {
   builders: { idle: number; total: number };
   townHallLevel: number;
   trophies: number;
+  league?: string;
+  onOpenLeague?: () => void;
   onCollectAll?: () => void;
 }
 
@@ -32,7 +34,7 @@ function ResourceBadge({ label, value, cap, colorClass }: ResourceBadgeProps) {
   );
 }
 
-export function HUD({ resources, storageCaps, builders, townHallLevel, trophies, onCollectAll }: HUDProps) {
+export function HUD({ resources, storageCaps, builders, townHallLevel, trophies, league, onOpenLeague, onCollectAll }: HUDProps) {
   return (
     <div className="fixed top-0 left-0 right-0 z-20 bg-slate-950/90 border-b border-slate-700 backdrop-blur-sm">
       <div className="flex items-center justify-between px-4 py-2 max-w-5xl mx-auto">
@@ -60,6 +62,17 @@ export function HUD({ resources, storageCaps, builders, townHallLevel, trophies,
               {trophies.toLocaleString()}
             </span>
           </div>
+          {league && (
+            <button
+              onClick={onOpenLeague}
+              disabled={!onOpenLeague}
+              className="flex items-center gap-1.5 px-3 py-1 bg-slate-800/80 hover:bg-slate-700/80 rounded-lg transition-colors disabled:cursor-default disabled:hover:bg-slate-800/80"
+              title="View league details"
+            >
+              <span className="text-xs text-slate-400">League</span>
+              <span className="font-bold text-sm text-sky-300">{league}</span>
+            </button>
+          )}
           {onCollectAll && (
             <button
               onClick={onCollectAll}

@@ -23,6 +23,7 @@ interface ShopItem {
   maxCount: number;
   placedCount: number;
   unlocked: boolean;
+  unlockTH: number;
 }
 
 interface ShopPanelProps {
@@ -50,6 +51,11 @@ function resourceKey(resource: string): keyof ResourceAmounts {
   return map[resource] ?? 'gold';
 }
 
+/** Count shown for a still-locked item: how many it will allow once unlocked. */
+function maxCountAtUnlock(maxCountByTH: Record<string, number>, unlockTH: number): number {
+  return maxCountByTH[String(unlockTH)] ?? 0;
+}
+
 export function ShopPanel({
   townHallLevel,
   placedBuildings,
@@ -73,10 +79,13 @@ export function ShopPanel({
       for (const name of getAllDefenseNames()) {
         const def = getDefense(name);
         if (!def) continue;
-        const maxCount = th.buildingCounts[name] ?? 0;
-        if (maxCount === 0) continue;
         const lvl1 = def.levels[0];
         if (!lvl1) continue;
+        const unlocked = def.thUnlock <= townHallLevel;
+        const maxCount = unlocked
+          ? th.buildingCounts[name] ?? 0
+          : maxCountAtUnlock(def.maxCountByTH, def.thUnlock);
+        if (maxCount === 0) continue;
         result.push({
           id: name,
           name,
@@ -85,7 +94,8 @@ export function ShopPanel({
           costResource: lvl1.upgradeResource,
           maxCount,
           placedCount: countPlaced(placedBuildings, name),
-          unlocked: def.thUnlock <= townHallLevel,
+          unlocked,
+          unlockTH: def.thUnlock,
         });
       }
     }
@@ -93,10 +103,13 @@ export function ShopPanel({
     if (tab === 'resources') {
       const all = [...getCollectors(), ...getStorages()];
       for (const bld of all) {
-        const maxCount = th.buildingCounts[bld.name] ?? 0;
-        if (maxCount === 0) continue;
         const lvl1 = bld.levels[0];
         if (!lvl1) continue;
+        const unlocked = bld.thUnlock <= townHallLevel;
+        const maxCount = unlocked
+          ? th.buildingCounts[bld.name] ?? 0
+          : maxCountAtUnlock(bld.maxCountByTH, bld.thUnlock);
+        if (maxCount === 0) continue;
         result.push({
           id: bld.name,
           name: bld.name,
@@ -105,7 +118,8 @@ export function ShopPanel({
           costResource: lvl1.upgradeResource,
           maxCount,
           placedCount: countPlaced(placedBuildings, bld.name),
-          unlocked: bld.thUnlock <= townHallLevel,
+          unlocked,
+          unlockTH: bld.thUnlock,
         });
       }
     }
@@ -114,10 +128,13 @@ export function ShopPanel({
       for (const name of getAllArmyBuildingNames()) {
         const bld = getArmyBuilding(name);
         if (!bld) continue;
-        const maxCount = th.buildingCounts[name] ?? 0;
-        if (maxCount === 0) continue;
         const lvl1 = bld.levels[0];
         if (!lvl1) continue;
+        const unlocked = bld.thUnlock <= townHallLevel;
+        const maxCount = unlocked
+          ? th.buildingCounts[name] ?? 0
+          : maxCountAtUnlock(bld.maxCountByTH, bld.thUnlock);
+        if (maxCount === 0) continue;
         result.push({
           id: name,
           name,
@@ -126,17 +143,21 @@ export function ShopPanel({
           costResource: lvl1.upgradeResource,
           maxCount,
           placedCount: countPlaced(placedBuildings, name),
-          unlocked: bld.thUnlock <= townHallLevel,
+          unlocked,
+          unlockTH: bld.thUnlock,
         });
       }
     }
 
     if (tab === 'traps') {
       for (const trap of trapDataList) {
-        const maxCount = trap.maxCountByTH[String(townHallLevel)] ?? 0;
-        if (maxCount === 0) continue;
         const lvl1 = trap.levels[0];
         if (!lvl1) continue;
+        const unlocked = trap.thUnlock <= townHallLevel;
+        const maxCount = unlocked
+          ? trap.maxCountByTH[String(townHallLevel)] ?? 0
+          : maxCountAtUnlock(trap.maxCountByTH, trap.thUnlock);
+        if (maxCount === 0) continue;
         result.push({
           id: trap.name,
           name: trap.name,
@@ -145,14 +166,18 @@ export function ShopPanel({
           costResource: lvl1.upgradeResource,
           maxCount,
           placedCount: trapCounts[trap.name] ?? 0,
-          unlocked: trap.thUnlock <= townHallLevel,
+          unlocked,
+          unlockTH: trap.thUnlock,
         });
       }
     }
 
     if (tab === 'walls') {
       if (wallData) {
-        const maxWalls = th.maxWalls ?? 0;
+        const unlocked = wallData.thUnlock <= townHallLevel;
+        const maxWalls = unlocked
+          ? th.maxWalls ?? 0
+          : getTownHall(wallData.thUnlock)?.maxWalls ?? 0;
         const wallLvl1 = wallData.levels[0];
         if (maxWalls > 0 && wallLvl1) {
           result.push({
@@ -163,7 +188,8 @@ export function ShopPanel({
             costResource: wallLvl1.upgradeResource,
             maxCount: maxWalls,
             placedCount: wallCount,
-            unlocked: wallData.thUnlock <= townHallLevel,
+            unlocked,
+            unlockTH: wallData.thUnlock,
           });
         }
       }
@@ -217,6 +243,7 @@ export function ShopPanel({
           const remaining = item.maxCount - item.placedCount;
           const affordable = resources[resourceKey(item.costResource)] >= item.cost;
           const canBuy = remaining > 0 && affordable && item.unlocked;
+          const unlockHint = item.unlocked ? undefined : `Unlocks at Town Hall ${item.unlockTH}`;
 
           return (
             <button
@@ -232,6 +259,7 @@ export function ShopPanel({
                 }
               }}
               disabled={!canBuy}
+              title={unlockHint}
               className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                 canBuy
                   ? 'bg-slate-800 hover:bg-slate-700 cursor-pointer'
@@ -239,7 +267,10 @@ export function ShopPanel({
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-sm text-white">{item.name}</span>
+                <span className="font-semibold text-sm text-white">
+                  {item.name}
+                  {!item.unlocked && <span className="ml-1">&#128274;</span>}
+                </span>
                 <span className="text-xs text-slate-400">
                   {item.placedCount}/{item.maxCount}
                 </span>
@@ -248,11 +279,11 @@ export function ShopPanel({
                 <span className={item.costResource === 'Gold' ? 'text-yellow-400' : 'text-purple-400'}>
                   {item.cost.toLocaleString()} {item.costResource}
                 </span>
-                {remaining <= 0 && (
+                {item.unlocked && remaining <= 0 && (
                   <span className="ml-2 text-red-400">Max reached</span>
                 )}
-                {!item.unlocked && (
-                  <span className="ml-2 text-red-400">Locked</span>
+                {unlockHint && (
+                  <span className="ml-2 text-red-400">{unlockHint}</span>
                 )}
               </div>
             </button>

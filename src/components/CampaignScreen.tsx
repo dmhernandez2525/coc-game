@@ -8,6 +8,8 @@ import {
   getLevelProgress,
   getStarRewards,
   getNextUncompletedLevel,
+  calculateBattleStars,
+  applyCampaignBattleResult,
 } from '../engine/campaign-manager.ts';
 import { simulateCampaignBattle } from '../engine/campaign-simulator.ts';
 
@@ -18,7 +20,7 @@ interface CampaignScreenProps {
   onCampaignComplete: (
     levelNumber: number,
     stars: number,
-    loot: { gold: number; elixir: number; darkElixir: number } | null,
+    loot: { gold: number; elixir: number; darkElixir: number; gems?: number } | null,
   ) => void;
 }
 
@@ -88,6 +90,7 @@ export function CampaignScreen({
   const levels = getCampaignLevels();
   const rewards = getStarRewards(campaignProgress);
   const nextLevel = getNextUncompletedLevel(campaignProgress);
+  const nextMilestone = rewards.find((r) => !r.claimed) ?? null;
 
   const hasArmy = army.some((t) => t.count > 0);
 
@@ -107,22 +110,32 @@ export function CampaignScreen({
       const levelData = levels.find((l) => l.level === levelNumber);
       const name = levelData?.name ?? `Level ${levelNumber}`;
 
-      onCampaignComplete(levelNumber, result.stars, result.loot);
+      // Canonical star rules: 1 star for 50%, 1 star for the Town Hall, 3 at 100%
+      const stars = calculateBattleStars(result.destructionPercent, result.townHallDestroyed);
 
-      if (result.stars === 0) {
+      // Campaign rules: loot on first clear only, milestone gems at star
+      // thresholds, and never any trophy change
+      const rewards = applyCampaignBattleResult(campaignProgress, levelNumber, stars);
+      onCampaignComplete(levelNumber, stars, { ...rewards.loot, gems: rewards.gemsAwarded });
+
+      if (stars === 0) {
         setLastResult(
           `Attacked "${name}" but only achieved ${result.destructionPercent}% destruction. No stars earned. Try training a stronger army!`,
         );
-      } else {
-        const lootMsg = result.loot
-          ? ` Looted ${result.loot.gold.toLocaleString()} gold, ${result.loot.elixir.toLocaleString()} elixir.`
-          : '';
-        setLastResult(
-          `Attacked "${name}" with ${result.destructionPercent}% destruction and earned ${result.stars} star${result.stars > 1 ? 's' : ''}!${lootMsg}`,
-        );
+        return;
       }
+
+      const lootMsg = rewards.firstClear
+        ? ` First clear! Looted ${rewards.loot.gold.toLocaleString()} gold, ${rewards.loot.elixir.toLocaleString()} elixir.`
+        : ' Replay: level loot was already collected.';
+      const gemMsg = rewards.gemsAwarded > 0
+        ? ` Star milestone reached: +${rewards.gemsAwarded} gems!`
+        : '';
+      setLastResult(
+        `Attacked "${name}" with ${result.destructionPercent}% destruction and earned ${stars} star${stars > 1 ? 's' : ''}!${lootMsg}${gemMsg}`,
+      );
     },
-    [army, hasArmy, levels, onCampaignComplete],
+    [army, hasArmy, levels, campaignProgress, onCampaignComplete],
   );
 
   return (
@@ -155,11 +168,16 @@ export function CampaignScreen({
           </div>
         )}
 
-        {/* Star reward tiers */}
-        <div className="flex gap-2 mb-4 justify-center flex-wrap">
+        {/* Gem milestone tiers */}
+        <div className="flex gap-2 mb-2 justify-center flex-wrap">
           {rewards.map((r) => (
             <div
               key={r.stars}
+              title={
+                r.claimed
+                  ? `Milestone reached: ${r.gems} gems awarded`
+                  : `Reach ${r.stars} total stars to earn ${r.gems} gems`
+              }
               className={`px-3 py-1 rounded text-xs font-medium ${
                 r.claimed
                   ? 'bg-green-800 text-green-200'
@@ -170,6 +188,20 @@ export function CampaignScreen({
             </div>
           ))}
         </div>
+
+        {/* Next milestone progress */}
+        {nextMilestone && (
+          <p className="mb-4 text-xs text-slate-400 text-center">
+            {nextMilestone.stars - campaignProgress.totalStars} more star
+            {nextMilestone.stars - campaignProgress.totalStars === 1 ? '' : 's'} to the next
+            milestone (+{nextMilestone.gems} gems)
+          </p>
+        )}
+        {!nextMilestone && (
+          <p className="mb-4 text-xs text-green-300 text-center">
+            All gem milestones earned!
+          </p>
+        )}
 
         {/* Last attack result */}
         {lastResult && (

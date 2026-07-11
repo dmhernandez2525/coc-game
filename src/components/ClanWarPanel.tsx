@@ -1,15 +1,23 @@
 import { useState } from 'react';
 import type { WarState, WarResult, WarClanMember } from '../engine/clan-war-manager.ts';
-import { getWarSizes, calculateWarLoot } from '../engine/clan-war-manager.ts';
+import { getWarSizes, calculateWarLoot, getWarBaseDefenseRating } from '../engine/clan-war-manager.ts';
+import type { WarLeagueState } from '../engine/war-league-manager.ts';
+import { getWarLeagueTierName, PROMOTION_THRESHOLD } from '../engine/war-league-manager.ts';
+import type { NPCBase } from '../data/npc-bases.ts';
+import { getNPCBaseById } from '../data/npc-bases.ts';
 
 interface ClanWarPanelProps {
   war: WarState | null;
   clanName: string | null;
   townHallLevel: number;
+  warLeague: WarLeagueState;
+  availableWarBases: NPCBase[];
   onStartWar: (warSize: number) => void;
   onStartBattle?: () => void;
+  onSelectWarBase: (baseId: string) => void;
   onAttack: (defenderIndex: number) => void;
   onEndWar: () => void;
+  onStartNewWar: () => void;
   onClose: () => void;
 }
 
@@ -55,6 +63,23 @@ function MemberRow({ member, index }: { member: WarClanMember; index: number }) 
             {member.bestAttackDestruction}%
           </span>
         )}
+      </div>
+    </div>
+  );
+}
+
+function WarLeagueBadge({ warLeague }: { warLeague: WarLeagueState }) {
+  return (
+    <div className="mx-4 flex items-center justify-between bg-slate-800/60 rounded px-3 py-2">
+      <div>
+        <p className="text-xs text-slate-400 uppercase tracking-wide">War League</p>
+        <p className="text-sm font-semibold text-sky-300">{getWarLeagueTierName(warLeague)}</p>
+      </div>
+      <div className="text-right">
+        <p className="text-xs text-slate-400 uppercase tracking-wide">Promotion</p>
+        <p className="text-sm font-semibold text-white">
+          {warLeague.promotionPoints}/{PROMOTION_THRESHOLD}
+        </p>
       </div>
     </div>
   );
@@ -124,17 +149,77 @@ function Scoreboard({ war }: { war: WarState }) {
   );
 }
 
-function PreparationView({ war, onStartBattle }: { war: WarState; onStartBattle?: () => void }) {
+function WarBaseSelector({
+  war,
+  availableWarBases,
+  onSelectWarBase,
+}: {
+  war: WarState;
+  availableWarBases: NPCBase[];
+  onSelectWarBase: (baseId: string) => void;
+}) {
+  const selected = war.playerWarBaseId ? getNPCBaseById(war.playerWarBaseId) : undefined;
+
+  return (
+    <div className="px-4">
+      <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
+        War Base
+      </h4>
+      <select
+        value={war.playerWarBaseId ?? ''}
+        onChange={(e) => onSelectWarBase(e.target.value)}
+        className="w-full px-3 py-2 rounded bg-slate-800 border border-slate-600 text-white text-sm focus:outline-none focus:border-amber-500"
+      >
+        <option value="" disabled>
+          Choose a defensive layout
+        </option>
+        {availableWarBases.map((base) => (
+          <option key={base.id} value={base.id}>
+            {base.name} (TH{base.townHallLevel})
+          </option>
+        ))}
+      </select>
+      {selected ? (
+        <p className="text-xs text-slate-400 mt-1">
+          Defense rating {Math.round(getWarBaseDefenseRating(selected) * 100)}%.
+          A stronger layout concedes fewer stars on battle day.
+        </p>
+      ) : (
+        <p className="text-xs text-amber-400/80 mt-1">
+          No war base selected. Pick a layout before battle day.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PreparationView({
+  war,
+  availableWarBases,
+  onSelectWarBase,
+  onStartBattle,
+}: {
+  war: WarState;
+  availableWarBases: NPCBase[];
+  onSelectWarBase: (baseId: string) => void;
+  onStartBattle?: () => void;
+}) {
   return (
     <div className="flex flex-col gap-4">
       <div className="px-4">
         <div className="flex items-center gap-2 text-sm text-amber-300 bg-amber-900/30 rounded px-3 py-2">
           <span className="font-semibold">Preparation Day</span>
           <span className="text-xs text-amber-400/60">
-            Scouts are active. Plan your attacks.
+            Scouts are active. Pick your war base and plan your attacks.
           </span>
         </div>
       </div>
+
+      <WarBaseSelector
+        war={war}
+        availableWarBases={availableWarBases}
+        onSelectWarBase={onSelectWarBase}
+      />
 
       {onStartBattle && (
         <div className="px-4">
@@ -174,6 +259,44 @@ function PreparationView({ war, onStartBattle }: { war: WarState; onStartBattle?
   );
 }
 
+function EnemyTargetButton({
+  member,
+  index,
+  disabled,
+  onAttack,
+}: {
+  member: WarClanMember;
+  index: number;
+  disabled: boolean;
+  onAttack: (defenderIndex: number) => void;
+}) {
+  const baseName = member.warBaseId ? getNPCBaseById(member.warBaseId)?.name : undefined;
+
+  return (
+    <button
+      onClick={() => onAttack(index)}
+      disabled={disabled}
+      className="w-full flex items-center justify-between bg-slate-800 hover:bg-slate-700 rounded px-3 py-1.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-left"
+    >
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-xs text-slate-500 w-5 text-right shrink-0">{index + 1}.</span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-white truncate">{member.name}</span>
+            <span className="text-xs text-amber-300 bg-slate-700 rounded px-1.5 py-0.5 shrink-0">
+              TH{member.townHallLevel}
+            </span>
+          </div>
+          {baseName && (
+            <p className="text-[10px] text-slate-500 truncate">{baseName}</p>
+          )}
+        </div>
+      </div>
+      <StarDisplay count={member.bestAttackStars} max={3} />
+    </button>
+  );
+}
+
 function BattleView({
   war,
   onAttack,
@@ -183,8 +306,8 @@ function BattleView({
   onAttack: (defenderIndex: number) => void;
   onEndWar: () => void;
 }) {
-  const playerHasAttacks = war.playerClan.members.some(
-    (m) => m.attacksRemaining > 0,
+  const attacksLeft = war.playerClan.members.reduce(
+    (sum, m) => sum + m.attacksRemaining, 0,
   );
 
   return (
@@ -193,7 +316,7 @@ function BattleView({
         <div className="flex items-center gap-2 text-sm text-red-300 bg-red-900/30 rounded px-3 py-2">
           <span className="font-semibold">Battle Day</span>
           <span className="text-xs text-red-400/60">
-            Attack enemy bases to earn stars.
+            Tap an enemy base to launch a real attack. {attacksLeft} attacks left.
           </span>
         </div>
       </div>
@@ -233,21 +356,13 @@ function BattleView({
         </h4>
         <div className="space-y-1">
           {war.enemyClan.members.map((m, i) => (
-            <button
+            <EnemyTargetButton
               key={i}
-              onClick={() => onAttack(i)}
-              disabled={!playerHasAttacks}
-              className="w-full flex items-center justify-between bg-slate-800 hover:bg-slate-700 rounded px-3 py-1.5 text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-left"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-5 text-right">{i + 1}.</span>
-                <span className="text-white">{m.name}</span>
-                <span className="text-xs text-amber-300 bg-slate-700 rounded px-1.5 py-0.5">
-                  TH{m.townHallLevel}
-                </span>
-              </div>
-              <StarDisplay count={m.bestAttackStars} max={3} />
-            </button>
+              member={m}
+              index={i}
+              disabled={attacksLeft <= 0}
+              onAttack={onAttack}
+            />
           ))}
         </div>
       </div>
@@ -264,29 +379,27 @@ function BattleView({
   );
 }
 
-function EndedView({ war, townHallLevel }: { war: WarState; townHallLevel: number }) {
-  const playerStars = war.playerClan.totalStars;
-  const enemyStars = war.enemyClan.totalStars;
+/** Fallback for wars ended before the result was persisted on the state. */
+function deriveWarResult(war: WarState): WarResult {
+  const starDiff = war.playerClan.totalStars - war.enemyClan.totalStars;
+  if (starDiff !== 0) return starDiff > 0 ? 'victory' : 'defeat';
+  const destDiff = war.playerClan.totalDestruction - war.enemyClan.totalDestruction;
+  if (destDiff !== 0) return destDiff > 0 ? 'victory' : 'defeat';
+  return 'draw';
+}
 
-  let result: 'victory' | 'defeat' | 'draw';
-  if (playerStars > enemyStars) {
-    result = 'victory';
-  } else if (playerStars < enemyStars) {
-    result = 'defeat';
-  } else {
-    const playerDest = war.playerClan.totalDestruction;
-    const enemyDest = war.enemyClan.totalDestruction;
-    if (playerDest > enemyDest) {
-      result = 'victory';
-    } else if (playerDest < enemyDest) {
-      result = 'defeat';
-    } else {
-      result = 'draw';
-    }
-  }
-
+function EndedView({
+  war,
+  townHallLevel,
+  onStartNewWar,
+}: {
+  war: WarState;
+  townHallLevel: number;
+  onStartNewWar: () => void;
+}) {
+  const result = war.result ?? deriveWarResult(war);
   const style = RESULT_STYLES[result];
-  const loot = calculateWarLoot(result, townHallLevel);
+  const loot = war.lootAwarded ?? calculateWarLoot(result, townHallLevel);
 
   return (
     <div className="flex flex-col gap-4">
@@ -299,7 +412,7 @@ function EndedView({ war, townHallLevel }: { war: WarState; townHallLevel: numbe
       {/* Loot earned */}
       <div className="px-4">
         <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-          War Loot Earned
+          War Loot (sent to Treasury)
         </h4>
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-slate-800 rounded px-3 py-2 text-center">
@@ -317,6 +430,15 @@ function EndedView({ war, townHallLevel }: { war: WarState; townHallLevel: numbe
             </div>
           )}
         </div>
+      </div>
+
+      <div className="px-4">
+        <button
+          onClick={onStartNewWar}
+          className="w-full px-4 py-2 rounded font-semibold bg-red-600 hover:bg-red-500 text-white transition-colors"
+        >
+          Start New War
+        </button>
       </div>
 
       {/* Member breakdown */}
@@ -359,11 +481,14 @@ function WarContent({
   war,
   clanName,
   townHallLevel,
+  availableWarBases,
   onStartWar,
   onStartBattle,
+  onSelectWarBase,
   onAttack,
   onEndWar,
-}: Omit<ClanWarPanelProps, 'onClose'>) {
+  onStartNewWar,
+}: Omit<ClanWarPanelProps, 'onClose' | 'warLeague'>) {
   if (!clanName) {
     return <NoClanMessage />;
   }
@@ -373,9 +498,16 @@ function WarContent({
   }
 
   const phaseViews: Record<string, React.ReactNode> = {
-    preparation: <PreparationView war={war} onStartBattle={onStartBattle} />,
+    preparation: (
+      <PreparationView
+        war={war}
+        availableWarBases={availableWarBases}
+        onSelectWarBase={onSelectWarBase}
+        onStartBattle={onStartBattle}
+      />
+    ),
     battle: <BattleView war={war} onAttack={onAttack} onEndWar={onEndWar} />,
-    ended: <EndedView war={war} townHallLevel={townHallLevel} />,
+    ended: <EndedView war={war} townHallLevel={townHallLevel} onStartNewWar={onStartNewWar} />,
   };
 
   return <>{phaseViews[war.phase] ?? null}</>;
@@ -385,10 +517,14 @@ export function ClanWarPanel({
   war,
   clanName,
   townHallLevel,
+  warLeague,
+  availableWarBases,
   onStartWar,
   onStartBattle,
+  onSelectWarBase,
   onAttack,
   onEndWar,
+  onStartNewWar,
   onClose,
 }: ClanWarPanelProps) {
   return (
@@ -406,15 +542,19 @@ export function ClanWarPanel({
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto py-4">
+      <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-4">
+        {clanName && <WarLeagueBadge warLeague={warLeague} />}
         <WarContent
           war={war}
           clanName={clanName}
           townHallLevel={townHallLevel}
+          availableWarBases={availableWarBases}
           onStartWar={onStartWar}
           onStartBattle={onStartBattle}
+          onSelectWarBase={onSelectWarBase}
           onAttack={onAttack}
           onEndWar={onEndWar}
+          onStartNewWar={onStartNewWar}
         />
       </div>
     </div>

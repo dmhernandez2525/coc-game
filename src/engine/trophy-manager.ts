@@ -5,6 +5,7 @@
 import type { LeagueTier } from '../types/economy.ts';
 import type { VillageState } from '../types/village.ts';
 import { economyData } from '../data/loaders/economy-loader.ts';
+import { addToTreasury } from './treasury-manager.ts';
 
 // -- Data --
 
@@ -182,6 +183,54 @@ export function getLeagueBonus(
   };
 }
 
+// -- Star bonus progress --
+
+/** Stars required to fill the star bonus. */
+export const STAR_BONUS_STARS_REQUIRED = 5;
+
+/** Read star bonus progress from village state. */
+export function getStarBonusStars(state: VillageState): number {
+  return state.starBonusStars ?? 0;
+}
+
+/** Accumulate stars earned in multiplayer attacks toward the star bonus. */
+export function addStarBonusStars(state: VillageState, stars: number): VillageState {
+  if (stars <= 0) return state;
+  const total = Math.min(
+    STAR_BONUS_STARS_REQUIRED,
+    getStarBonusStars(state) + stars,
+  );
+  return { ...state, starBonusStars: total };
+}
+
+/** Check whether the star bonus is ready to claim. */
+export function isStarBonusReady(state: VillageState): boolean {
+  return getStarBonusStars(state) >= STAR_BONUS_STARS_REQUIRED;
+}
+
+/**
+ * Claim the star bonus for the current league. The reward is deposited into
+ * the treasury (matching the real game) and the star counter resets.
+ * Returns null when the bonus is not ready.
+ */
+export function claimStarBonus(
+  state: VillageState,
+): { state: VillageState; reward: { gold: number; elixir: number; darkElixir: number } } | null {
+  if (!isStarBonusReady(state)) return null;
+
+  const bonus = getStarBonus(state.league);
+  if (!bonus) return null;
+
+  const reward = {
+    gold: bonus.goldElixir,
+    elixir: bonus.goldElixir,
+    darkElixir: bonus.darkElixir,
+  };
+
+  const deposited = addToTreasury(state, reward);
+  return { state: { ...deposited, starBonusStars: 0 }, reward };
+}
+
 /**
  * Process the full trophy result after a battle.
  * Returns updated village state, league bonus loot, and league change info.
@@ -203,7 +252,8 @@ export function processBattleResult(
     ? calculateLeagueBonus(state.league, destructionPercent)
     : { gold: 0, elixir: 0, darkElixir: 0 };
 
-  const newState = applyTrophyChange(state, trophyChange);
+  // Stars earned also count toward the 5-star star bonus
+  const newState = addStarBonusStars(applyTrophyChange(state, trophyChange), stars);
   const leagueChange = checkLeagueChange(oldLeague, newState.league);
 
   return { state: newState, leagueBonus, leagueChange };

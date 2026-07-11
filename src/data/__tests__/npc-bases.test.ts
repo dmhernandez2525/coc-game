@@ -1,12 +1,19 @@
-import { npcBases, getNPCBasesForTH, getRandomNPCBase } from '../npc-bases.ts';
+import {
+  npcBases,
+  getNPCBasesForTH,
+  getNPCBasesMatchingTH,
+  getNPCBaseById,
+  getRandomNPCBase,
+  getBaseTrophyOffer,
+} from '../npc-bases.ts';
 
 // ---------------------------------------------------------------------------
 // npcBases data integrity
 // ---------------------------------------------------------------------------
 
 describe('npcBases', () => {
-  it('has exactly 45 entries (3 per TH level, TH1 through TH15)', () => {
-    expect(npcBases).toHaveLength(45);
+  it('has 75 entries (6 per TH 1-10, 3 per TH 11-15)', () => {
+    expect(npcBases).toHaveLength(75);
   });
 
   it('every base has a non-empty id', () => {
@@ -57,8 +64,15 @@ describe('npcBases', () => {
     }
   });
 
-  it('has exactly 3 bases per TH level (1 through 15)', () => {
-    for (let th = 1; th <= 15; th++) {
+  it('has at least 5 bases per TH level 1 through 10', () => {
+    for (let th = 1; th <= 10; th++) {
+      const count = npcBases.filter((b) => b.townHallLevel === th).length;
+      expect(count).toBeGreaterThanOrEqual(5);
+    }
+  });
+
+  it('has exactly 3 bases per TH level 11 through 15', () => {
+    for (let th = 11; th <= 15; th++) {
       const count = npcBases.filter((b) => b.townHallLevel === th).length;
       expect(count).toBe(3);
     }
@@ -77,8 +91,8 @@ describe('npcBases', () => {
 describe('getNPCBasesForTH', () => {
   it('TH1 returns bases with townHallLevel <= 2 (TH1 + TH2 bases)', () => {
     const bases = getNPCBasesForTH(1);
-    // TH1 bases (3) + TH2 bases (3) = 6
-    expect(bases).toHaveLength(6);
+    // TH1 bases (6) + TH2 bases (6) = 12
+    expect(bases).toHaveLength(12);
     for (const base of bases) {
       expect(base.townHallLevel).toBeLessThanOrEqual(2);
     }
@@ -86,21 +100,21 @@ describe('getNPCBasesForTH', () => {
 
   it('TH3 returns bases with townHallLevel <= 4 (TH1 through TH4)', () => {
     const bases = getNPCBasesForTH(3);
-    // TH1(3) + TH2(3) + TH3(3) + TH4(3) = 12
-    expect(bases).toHaveLength(12);
+    // TH1(6) + TH2(6) + TH3(6) + TH4(6) = 24
+    expect(bases).toHaveLength(24);
     for (const base of bases) {
       expect(base.townHallLevel).toBeLessThanOrEqual(4);
     }
   });
 
-  it('TH5 returns 18 bases (townHallLevel <= 6)', () => {
+  it('TH5 returns 36 bases (townHallLevel <= 6)', () => {
     const bases = getNPCBasesForTH(5);
-    expect(bases).toHaveLength(18);
+    expect(bases).toHaveLength(36);
   });
 
   it('TH0 returns only bases with townHallLevel <= 1 (TH1 bases only)', () => {
     const bases = getNPCBasesForTH(0);
-    expect(bases).toHaveLength(3);
+    expect(bases).toHaveLength(6);
     for (const base of bases) {
       expect(base.townHallLevel).toBe(1);
     }
@@ -110,6 +124,75 @@ describe('getNPCBasesForTH', () => {
     // thLevel + 1 = 0, so no base has townHallLevel <= 0
     const bases = getNPCBasesForTH(-1);
     expect(bases).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getNPCBasesMatchingTH
+// ---------------------------------------------------------------------------
+
+describe('getNPCBasesMatchingTH', () => {
+  it('returns only exact-TH bases when they exist', () => {
+    const bases = getNPCBasesMatchingTH(6);
+    expect(bases.length).toBeGreaterThanOrEqual(5);
+    for (const base of bases) {
+      expect(base.townHallLevel).toBe(6);
+    }
+  });
+
+  it('falls back to the standard pool when no exact match exists', () => {
+    const bases = getNPCBasesMatchingTH(99);
+    expect(bases.length).toBeGreaterThan(0);
+  });
+
+  it('returns an empty array when even the fallback pool is empty', () => {
+    expect(getNPCBasesMatchingTH(-5)).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getNPCBaseById
+// ---------------------------------------------------------------------------
+
+describe('getNPCBaseById', () => {
+  it('finds a handcrafted base by id', () => {
+    const base = getNPCBaseById('npc_th5_1');
+    expect(base).toBeDefined();
+    expect(base!.townHallLevel).toBe(5);
+  });
+
+  it('finds a generated base by id', () => {
+    const base = getNPCBaseById('npc_th7_g1');
+    expect(base).toBeDefined();
+    expect(base!.townHallLevel).toBe(7);
+  });
+
+  it('returns undefined for unknown ids', () => {
+    expect(getNPCBaseById('not_a_base')).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getBaseTrophyOffer
+// ---------------------------------------------------------------------------
+
+describe('getBaseTrophyOffer', () => {
+  const base = getNPCBaseById('npc_th5_1')!;
+
+  it('pays the listed offer at an even TH matchup', () => {
+    expect(getBaseTrophyOffer(base, 5)).toBe(base.trophyOffer);
+  });
+
+  it('pays more when attacking up and less when attacking down', () => {
+    const even = getBaseTrophyOffer(base, 5);
+    expect(getBaseTrophyOffer(base, 3)).toBeGreaterThan(even);
+    expect(getBaseTrophyOffer(base, 8)).toBeLessThan(even);
+  });
+
+  it('clamps offers into the 5-60 range', () => {
+    expect(getBaseTrophyOffer(base, 15)).toBe(5);
+    const th15Base = getNPCBaseById('npc_th15_3')!;
+    expect(getBaseTrophyOffer(th15Base, 1)).toBe(60);
   });
 });
 

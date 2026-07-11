@@ -1,4 +1,6 @@
 import type { BattleResult } from '../types/battle.ts';
+import type { OreAmounts } from '../types/village.ts';
+import { calculateOreReward } from '../engine/ore-manager.ts';
 import { formatResource } from '../utils/resource-format.ts';
 
 interface BattleResultScreenProps {
@@ -26,8 +28,15 @@ const lootRows: Array<{ key: keyof BattleResult['loot']; label: string; colorCla
   { key: 'darkElixir', label: 'Dark Elixir', colorClass: 'text-slate-200' },
 ];
 
+const oreRows: Array<{ key: keyof OreAmounts; label: string }> = [
+  { key: 'shinyOre', label: 'Shiny Ore' },
+  { key: 'glowyOre', label: 'Glowy Ore' },
+  { key: 'starryOre', label: 'Starry Ore' },
+];
+
 export function BattleResultScreen({ result, onReturnHome }: BattleResultScreenProps) {
   const isVictory = result.stars > 0;
+  const oreReward = calculateOreReward(result.stars, result.destructionPercent);
 
   return (
     <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/70 backdrop-blur-sm">
@@ -58,6 +67,15 @@ export function BattleResultScreen({ result, onReturnHome }: BattleResultScreenP
                 +{formatResource(result.loot[key])}
               </span>
             </div>
+          ))}
+        </div>
+
+        {/* Ores earned for equipment upgrades */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          {oreRows.map(({ key, label }) => (
+            <span key={key} className="text-xs text-cyan-300 tabular-nums">
+              +{oreReward[key]} {label}
+            </span>
           ))}
         </div>
 

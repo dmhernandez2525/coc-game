@@ -7,6 +7,11 @@ import {
   activateHeroAbility,
   getRegenerationTime,
   isHeroAvailableForBattle,
+  tickHeroRecovery,
+  getHeroAbilityInfo,
+  getHeroUpgradeCost,
+  startHeroUpgrade,
+  tickHeroUpgrades,
 } from '../hero-manager.ts';
 
 // ---------------------------------------------------------------------------
@@ -515,6 +520,21 @@ describe('activateHeroAbility - Grand Warden', () => {
     expect(result).not.toBeNull();
     expect(result!.hero.heroAbilityUsed).toBe(true);
   });
+
+  it('grants Eternal Tome invincibility whose duration scales with ability level', () => {
+    const lvl5 = activateHeroAbility(
+      makeTroop({ name: 'Grand Warden', level: 5, currentHp: 700, maxHp: 923, heroAbilityUsed: false }),
+      'Grand Warden', 5,
+    );
+    const lvl20 = activateHeroAbility(
+      makeTroop({ name: 'Grand Warden', level: 20, currentHp: 700, maxHp: 1275, heroAbilityUsed: false }),
+      'Grand Warden', 20,
+    );
+
+    // Level 5 (ability level 1): 3.5s. Level 20 (ability level 4): 4.5s.
+    expect(lvl5!.tomeInvincibility).toEqual({ durationSeconds: 3.5, radius: 7 });
+    expect(lvl20!.tomeInvincibility).toEqual({ durationSeconds: 4.5, radius: 7 });
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -557,7 +577,7 @@ describe('activateHeroAbility - Royal Champion', () => {
     expect(result!.summonedTroops).toHaveLength(0);
   });
 
-  it('keeps currentHp unchanged when abilityHPRecovery is not defined in data', () => {
+  it('heals by seekingShieldHPRecovery, capped at maxHp', () => {
     const troop = makeTroop({
       name: 'Royal Champion',
       level: 5,
@@ -571,8 +591,23 @@ describe('activateHeroAbility - Royal Champion', () => {
     const result = activateHeroAbility(troop, 'Royal Champion', 5);
 
     expect(result).not.toBeNull();
-    // abilityHPRecovery not in RC data, falls back to 0. So hp = min(2000+0, 2678) = 2000
-    expect(result!.hero.currentHp).toBe(2000);
+    // Level 5: seekingShieldHPRecovery = 1260. min(2000 + 1260, 2678) = 2678
+    expect(result!.hero.currentHp).toBe(2678);
+  });
+
+  it('throws a Seeking Shield whose damage scales with ability level', () => {
+    const lvl5 = activateHeroAbility(
+      makeTroop({ name: 'Royal Champion', level: 5, currentHp: 2000, maxHp: 2678, heroAbilityUsed: false }),
+      'Royal Champion', 5,
+    );
+    const lvl10 = activateHeroAbility(
+      makeTroop({ name: 'Royal Champion', level: 10, currentHp: 2000, maxHp: 2890, heroAbilityUsed: false }),
+      'Royal Champion', 10,
+    );
+
+    // Level 5 (ability level 1): seekingShieldDamage = 1700; level 10 (ability level 2): 2000
+    expect(lvl5!.shieldStrike).toEqual({ damage: 1700, targets: 4 });
+    expect(lvl10!.shieldStrike).toEqual({ damage: 2000, targets: 4 });
   });
 });
 
@@ -614,15 +649,15 @@ describe('activateHeroAbility - ability already used', () => {
 });
 
 // ---------------------------------------------------------------------------
-// activateHeroAbility - fallback handler (hero not in ABILITY_HANDLERS)
+// activateHeroAbility - Minion Prince
 // ---------------------------------------------------------------------------
-describe('activateHeroAbility - fallback for unknown handler', () => {
-  it('uses the generic fallback for Minion Prince (not in ABILITY_HANDLERS)', () => {
-    // Minion Prince level 6 has abilityLevel=1 but no dedicated handler
+describe('activateHeroAbility - Minion Prince', () => {
+  it('heals by healthRecovery, capped at maxHp', () => {
+    // Minion Prince level 6: abilityLevel=1, healthRecovery=240
     const troop = makeTroop({
       name: 'Minion Prince',
       level: 6,
-      currentHp: 300,
+      currentHp: 100,
       maxHp: 410,
       dps: 196,
       baseDps: 196,
@@ -632,12 +667,28 @@ describe('activateHeroAbility - fallback for unknown handler', () => {
     const result = activateHeroAbility(troop, 'Minion Prince', 6);
 
     expect(result).not.toBeNull();
-    // Fallback uses abilityHPRecovery (not in Minion Prince data, so 0)
-    // and abilityDamageIncrease (also not in data, so 0)
-    expect(result!.hero.currentHp).toBe(300);
-    expect(result!.hero.dps).toBe(196); // baseDps + 0
+    expect(result!.hero.currentHp).toBe(340); // 100 + 240
+    expect(result!.hero.dps).toBe(196); // No damage boost
     expect(result!.hero.heroAbilityUsed).toBe(true);
     expect(result!.summonedTroops).toHaveLength(0);
+  });
+
+  it('scales the heal every 5 levels via healthRecovery', () => {
+    // Level 10 (ability level 2): healthRecovery = 280
+    const troop = makeTroop({
+      name: 'Minion Prince',
+      level: 10,
+      currentHp: 100,
+      maxHp: 578,
+      dps: 216,
+      baseDps: 216,
+      heroAbilityUsed: false,
+    });
+
+    const result = activateHeroAbility(troop, 'Minion Prince', 10);
+
+    expect(result).not.toBeNull();
+    expect(result!.hero.currentHp).toBe(380); // 100 + 280
   });
 });
 
@@ -667,5 +718,192 @@ describe('activateHeroAbility - stats not found', () => {
     const result = activateHeroAbility(troop, 'MadeUpHero', 1);
 
     expect(result).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// activateHeroAbility - summon scaling per 5 levels
+// ---------------------------------------------------------------------------
+describe('activateHeroAbility - summon scaling', () => {
+  it('Barbarian King summon count follows summonedBarbarians per ability level', () => {
+    const lvl5 = activateHeroAbility(
+      makeTroop({ level: 5, currentHp: 800, maxHp: 1595, heroAbilityUsed: false }),
+      'Barbarian King', 5,
+    );
+    const lvl10 = activateHeroAbility(
+      makeTroop({ level: 10, currentHp: 800, maxHp: 1805, heroAbilityUsed: false }),
+      'Barbarian King', 10,
+    );
+
+    // Level 5: summonedBarbarians = 6. Level 10: summonedBarbarians = 8.
+    expect(lvl5!.summonedTroops).toHaveLength(6);
+    expect(lvl10!.summonedTroops).toHaveLength(8);
+  });
+
+  it('Archer Queen summon count follows summonedArchers', () => {
+    const result = activateHeroAbility(
+      makeTroop({ name: 'Archer Queen', level: 5, currentHp: 400, maxHp: 630, heroAbilityUsed: false }),
+      'Archer Queen', 5,
+    );
+
+    // Level 5: summonedArchers = 5
+    expect(result!.summonedTroops).toHaveLength(5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickHeroRecovery
+// ---------------------------------------------------------------------------
+describe('tickHeroRecovery', () => {
+  it('returns the same array when no hero is recovering', () => {
+    const heroes = [makeOwnedHero()];
+
+    expect(tickHeroRecovery(heroes, 60)).toBe(heroes);
+  });
+
+  it('counts down the recovery timer without completing it', () => {
+    const heroes = [makeOwnedHero({ isRecovering: true, recoveryTimeRemaining: 300, currentHp: 500 })];
+
+    const result = tickHeroRecovery(heroes, 60);
+
+    expect(result[0]!.isRecovering).toBe(true);
+    expect(result[0]!.recoveryTimeRemaining).toBe(240);
+    expect(result[0]!.currentHp).toBe(500);
+  });
+
+  it('completes recovery at full HP when the timer reaches zero', () => {
+    const heroes = [makeOwnedHero({ isRecovering: true, recoveryTimeRemaining: 30, currentHp: 500 })];
+
+    const result = tickHeroRecovery(heroes, 60);
+
+    expect(result[0]!.isRecovering).toBe(false);
+    expect(result[0]!.recoveryTimeRemaining).toBe(0);
+    // Barbarian King level 5 full HP from heroes.json
+    expect(result[0]!.currentHp).toBe(1595);
+  });
+
+  it('leaves non-recovering heroes untouched while others tick', () => {
+    const heroes = [
+      makeOwnedHero(),
+      makeOwnedHero({ name: 'Archer Queen', isRecovering: true, recoveryTimeRemaining: 100 }),
+    ];
+
+    const result = tickHeroRecovery(heroes, 10);
+
+    expect(result[0]).toBe(heroes[0]);
+    expect(result[1]!.recoveryTimeRemaining).toBe(90);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getHeroAbilityInfo
+// ---------------------------------------------------------------------------
+describe('getHeroAbilityInfo', () => {
+  it('returns the ability name and description', () => {
+    const info = getHeroAbilityInfo('Barbarian King');
+    expect(info).not.toBeNull();
+    expect(info!.name).toBe('Iron Fist');
+    expect(info!.description.length).toBeGreaterThan(0);
+  });
+
+  it('returns null for unknown heroes', () => {
+    expect(getHeroAbilityInfo('FakeHero')).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getHeroUpgradeCost
+// ---------------------------------------------------------------------------
+describe('getHeroUpgradeCost', () => {
+  it('returns the next level cost with the resource key', () => {
+    // Barbarian King level 1 -> 2: 6000 Dark Elixir, 7200s
+    const upgrade = getHeroUpgradeCost('Barbarian King', 1);
+    expect(upgrade).not.toBeNull();
+    expect(upgrade!.cost).toBe(6000);
+    expect(upgrade!.resource).toBe('Dark Elixir');
+    expect(upgrade!.resourceKey).toBe('darkElixir');
+    expect(upgrade!.timeSeconds).toBe(7200);
+  });
+
+  it('returns null at max level', () => {
+    expect(getHeroUpgradeCost('Barbarian King', 105)).toBeNull();
+  });
+
+  it('returns null for unknown heroes', () => {
+    expect(getHeroUpgradeCost('FakeHero', 1)).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// startHeroUpgrade
+// ---------------------------------------------------------------------------
+describe('startHeroUpgrade', () => {
+  const richResources = { gold: 0, elixir: 0, darkElixir: 100000, gems: 0 };
+
+  it('starts the upgrade and deducts the resource cost', () => {
+    const hero = makeOwnedHero({ level: 1 });
+    const result = startHeroUpgrade(hero, richResources);
+
+    expect(result).not.toBeNull();
+    expect(result!.hero.isUpgrading).toBe(true);
+    expect(result!.hero.upgradeTimeRemaining).toBe(7200);
+    expect(result!.resources.darkElixir).toBe(100000 - 6000);
+  });
+
+  it('returns null when the hero is already busy', () => {
+    expect(startHeroUpgrade(makeOwnedHero({ isUpgrading: true }), richResources)).toBeNull();
+    expect(startHeroUpgrade(makeOwnedHero({ isRecovering: true }), richResources)).toBeNull();
+  });
+
+  it('returns null when the cost is unaffordable', () => {
+    const broke = { gold: 0, elixir: 0, darkElixir: 100, gems: 0 };
+    expect(startHeroUpgrade(makeOwnedHero({ level: 1 }), broke)).toBeNull();
+  });
+
+  it('does not mutate the inputs', () => {
+    const hero = makeOwnedHero({ level: 1 });
+    startHeroUpgrade(hero, richResources);
+    expect(hero.isUpgrading).toBe(false);
+    expect(richResources.darkElixir).toBe(100000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// tickHeroUpgrades
+// ---------------------------------------------------------------------------
+describe('tickHeroUpgrades', () => {
+  it('returns the same array when no hero is upgrading', () => {
+    const heroes = [makeOwnedHero()];
+    expect(tickHeroUpgrades(heroes, 60)).toBe(heroes);
+  });
+
+  it('decrements the upgrade timer', () => {
+    const heroes = [makeOwnedHero({ isUpgrading: true, upgradeTimeRemaining: 300 })];
+    const result = tickHeroUpgrades(heroes, 120);
+
+    expect(result[0]!.isUpgrading).toBe(true);
+    expect(result[0]!.upgradeTimeRemaining).toBe(180);
+  });
+
+  it('levels the hero up at full HP when the timer completes', () => {
+    const heroes = [makeOwnedHero({ level: 5, currentHp: 100, isUpgrading: true, upgradeTimeRemaining: 30 })];
+    const result = tickHeroUpgrades(heroes, 60);
+
+    expect(result[0]!.isUpgrading).toBe(false);
+    expect(result[0]!.upgradeTimeRemaining).toBe(0);
+    expect(result[0]!.level).toBe(6);
+    // Barbarian King level 6 full HP from heroes.json
+    expect(result[0]!.currentHp).toBe(getHeroStats('Barbarian King', 6)!.hitpoints);
+  });
+
+  it('leaves non-upgrading heroes untouched while others tick', () => {
+    const heroes = [
+      makeOwnedHero(),
+      makeOwnedHero({ name: 'Archer Queen', isUpgrading: true, upgradeTimeRemaining: 100 }),
+    ];
+    const result = tickHeroUpgrades(heroes, 10);
+
+    expect(result[0]).toBe(heroes[0]);
+    expect(result[1]!.upgradeTimeRemaining).toBe(90);
   });
 });

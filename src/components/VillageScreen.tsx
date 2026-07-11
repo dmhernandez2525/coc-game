@@ -1,7 +1,14 @@
 import type React from 'react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import type { Screen } from '../App.tsx';
-import type { VillageState, PlacedWall, PlacedTrap } from '../types/village.ts';
+import type {
+  VillageState,
+  PlacedWall,
+  PlacedBuilding,
+  ResourceAmounts,
+} from '../types/village.ts';
+import type { ResourceType } from '../types/common.ts';
+import type { TroopData } from '../types/troops.ts';
 import type { ClanState } from '../engine/clan-manager.ts';
 import { VillageGrid } from './VillageGrid.tsx';
 import { HUD } from './HUD.tsx';
@@ -24,7 +31,7 @@ import { useVillage } from '../hooks/useVillage.ts';
 import { useResources } from '../hooks/useResources.ts';
 import { useAutoSave } from '../hooks/useAutoSave.ts';
 import { createSaveManager } from '../engine/save-manager.ts';
-import { createStarterVillage } from '../engine/village-manager.ts';
+import { createStarterVillage, startUpgrade } from '../engine/village-manager.ts';
 import {
   getAvailableTroops,
   getCurrentHousingUsed,
@@ -34,19 +41,55 @@ import {
   getLabLevel,
 } from '../engine/army-manager.ts';
 import { getAllTroops } from '../data/loaders/troop-loader.ts';
-import { createClan } from '../engine/clan-manager.ts';
-import type { AchievementProgress } from '../engine/achievement-manager.ts';
-import { claimReward } from '../engine/achievement-manager.ts';
-import type { MagicItemInventory } from '../engine/magic-items-manager.ts';
-import { createInventory } from '../engine/magic-items-manager.ts';
-import type { SuperTroopState } from '../engine/super-troop-manager.ts';
+import { createClan, removeCastleTroop } from '../engine/clan-manager.ts';
+import { autoFillCastleTroops } from '../engine/cc-troops-manager.ts';
 import {
-  createSuperTroopState,
-  boostSuperTroop,
-  unboostSuperTroop,
+  getMinTHForSiege,
+  getWorkshopLevel,
+  getAvailableSiegeMachines,
+  getSiegeCapacity,
+  getTrainedSiegeCount,
+  trainSiegeMachine,
+  removeSiegeMachine,
+} from '../engine/siege-manager.ts';
+import { claimReward } from '../engine/achievement-manager.ts';
+import { withAchievementSync } from '../engine/achievement-sync.ts';
+import { incrementStat, createStatistics } from '../engine/statistics-tracker.ts';
+import {
+  createNotification,
+  pushNotification,
+  tickNotifications,
+  dismissNotification,
+  nextNotificationId,
+  type GameNotification,
+  type NotificationKind,
+} from '../engine/notification-manager.ts';
+import { diffVillageNotifications } from '../engine/village-notifications.ts';
+import { NotificationToasts } from './NotificationToasts.tsx';
+import { LayoutPresetsPanel } from './LayoutPresetsPanel.tsx';
+import {
+  listLayoutPresets,
+  saveLayoutPreset,
+  loadLayoutPreset,
+  deleteLayoutPreset,
+  applyLayoutPreset,
+  type LayoutPresetMeta,
+} from '../engine/layout-presets.ts';
+import { getDisarmedTraps, getTotalRearmCost, rearmAllTraps } from '../engine/trap-manager.ts';
+import {
+  getVillageInventory,
+  applyVillageMagicItem,
+  buyMagicItemWithGems,
+} from '../engine/magic-items-manager.ts';
+import {
+  getVillageSuperTroopState,
+  boostVillageSuperTroop,
+  unboostVillageSuperTroop,
 } from '../engine/super-troop-manager.ts';
+import { getTreasury, getTreasuryCapacity, addToTreasury, collectTreasury } from '../engine/treasury-manager.ts';
+import { getStarBonusStars, claimStarBonus } from '../engine/trophy-manager.ts';
+import { LeaguePanel } from './LeaguePanel.tsx';
 import type { GameStatistics } from '../engine/statistics-tracker.ts';
-import { createStatistics } from '../engine/statistics-tracker.ts';
 import {
   getMaxSpellCapacity,
   getCurrentSpellHousing,
@@ -54,23 +97,41 @@ import {
   trainSpell,
   removeSpell,
 } from '../engine/spell-queue-manager.ts';
-import type { WarState } from '../engine/clan-war-manager.ts';
 import {
   startWar,
   startBattlePhase,
-  recordPlayerAttack,
+  selectPlayerWarBase,
+  getSelectableWarBases,
+  getNextAttackerIndex,
   simulateNPCAttacks,
   endWar,
   calculateWarLoot,
 } from '../engine/clan-war-manager.ts';
+import {
+  createWarLeagueState,
+  applyWarResultToLeague,
+  getWarLeagueLootMultiplier,
+} from '../engine/war-league-manager.ts';
 import { deductResources } from '../engine/village-helpers.ts';
-import { traps as trapDataList, wallData } from '../data/loaders/index.ts';
+import {
+  getTownHallUpgradeCost,
+  getNextTHUnlockSummary,
+  isTownHallMaxLevel,
+  canStartTownHallUpgrade,
+  startTownHallUpgrade,
+} from '../engine/upgrade-manager.ts';
+import { wallData } from '../data/loaders/index.ts';
 import type { OwnedHero } from '../types/village.ts';
+import { startHeroUpgrade } from '../engine/hero-manager.ts';
+import { upgradeOwnedEquipment } from '../engine/equipment-manager.ts';
+import { upgradeOwnedPet, getPetHouseLevel } from '../engine/pet-manager.ts';
+import { getOres, getBlacksmithLevel } from '../engine/ore-manager.ts';
 
 type ActivePanel =
   | 'none' | 'shop' | 'settings' | 'saveLoad' | 'gemShop'
   | 'army' | 'lab' | 'clan' | 'heroes' | 'achievements'
-  | 'magicItems' | 'superTroops' | 'stats' | 'spells' | 'clanWar';
+  | 'magicItems' | 'superTroops' | 'stats' | 'spells' | 'clanWar' | 'league'
+  | 'layoutPresets';
 
 interface VillageScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -79,6 +140,178 @@ interface VillageScreenProps {
 }
 
 const saveManager = createSaveManager();
+
+// -- Troop unlock hints (TH gating for the army panel) --
+
+const TROOP_LOCK_CONFIG: Record<string, {
+  barracks: string;
+  field: 'barracksLevelRequired' | 'darkBarracksLevelRequired';
+}> = {
+  elixir: { barracks: 'Barracks', field: 'barracksLevelRequired' },
+  dark_elixir: { barracks: 'Dark Barracks', field: 'darkBarracksLevelRequired' },
+};
+
+function getTroopUnlockHint(troop: TroopData, townHallLevel: number): string {
+  if (troop.thUnlock > townHallLevel) {
+    return `Unlocks at Town Hall ${troop.thUnlock}`;
+  }
+  const cfg = TROOP_LOCK_CONFIG[troop.type];
+  const required = cfg ? troop[cfg.field] : undefined;
+  if (cfg && required !== undefined) {
+    return `Requires ${cfg.barracks} level ${required}`;
+  }
+  return 'Locked';
+}
+
+/** Why siege training is unavailable, or null when the Workshop is ready. */
+function getSiegeUnlockHint(state: VillageState): string | null {
+  if (state.townHallLevel < getMinTHForSiege()) {
+    return `Unlocks at Town Hall ${getMinTHForSiege()}`;
+  }
+  if (getWorkshopLevel(state) === 0) return 'Requires a Workshop (build one in the Shop)';
+  return null;
+}
+
+// -- Town Hall panel (TH progression) --
+
+const TH_RESOURCE_KEYS: Record<string, keyof ResourceAmounts> = {
+  'Gold': 'gold',
+  'Elixir': 'elixir',
+  'Dark Elixir': 'darkElixir',
+};
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+  return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
+}
+
+interface TownHallPanelProps {
+  building: PlacedBuilding;
+  townHallLevel: number;
+  resources: ResourceAmounts;
+  idleBuilders: number;
+  canUpgrade: boolean;
+  onUpgrade: () => void;
+  onClose: () => void;
+}
+
+function getTownHallBlockReason(
+  props: Pick<TownHallPanelProps, 'building' | 'townHallLevel' | 'resources' | 'idleBuilders'>,
+): string | null {
+  const { building, townHallLevel, resources, idleBuilders } = props;
+  if (building.isUpgrading) return null;
+
+  const cost = getTownHallUpgradeCost(townHallLevel);
+  if (!cost) return null;
+
+  const key = TH_RESOURCE_KEYS[cost.resource] ?? 'gold';
+  if (resources[key] < cost.cost) return `Not enough ${cost.resource}`;
+  if (idleBuilders === 0) return 'No free builders';
+  return null;
+}
+
+function TownHallPanel({
+  building,
+  townHallLevel,
+  resources,
+  idleBuilders,
+  canUpgrade,
+  onUpgrade,
+  onClose,
+}: TownHallPanelProps) {
+  const maxLevel = isTownHallMaxLevel(townHallLevel);
+  const upgradeCost = maxLevel ? null : getTownHallUpgradeCost(townHallLevel);
+  const unlockSummary = maxLevel ? null : getNextTHUnlockSummary(townHallLevel);
+  const blockReason = getTownHallBlockReason({ building, townHallLevel, resources, idleBuilders });
+
+  const newUnlocks = unlockSummary
+    ? [...unlockSummary.newBuildings, ...unlockSummary.newTraps, ...unlockSummary.newTroops,
+       ...unlockSummary.newSpells, ...unlockSummary.newHeroes]
+    : [];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 border-t-2 border-amber-500/60 backdrop-blur-sm">
+      <div className="max-w-2xl mx-auto px-4 py-3">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-bold text-amber-400">Town Hall</h3>
+            <span className="text-sm px-2 py-0.5 rounded bg-slate-700 text-slate-300">
+              Level {townHallLevel}
+            </span>
+            <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+              Builders: {idleBuilders} free
+            </span>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-white transition-colors text-xl leading-none px-2"
+            aria-label="Close panel"
+          >
+            x
+          </button>
+        </div>
+
+        {/* Upgrade status / cost */}
+        {building.isUpgrading && (
+          <div className="text-sm text-amber-300 mb-3">
+            Upgrading to Level {townHallLevel + 1}... {formatDuration(Math.ceil(building.upgradeTimeRemaining))} remaining
+          </div>
+        )}
+
+        {maxLevel && !building.isUpgrading && (
+          <div className="text-sm text-emerald-400 mb-3">
+            Town Hall is at the maximum level.
+          </div>
+        )}
+
+        {upgradeCost && !building.isUpgrading && (
+          <div className="text-sm text-slate-400 mb-2">
+            Upgrade to Level {townHallLevel + 1}:{' '}
+            <span className="text-amber-300">
+              {upgradeCost.cost.toLocaleString()} {upgradeCost.resource}
+            </span>
+            {' '}({formatDuration(upgradeCost.time)})
+          </div>
+        )}
+
+        {/* Unlock preview for the next TH level */}
+        {newUnlocks.length > 0 && !building.isUpgrading && (
+          <div className="text-xs text-slate-400 mb-3">
+            <span className="text-slate-500 uppercase tracking-wide mr-2">Unlocks:</span>
+            {newUnlocks.map((name) => (
+              <span
+                key={name}
+                className="inline-block mr-1 mb-1 px-2 py-0.5 rounded bg-slate-800 text-slate-300"
+              >
+                {name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2">
+          {!maxLevel && (
+            <button
+              onClick={onUpgrade}
+              disabled={!canUpgrade || building.isUpgrading}
+              title={blockReason ?? undefined}
+              className="px-4 py-1.5 rounded font-semibold text-sm transition-colors bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Upgrade
+            </button>
+          )}
+          {blockReason && !building.isUpgrading && (
+            <span className="text-xs text-red-400">{blockReason}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function VillageScreen({ onNavigate, externalState, externalSetState }: VillageScreenProps) {
   const {
@@ -91,21 +324,54 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     canUpgrade,
     builders,
     handleBuildingClick,
-    handleUpgrade,
     handleRemove,
     handleClosePanel,
     startPlacement,
+    startTrapPlacement,
     handlePlacementClick,
     cancelPlacement,
   } = useVillage(externalState, externalSetState);
 
   const { collect, collectAll, storageCaps } = useResources(state, setState);
 
-  // Auto-save every 30 seconds
-  useAutoSave(state);
-
   const [activePanel, setActivePanel] = useState<ActivePanel>('none');
   const [gameSpeed, setGameSpeed] = useState(1);
+  const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+
+  // Auto-save every 30 seconds; the callback drives the "Saved" indicator
+  useAutoSave(state, 30_000, setLastSavedAt);
+
+  // --- Toast notifications ---
+  const [notifications, setNotifications] = useState<GameNotification[]>([]);
+
+  const pushToast = useCallback((kind: NotificationKind, message: string) => {
+    setNotifications((queue) => pushNotification(queue, createNotification(nextNotificationId(), kind, message)));
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setNotifications((queue) => dismissNotification(queue, id));
+  }, []);
+
+  // Advance the toast queue on its own light clock (UI only, cleaned up on unmount)
+  useEffect(() => {
+    const id = setInterval(() => {
+      setNotifications((queue) => tickNotifications(queue, 250));
+    }, 250);
+    return () => clearInterval(id);
+  }, []);
+
+  // Emit toasts for meaningful village changes (upgrade complete, builder free,
+  // storage full) by diffing the previous snapshot against the current one.
+  const prevVillageRef = useRef(state);
+  useEffect(() => {
+    const prev = prevVillageRef.current;
+    if (prev !== state) {
+      for (const event of diffVillageNotifications(prev, state, storageCaps)) {
+        pushToast(event.kind, event.message);
+      }
+      prevVillageRef.current = state;
+    }
+  }, [state, storageCaps, pushToast]);
 
   const openPanel = useCallback((panel: ActivePanel) => {
     setActivePanel(panel);
@@ -143,7 +409,10 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
 
   const handleBuyResources = useCallback(
     (resourceType: 'gold' | 'elixir' | 'darkElixir', amount: number, gemCost: number) => {
-      if (state.resources.gems < gemCost) return;
+      if (state.resources.gems < gemCost) {
+        pushToast('error', 'Not enough gems');
+        return;
+      }
       setState((prev) => ({
         ...prev,
         resources: {
@@ -153,7 +422,7 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
         },
       }));
     },
-    [state.resources.gems, setState],
+    [state.resources.gems, setState, pushToast],
   );
 
   const handleResetProgress = useCallback(() => {
@@ -166,20 +435,59 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setState((prev) => ({ ...prev, gameClockSpeed: speed }));
   }, [setState]);
 
-  // Clan state (lives alongside village state for simplicity)
-  const [clan, setClan] = useState<ClanState | null>(null);
+  // Clan state (persisted on the village state so it survives saves)
+  const clan: ClanState | null = state.clan ?? null;
 
   const handleCreateClan = useCallback((name: string) => {
-    setClan(createClan(name));
-  }, []);
+    setState((prev) => ({ ...prev, clan: createClan(name) }));
+  }, [setState]);
+
+  // Donate simulation: clanmates fill the castle with TH-appropriate troops
+  const handleRequestCastleTroops = useCallback(() => {
+    setState((prev) => (
+      prev.clan ? { ...prev, clan: autoFillCastleTroops(prev.clan, prev.townHallLevel) } : prev
+    ));
+  }, [setState]);
+
+  const handleRemoveCastleTroop = useCallback((troopName: string) => {
+    setState((prev) => (
+      prev.clan ? { ...prev, clan: removeCastleTroop(prev.clan, troopName) } : prev
+    ));
+  }, [setState]);
 
   // Army handlers
   const handleTrainTroop = useCallback((troopName: string) => {
-    setState((prev) => trainTroop(prev, troopName) ?? prev);
+    setState((prev) => {
+      const trained = trainTroop(prev, troopName);
+      if (!trained) return prev;
+      const statistics = incrementStat(prev.statistics ?? createStatistics(), 'troopsTrained');
+      return { ...trained, statistics };
+    });
   }, [setState]);
+
+  // Building upgrade with statistics: counts toward the Empire Builder
+  // achievement and keeps achievement progress in sync.
+  const handleBuildingUpgrade = useCallback(() => {
+    if (!selectedBuilding || !canUpgrade) return;
+    setState((prev) => {
+      const upgraded = startUpgrade(prev, selectedBuilding.instanceId);
+      if (!upgraded) return prev;
+      const statistics = incrementStat(prev.statistics ?? createStatistics(), 'buildingsUpgraded');
+      return withAchievementSync({ ...upgraded, statistics });
+    });
+  }, [selectedBuilding, canUpgrade, setState]);
 
   const handleRemoveTroop = useCallback((troopName: string) => {
     setState((prev) => removeTroop(prev, troopName) ?? prev);
+  }, [setState]);
+
+  // Siege machine handlers (Workshop training)
+  const handleTrainSiege = useCallback((siegeName: string) => {
+    setState((prev) => trainSiegeMachine(prev, siegeName) ?? prev);
+  }, [setState]);
+
+  const handleRemoveSiege = useCallback((siegeName: string) => {
+    setState((prev) => removeSiegeMachine(prev, siegeName));
   }, [setState]);
 
   // Lab handler (simplified: instant research for now)
@@ -193,6 +501,30 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       return { ...prev, army: newArmy };
     });
   }, [setState]);
+
+  // Town Hall upgrade handler (completes via the normal upgrade tick pipeline)
+  const handleTownHallUpgrade = useCallback(() => {
+    setState((prev) => {
+      const upgraded = startTownHallUpgrade(prev);
+      if (!upgraded) return prev;
+      const statistics = incrementStat(prev.statistics ?? createStatistics(), 'buildingsUpgraded');
+      return withAchievementSync({ ...upgraded, statistics });
+    });
+  }, [setState]);
+
+  // X-Bow targeting mode toggle (ground-only = 14 tiles, ground+air = 11.5)
+  const handleToggleXBowMode = useCallback(() => {
+    if (!selectedBuilding || selectedBuilding.buildingId !== 'X-Bow') return;
+    const instanceId = selectedBuilding.instanceId;
+    setState((prev) => ({
+      ...prev,
+      buildings: prev.buildings.map((b) => {
+        if (b.instanceId !== instanceId) return b;
+        const current = b.xbowMode ?? 'ground_and_air';
+        return { ...b, xbowMode: current === 'ground_and_air' ? 'ground' : 'ground_and_air' };
+      }),
+    }));
+  }, [selectedBuilding, setState]);
 
   // Building move handler
   const handleMoveBuilding = useCallback(() => {
@@ -209,38 +541,61 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     startPlacement(buildingId, buildingType, { free: true });
   }, [selectedBuilding, setState, handleClosePanel, startPlacement]);
 
-  // Trap placement handler
+  // Trap placement: route through placement mode so the player picks the tile,
+  // exactly like buildings. The engine deducts the build cost and enforces caps.
   const handleSelectTrap = useCallback((trapId: string) => {
-    const trapLvl1 = trapDataList.find((t) => t.name === trapId)?.levels[0];
-    if (!trapLvl1) return;
-    let trapCounter = (state.traps?.length ?? 0) + 1;
-    const newTrap: PlacedTrap = {
-      instanceId: `trap_${trapCounter++}`,
-      trapId,
-      level: 1,
-      gridX: Math.floor(Math.random() * 28) + 2,
-      gridY: Math.floor(Math.random() * 28) + 2,
-      isArmed: true,
-    };
-    setState((prev) => {
-      const newResources = deductResources(prev.resources, trapLvl1.upgradeCost, trapLvl1.upgradeResource);
-      if (!newResources) return prev;
-      return {
-        ...prev,
-        resources: newResources,
-        traps: [...(prev.traps ?? []), newTrap],
-      };
-    });
+    startTrapPlacement(trapId);
     setActivePanel('none');
+  }, [startTrapPlacement]);
+
+  // Rearm every trap that has fired, if the player can afford the total cost.
+  const disarmedTraps = getDisarmedTraps(state.traps ?? []);
+  const handleRearmTraps = useCallback(() => {
+    const totals = getTotalRearmCost(state.traps ?? []);
+    const entries = Object.entries(totals) as Array<[ResourceType, number]>;
+    setState((prev) => {
+      let resources = prev.resources;
+      for (const [resource, amount] of entries) {
+        const deducted = deductResources(resources, amount, resource);
+        if (!deducted) return prev; // cannot afford: leave everything untouched
+        resources = deducted;
+      }
+      return { ...prev, resources, traps: rearmAllTraps(prev.traps ?? []) };
+    });
   }, [state.traps, setState]);
+
+  // --- Layout presets (localStorage arrangement snapshots) ---
+  const [layoutPresets, setLayoutPresets] = useState<LayoutPresetMeta[]>(() => listLayoutPresets());
+
+  const handleSaveLayout = useCallback((name: string) => {
+    const meta = saveLayoutPreset(name, state);
+    if (!meta) {
+      pushToast('error', 'Could not save layout (slots full)');
+      return;
+    }
+    setLayoutPresets(listLayoutPresets());
+    pushToast('success', `Saved layout "${meta.name}"`);
+  }, [state, pushToast]);
+
+  const handleLoadLayout = useCallback((id: string) => {
+    const preset = loadLayoutPreset(id);
+    if (!preset) return;
+    setState((prev) => applyLayoutPreset(prev, preset));
+    pushToast('info', `Loaded layout "${preset.name}"`);
+  }, [setState, pushToast]);
+
+  const handleDeleteLayout = useCallback((id: string) => {
+    deleteLayoutPreset(id);
+    setLayoutPresets(listLayoutPresets());
+  }, []);
 
   // Wall placement handler
   const handleSelectWall = useCallback(() => {
     const wallLvl1 = wallData.levels[0];
     if (!wallLvl1) return;
-    let wallCounter = (state.walls?.length ?? 0) + 1;
+    const wallCounter = (state.walls?.length ?? 0) + 1;
     const newWall: PlacedWall = {
-      instanceId: `wall_${wallCounter++}`,
+      instanceId: `wall_${wallCounter}`,
       level: 1,
       gridX: Math.floor(Math.random() * 30) + 1,
       gridY: Math.floor(Math.random() * 30) + 1,
@@ -257,7 +612,7 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setActivePanel('none');
   }, [state.walls, setState]);
 
-  // Hero handler
+  // Hero handlers
   const handleUpdateHero = useCallback((heroName: string, updatedHero: OwnedHero) => {
     setState((prev) => ({
       ...prev,
@@ -265,50 +620,90 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     }));
   }, [setState]);
 
-  // Achievement state and handlers
-  const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
+  const handleUpgradeHero = useCallback((heroName: string) => {
+    setState((prev) => {
+      const hero = prev.heroes.find((h) => h.name === heroName);
+      if (!hero) return prev;
+      const result = startHeroUpgrade(hero, prev.resources);
+      if (!result) return prev;
+      return {
+        ...prev,
+        resources: result.resources,
+        heroes: prev.heroes.map((h) => (h.name === heroName ? result.hero : h)),
+      };
+    });
+  }, [setState]);
+
+  const handleUpgradeEquipment = useCallback((equipmentName: string) => {
+    setState((prev) => {
+      const result = upgradeOwnedEquipment(
+        prev.ownedEquipment ?? [],
+        equipmentName,
+        getOres(prev),
+        getBlacksmithLevel(prev.buildings),
+      );
+      if (!result) return prev;
+      return { ...prev, ownedEquipment: result.equipment, ores: result.remainingOres };
+    });
+  }, [setState]);
+
+  const handleUpgradePet = useCallback((petName: string) => {
+    setState((prev) => {
+      const result = upgradeOwnedPet(prev.ownedPets ?? [], petName, prev.resources.darkElixir);
+      if (!result) return prev;
+      return {
+        ...prev,
+        ownedPets: result.pets,
+        resources: { ...prev.resources, darkElixir: prev.resources.darkElixir - result.cost },
+      };
+    });
+  }, [setState]);
+
+  // Achievements are DERIVED from persisted statistics, trophies, and campaign
+  // stars, so progress survives reloads. Only claimedTier is stored explicitly.
+  const achievementProgress = useMemo(() => withAchievementSync(state).achievements ?? [], [state]);
 
   const handleClaimAchievement = useCallback((achievementId: string) => {
-    // Compute the claim outside the updater; updaters must stay pure
-    // (StrictMode double-invokes them, which would double-award gems)
-    const result = claimReward(achievementProgress, achievementId);
-    setAchievementProgress(result.progress);
-    if (result.gemsEarned > 0) {
-      setState((vs) => ({
-        ...vs,
-        resources: { ...vs.resources, gems: vs.resources.gems + result.gemsEarned },
-      }));
-    }
-  }, [achievementProgress, setState]);
-
-  // Magic items state and handlers
-  const [inventory, setInventory] = useState<MagicItemInventory>(createInventory);
-
-  const handleUseMagicItem = useCallback((itemId: string) => {
-    // Simplified: for now just consume the item
-    setInventory((prev) => {
-      const count = prev.items[itemId] ?? 0;
-      if (count <= 0) return prev;
-      return { items: { ...prev.items, [itemId]: count - 1 } };
-    });
-  }, []);
-
-  // Super troop state and handlers
-  const [superTroopState, setSuperTroopState] = useState<SuperTroopState>(createSuperTroopState);
-
-  const handleBoostSuperTroop = useCallback((superTroopName: string) => {
-    const result = boostSuperTroop(superTroopState, superTroopName, state.townHallLevel, state.resources.darkElixir);
-    if (!result) return;
-    setSuperTroopState(result.state);
-    setState((prev) => ({
-      ...prev,
-      resources: { ...prev.resources, darkElixir: prev.resources.darkElixir - result.cost },
+    // Claim against freshly synced progress so newly reached tiers are eligible.
+    // Computed outside the updater; updaters must stay pure (StrictMode double-
+    // invokes them, which would otherwise double-award gems).
+    const result = claimReward(withAchievementSync(state).achievements ?? [], achievementId);
+    if (result.gemsEarned <= 0) return;
+    setState((vs) => ({
+      ...vs,
+      achievements: result.progress,
+      resources: { ...vs.resources, gems: vs.resources.gems + result.gemsEarned },
     }));
-  }, [superTroopState, state.townHallLevel, state.resources.darkElixir, setState]);
+    pushToast('success', `Claimed ${result.gemsEarned} gems`);
+  }, [state, setState, pushToast]);
+
+  // Magic items live on the village state so they persist through saves.
+  // Using an item applies its real effect; it is only consumed on success.
+  const handleUseMagicItem = useCallback((itemId: string) => {
+    setState((prev) => applyVillageMagicItem(prev, itemId) ?? prev);
+  }, [setState]);
+
+  const handleBuyMagicItem = useCallback((itemId: string) => {
+    setState((prev) => buyMagicItemWithGems(prev, itemId) ?? prev);
+  }, [setState]);
+
+  // Super troop boosts live on the village state; timers tick with the game clock
+  const handleBoostSuperTroop = useCallback((superTroopName: string) => {
+    setState((prev) => boostVillageSuperTroop(prev, superTroopName) ?? prev);
+  }, [setState]);
 
   const handleUnboostSuperTroop = useCallback((superTroopName: string) => {
-    setSuperTroopState((prev) => unboostSuperTroop(prev, superTroopName));
-  }, []);
+    setState((prev) => unboostVillageSuperTroop(prev, superTroopName));
+  }, [setState]);
+
+  // League, star bonus, and treasury handlers
+  const handleClaimStarBonus = useCallback(() => {
+    setState((prev) => claimStarBonus(prev)?.state ?? prev);
+  }, [setState]);
+
+  const handleCollectTreasury = useCallback(() => {
+    setState((prev) => collectTreasury(prev));
+  }, [setState]);
 
   // Statistics
   const [stats] = useState<GameStatistics>(createStatistics);
@@ -322,48 +717,59 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setState((prev) => removeSpell(prev, spellName));
   }, [setState]);
 
-  // Clan war state and handlers
-  const [warState, setWarState] = useState<WarState | null>(null);
+  // Clan war state and handlers (persisted on the village state)
+  const warState = state.war ?? null;
+  const warLeague = state.warLeague ?? createWarLeagueState();
 
   const handleStartWar = useCallback((warSize: number) => {
     if (!clan) return;
+    // War rosters use Math.random, so build the state outside the updater
     const playerTHLevels = Array.from({ length: warSize }, () => state.townHallLevel);
-    setWarState(startWar(clan.name, playerTHLevels, warSize));
-  }, [clan, state.townHallLevel]);
+    const war = startWar(clan.name, playerTHLevels, warSize);
+    setState((prev) => ({ ...prev, war }));
+  }, [clan, state.townHallLevel, setState]);
+
+  const handleSelectWarBase = useCallback((baseId: string) => {
+    setState((prev) => (
+      prev.war ? { ...prev, war: selectPlayerWarBase(prev.war, baseId) } : prev
+    ));
+  }, [setState]);
 
   const handleStartBattleDay = useCallback(() => {
     if (!warState || warState.phase !== 'preparation') return;
-    // Enemy attacks are rolled once when battle day begins
-    setWarState(simulateNPCAttacks(startBattlePhase(warState)));
-  }, [warState]);
+    // Enemy attacks are rolled once when battle day begins (outside the updater;
+    // updaters must stay pure and the simulation uses Math.random)
+    const war = simulateNPCAttacks(startBattlePhase(warState));
+    setState((prev) => ({ ...prev, war }));
+  }, [warState, setState]);
 
   const handleWarAttack = useCallback((defenderIndex: number) => {
     if (!warState || warState.phase !== 'battle') return;
-    // Use the next clan member with attacks remaining
-    const attackerIndex = warState.playerClan.members.findIndex((m) => m.attacksRemaining > 0);
-    if (attackerIndex < 0) return;
-    // Simulate a player attack (simplified: random 1-3 stars, 40-100% destruction)
-    const stars = Math.min(3, Math.max(1, Math.floor(Math.random() * 3) + 1));
-    const destruction = Math.min(100, Math.floor(40 + Math.random() * 60));
-    setWarState(recordPlayerAttack(warState, attackerIndex, defenderIndex, stars, destruction));
-  }, [warState]);
+    if (getNextAttackerIndex(warState) < 0) return;
+    // The attack is fought as a real battle against the enemy war base;
+    // App routes the pending attack into the battle screen and records the result
+    setState((prev) => ({ ...prev, pendingWarAttack: { defenderIndex } }));
+    onNavigate('battle');
+  }, [warState, setState, onNavigate]);
 
   const handleEndWar = useCallback(() => {
-    if (!warState) return;
+    if (!warState || warState.phase === 'ended') return;
     const { war, result } = endWar(warState);
-    setWarState(war);
-    // Credit the war loot shown on the ended-war screen
-    const loot = calculateWarLoot(result, state.townHallLevel);
+    // War loot lands in the treasury (protected pool), scaled by the war league
+    const loot = calculateWarLoot(result, state.townHallLevel, getWarLeagueLootMultiplier(warLeague.tierIndex));
+    const leagueChange = applyWarResultToLeague(warLeague, result);
     setState((prev) => ({
-      ...prev,
-      resources: {
-        ...prev.resources,
-        gold: prev.resources.gold + loot.gold,
-        elixir: prev.resources.elixir + loot.elixir,
-        darkElixir: prev.resources.darkElixir + loot.darkElixir,
-      },
+      ...addToTreasury(prev, loot),
+      war: { ...war, lootAwarded: loot },
+      warLeague: leagueChange.league,
     }));
-  }, [warState, state.townHallLevel, setState]);
+  }, [warState, warLeague, state.townHallLevel, setState]);
+
+  const handleStartNewWar = useCallback(() => {
+    setState((prev) => (
+      prev.war?.phase === 'ended' ? { ...prev, war: undefined } : prev
+    ));
+  }, [setState]);
 
   // Count walls and traps for the shop panel
   const wallCount = state.walls?.length ?? 0;
@@ -372,14 +778,29 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     trapCounts[trap.trapId] = (trapCounts[trap.trapId] ?? 0) + 1;
   }
 
+  // TH-gated troop availability for the army panel
+  const availableTroops = getAvailableTroops(state);
+  const lockedTroops = getAllTroops()
+    .filter((t) => !availableTroops.some((a) => a.name === t.name))
+    .map((t) => ({
+      name: t.name,
+      housingSpace: t.housingSpace,
+      unlockHint: getTroopUnlockHint(t, state.townHallLevel),
+    }));
+
+  const selectedIsTownHall = selectedBuilding?.buildingId === 'Town Hall';
+
   return (
     <div className="relative min-h-screen bg-slate-900 overflow-hidden">
+      <NotificationToasts notifications={notifications} onDismiss={dismissToast} />
       <HUD
         resources={state.resources}
         storageCaps={storageCaps}
         builders={builders}
         townHallLevel={state.townHallLevel}
         trophies={state.trophies}
+        league={state.league}
+        onOpenLeague={() => openPanel('league')}
         onCollectAll={collectAll}
       />
 
@@ -455,6 +876,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
             Clan War
           </button>
           <button
+            onClick={() => openPanel('league')}
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg font-semibold text-sm transition-colors"
+          >
+            League
+          </button>
+          <button
             onClick={() => openPanel('achievements')}
             className="px-4 py-2 bg-teal-600 hover:bg-teal-500 rounded-lg font-semibold text-sm transition-colors"
           >
@@ -477,6 +904,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-semibold text-sm transition-colors"
           >
             Gem Shop
+          </button>
+          <button
+            onClick={() => openPanel('layoutPresets')}
+            className="px-4 py-2 bg-lime-600 hover:bg-lime-500 rounded-lg font-semibold text-sm transition-colors"
+          >
+            Layouts
           </button>
           <button
             onClick={() => openPanel('saveLoad')}
@@ -512,17 +945,46 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
             </button>
           </div>
         )}
+
+        {/* Status row: autosave indicator + trap rearm */}
+        <div className="mt-3 flex items-center gap-3 text-xs text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className={`h-1.5 w-1.5 rounded-full ${lastSavedAt ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+            {lastSavedAt ? `Saved ${new Date(lastSavedAt).toLocaleTimeString()}` : 'Not yet saved'}
+          </span>
+          {disarmedTraps.length > 0 && (
+            <button
+              onClick={handleRearmTraps}
+              className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-white font-semibold transition-colors"
+            >
+              Rearm {disarmedTraps.length} trap{disarmedTraps.length > 1 ? 's' : ''}
+            </button>
+          )}
+        </div>
       </div>
 
-      {selectedBuilding && (
+      {selectedBuilding && selectedIsTownHall && (
+        <TownHallPanel
+          building={selectedBuilding}
+          townHallLevel={state.townHallLevel}
+          resources={state.resources}
+          idleBuilders={builders.idle}
+          canUpgrade={canStartTownHallUpgrade(state)}
+          onUpgrade={handleTownHallUpgrade}
+          onClose={handleClosePanel}
+        />
+      )}
+
+      {selectedBuilding && !selectedIsTownHall && (
         <BuildingPanel
           building={selectedBuilding}
-          onUpgrade={handleUpgrade}
+          onUpgrade={handleBuildingUpgrade}
           onMove={handleMoveBuilding}
           onRemove={handleRemove}
           onClose={handleClosePanel}
           canUpgrade={canUpgrade}
           upgradeCost={upgradeCost}
+          onToggleXBowMode={handleToggleXBowMode}
         />
       )}
 
@@ -573,12 +1035,20 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       {activePanel === 'army' && (
         <ArmyPanel
           army={state.army}
-          availableTroops={getAvailableTroops(state)}
+          availableTroops={availableTroops}
+          lockedTroops={lockedTroops}
           housingUsed={getCurrentHousingUsed(state)}
           housingMax={getMaxHousingSpace(state)}
           resources={state.resources}
+          siegeMachines={state.siegeMachines ?? []}
+          availableSieges={getAvailableSiegeMachines(state)}
+          siegeCapacityUsed={getTrainedSiegeCount(state)}
+          siegeCapacityMax={getSiegeCapacity(state)}
+          siegeUnlockHint={getSiegeUnlockHint(state)}
           onTrain={handleTrainTroop}
           onRemove={handleRemoveTroop}
+          onTrainSiege={handleTrainSiege}
+          onRemoveSiege={handleRemoveSiege}
           onClose={closePanel}
         />
       )}
@@ -599,6 +1069,8 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
           clan={clan}
           townHallLevel={state.townHallLevel}
           onCreateClan={handleCreateClan}
+          onRequestTroops={handleRequestCastleTroops}
+          onRemoveCastleTroop={handleRemoveCastleTroop}
           onClose={closePanel}
         />
       )}
@@ -607,7 +1079,16 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
         <HeroPanel
           heroes={state.heroes}
           townHallLevel={state.townHallLevel}
+          ores={getOres(state)}
+          ownedEquipment={state.ownedEquipment ?? []}
+          ownedPets={state.ownedPets ?? []}
+          blacksmithLevel={getBlacksmithLevel(state.buildings)}
+          petHouseLevel={getPetHouseLevel(state.buildings)}
+          resources={state.resources}
           onUpdateHero={handleUpdateHero}
+          onUpgradeHero={handleUpgradeHero}
+          onUpgradeEquipment={handleUpgradeEquipment}
+          onUpgradePet={handleUpgradePet}
           onClose={closePanel}
         />
       )}
@@ -622,15 +1103,17 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
 
       {activePanel === 'magicItems' && (
         <MagicItemsPanel
-          inventory={inventory}
+          inventory={getVillageInventory(state)}
+          gems={state.resources.gems}
           onUseItem={handleUseMagicItem}
+          onBuyItem={handleBuyMagicItem}
           onClose={closePanel}
         />
       )}
 
       {activePanel === 'superTroops' && (
         <SuperTroopPanel
-          superTroopState={superTroopState}
+          superTroopState={getVillageSuperTroopState(state)}
           townHallLevel={state.townHallLevel}
           darkElixir={state.resources.darkElixir}
           onBoost={handleBoostSuperTroop}
@@ -639,9 +1122,32 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
         />
       )}
 
+      {activePanel === 'league' && (
+        <LeaguePanel
+          league={state.league}
+          trophies={state.trophies}
+          starBonusStars={getStarBonusStars(state)}
+          treasury={getTreasury(state)}
+          treasuryCapacity={getTreasuryCapacity(state.townHallLevel)}
+          onClaimStarBonus={handleClaimStarBonus}
+          onCollectTreasury={handleCollectTreasury}
+          onClose={closePanel}
+        />
+      )}
+
       {activePanel === 'stats' && (
         <StatsPanel
-          stats={stats}
+          stats={state.statistics ?? stats}
+          onClose={closePanel}
+        />
+      )}
+
+      {activePanel === 'layoutPresets' && (
+        <LayoutPresetsPanel
+          presets={layoutPresets}
+          onSave={handleSaveLayout}
+          onLoad={handleLoadLayout}
+          onDelete={handleDeleteLayout}
           onClose={closePanel}
         />
       )}
@@ -669,10 +1175,14 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
           war={warState}
           clanName={clan?.name ?? null}
           townHallLevel={state.townHallLevel}
+          warLeague={warLeague}
+          availableWarBases={getSelectableWarBases(state.townHallLevel)}
           onStartWar={handleStartWar}
           onStartBattle={handleStartBattleDay}
+          onSelectWarBase={handleSelectWarBase}
           onAttack={handleWarAttack}
           onEndWar={handleEndWar}
+          onStartNewWar={handleStartNewWar}
           onClose={closePanel}
         />
       )}

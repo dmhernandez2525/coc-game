@@ -4,11 +4,18 @@ import {
   generateEnemyClan,
   startWar,
   startBattlePhase,
+  selectPlayerWarBase,
+  getSelectableWarBases,
+  getWarBaseDefenseRating,
+  getEnemyWarBase,
+  getNextAttackerIndex,
   recordPlayerAttack,
   simulateNPCAttacks,
   endWar,
   calculateWarLoot,
 } from '../clan-war-manager.ts';
+import { getNPCBaseById } from '../../data/npc-bases.ts';
+import { createSeededRng } from '../../utils/seeded-rng.ts';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -594,5 +601,206 @@ describe('calculateWarLoot', () => {
     // baseLoot = 10 * 50000 = 500000; defeat multiplier = 0.2
     expect(loot.gold).toBe(100000);
     expect(loot.elixir).toBe(100000);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// War base assignment and selection
+// ---------------------------------------------------------------------------
+
+describe('war base assignment', () => {
+  it('assigns every enemy member a resolvable war base matching their TH', () => {
+    const rng = createSeededRng(42);
+    const war = startWar('My Clan', [8, 8, 7, 6, 5], 5, rng);
+
+    for (const member of war.enemyClan.members) {
+      expect(member.warBaseId).toBeDefined();
+      const base = getNPCBaseById(member.warBaseId!);
+      expect(base).toBeDefined();
+      expect(base!.townHallLevel).toBe(member.townHallLevel);
+    }
+  });
+
+  it('generates identical wars for identical seeds', () => {
+    const warA = startWar('My Clan', [8, 7, 6], 5, createSeededRng(7));
+    const warB = startWar('My Clan', [8, 7, 6], 5, createSeededRng(7));
+
+    expect(warA).toEqual(warB);
+  });
+});
+
+describe('getSelectableWarBases', () => {
+  it('returns at least 5 layouts for a TH 1-10 player', () => {
+    const bases = getSelectableWarBases(6);
+    expect(bases.length).toBeGreaterThanOrEqual(5);
+    for (const base of bases) {
+      expect(base.townHallLevel).toBe(6);
+    }
+  });
+});
+
+describe('selectPlayerWarBase', () => {
+  it('stores the chosen base during preparation', () => {
+    const war = makeWarState({ phase: 'preparation' });
+    const result = selectPlayerWarBase(war, 'npc_th8_1');
+
+    expect(result.playerWarBaseId).toBe('npc_th8_1');
+  });
+
+  it('ignores unknown base ids', () => {
+    const war = makeWarState({ phase: 'preparation' });
+    const result = selectPlayerWarBase(war, 'not_a_base');
+
+    expect(result).toBe(war);
+  });
+
+  it('cannot change the war base after preparation ends', () => {
+    const war = makeWarState({ phase: 'battle' });
+    const result = selectPlayerWarBase(war, 'npc_th8_1');
+
+    expect(result).toBe(war);
+  });
+
+  it('does not mutate the original war state', () => {
+    const war = makeWarState({ phase: 'preparation' });
+    selectPlayerWarBase(war, 'npc_th8_1');
+
+    expect(war.playerWarBaseId).toBeUndefined();
+  });
+});
+
+describe('getWarBaseDefenseRating', () => {
+  it('rates every base between 0 and 1', () => {
+    for (const base of getSelectableWarBases(8)) {
+      const rating = getWarBaseDefenseRating(base);
+      expect(rating).toBeGreaterThan(0);
+      expect(rating).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('rates a base with more leveled defenses higher', () => {
+    const weak = getNPCBaseById('npc_th5_1')!;
+    const strong = getNPCBaseById('npc_th5_3')!;
+    // npc_th5_3 carries strictly higher defense levels than npc_th5_1
+    expect(getWarBaseDefenseRating(strong)).toBeGreaterThan(getWarBaseDefenseRating(weak));
+  });
+});
+
+describe('getEnemyWarBase', () => {
+  it('resolves the assigned war base for a defender', () => {
+    const enemyMembers = [makeMember({ warBaseId: 'npc_th8_2' })];
+    const war = makeWarState({
+      enemyClan: makeClan({ members: enemyMembers }),
+    });
+
+    const base = getEnemyWarBase(war, 0);
+    expect(base).not.toBeNull();
+    expect(base!.id).toBe('npc_th8_2');
+  });
+
+  it('falls back to a TH-matched base when no war base is assigned', () => {
+    const war = makeWarState({
+      enemyClan: makeClan({ members: [makeMember({ townHallLevel: 6 })] }),
+    });
+
+    const base = getEnemyWarBase(war, 0);
+    expect(base).not.toBeNull();
+    expect(base!.townHallLevel).toBe(6);
+  });
+
+  it('returns null for an out-of-range defender index', () => {
+    const war = makeWarState();
+    expect(getEnemyWarBase(war, 99)).toBeNull();
+  });
+});
+
+describe('getNextAttackerIndex', () => {
+  it('returns the first member with attacks remaining', () => {
+    const members = [
+      makeMember({ attacksRemaining: 0 }),
+      makeMember({ attacksRemaining: 1 }),
+      makeMember({ attacksRemaining: 2 }),
+    ];
+    const war = makeWarState({ playerClan: makeClan({ members }) });
+
+    expect(getNextAttackerIndex(war)).toBe(1);
+  });
+
+  it('returns -1 when all attacks are spent', () => {
+    const members = [makeMember({ attacksRemaining: 0 })];
+    const war = makeWarState({ playerClan: makeClan({ members }) });
+
+    expect(getNextAttackerIndex(war)).toBe(-1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Deterministic NPC simulation and war base defense
+// ---------------------------------------------------------------------------
+
+describe('simulateNPCAttacks with a seeded rng', () => {
+  function makeMirrorWar(playerWarBaseId?: string): WarState {
+    const playerMembers = Array.from({ length: 5 }, () => makeMember({ townHallLevel: 8 }));
+    const enemyMembers = Array.from({ length: 5 }, (_, i) =>
+      makeMember({ name: `NPC #${i + 1}`, townHallLevel: 8 }),
+    );
+    return makeWarState({
+      playerClan: makeClan({ members: playerMembers }),
+      enemyClan: makeClan({ members: enemyMembers }),
+      ...(playerWarBaseId !== undefined ? { playerWarBaseId } : {}),
+    });
+  }
+
+  it('produces identical results for identical seeds', () => {
+    const war = makeMirrorWar();
+    const resultA = simulateNPCAttacks(war, createSeededRng(99));
+    const resultB = simulateNPCAttacks(war, createSeededRng(99));
+
+    expect(resultA).toEqual(resultB);
+  });
+
+  it('a selected war base concedes fewer stars in aggregate than none', () => {
+    let starsWithoutBase = 0;
+    let starsWithBase = 0;
+    for (let seed = 0; seed < 100; seed++) {
+      starsWithoutBase += simulateNPCAttacks(makeMirrorWar(), createSeededRng(seed))
+        .enemyClan.totalStars;
+      starsWithBase += simulateNPCAttacks(makeMirrorWar('npc_th8_3'), createSeededRng(seed))
+        .enemyClan.totalStars;
+    }
+
+    expect(starsWithBase).toBeLessThan(starsWithoutBase);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// War result persistence and league loot multiplier
+// ---------------------------------------------------------------------------
+
+describe('endWar result persistence', () => {
+  it('stores the result on the ended war state', () => {
+    const war = makeWarState({
+      playerClan: makeClan({ totalStars: 10 }),
+      enemyClan: makeClan({ totalStars: 5 }),
+    });
+    const { war: endedWar, result } = endWar(war);
+
+    expect(result).toBe('victory');
+    expect(endedWar.result).toBe('victory');
+  });
+});
+
+describe('calculateWarLoot with a league multiplier', () => {
+  it('scales loot by the league multiplier', () => {
+    const base = calculateWarLoot('victory', 8);
+    const boosted = calculateWarLoot('victory', 8, 1.5);
+
+    expect(boosted.gold).toBe(Math.floor(base.gold * 1.5));
+    expect(boosted.elixir).toBe(Math.floor(base.elixir * 1.5));
+    expect(boosted.darkElixir).toBe(Math.floor(base.darkElixir * 1.5));
+  });
+
+  it('defaults to a 1x multiplier', () => {
+    expect(calculateWarLoot('draw', 9)).toEqual(calculateWarLoot('draw', 9, 1));
   });
 });

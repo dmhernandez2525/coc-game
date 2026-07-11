@@ -148,7 +148,8 @@ export type HeroEquipmentMap = Record<string, HeroEquipmentData>;
 
 export interface PetLevelStats {
   level: number;
-  dps: number;
+  dps?: number;              // Absent for support pets (Unicorn heals instead of fighting)
+  healingPerSecond?: number; // Unicorn only: healing output per second
   hp: number;
   upgradeCost: number;
   upgradeTime: number;

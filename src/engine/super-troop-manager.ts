@@ -2,16 +2,13 @@
 // All functions are pure: they return new state, never mutate.
 
 import type { SuperTroopData } from '../types/troops.ts';
+import type { VillageState, ActiveSuperTroopBoost } from '../types/village.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
 import { superTroops } from '../data/loaders/economy-loader.ts';
 
 // -- Types --
 
-export interface SuperTroopBoost {
-  baseTroopName: string;
-  superTroopName: string;
-  remainingDurationMs: number;
-}
+export type SuperTroopBoost = ActiveSuperTroopBoost;
 
 export interface SuperTroopState {
   activeBoosts: SuperTroopBoost[];
@@ -141,6 +138,83 @@ export function getActiveSuperTroop(
   baseTroopName: string,
 ): string | undefined {
   return state.activeBoosts.find((b) => b.baseTroopName === baseTroopName)?.superTroopName;
+}
+
+// -- Village state integration --
+
+/** Read the super troop state stored on the village (empty when absent). */
+export function getVillageSuperTroopState(state: VillageState): SuperTroopState {
+  return { activeBoosts: state.superTroopBoosts ?? [] };
+}
+
+/** Write a super troop state back onto the village. */
+export function withSuperTroopState(
+  state: VillageState,
+  superTroopState: SuperTroopState,
+): VillageState {
+  return { ...state, superTroopBoosts: superTroopState.activeBoosts };
+}
+
+/**
+ * Boost a super troop directly on the village state, paying the dark elixir
+ * cost. Returns the updated village, or null if the boost is not possible.
+ */
+export function boostVillageSuperTroop(
+  state: VillageState,
+  superTroopName: string,
+): VillageState | null {
+  const result = boostSuperTroop(
+    getVillageSuperTroopState(state),
+    superTroopName,
+    state.townHallLevel,
+    state.resources.darkElixir,
+  );
+  if (!result) return null;
+
+  return withSuperTroopState(
+    {
+      ...state,
+      resources: {
+        ...state.resources,
+        darkElixir: state.resources.darkElixir - result.cost,
+      },
+    },
+    result.state,
+  );
+}
+
+/** Cancel an active boost on the village state (no refund). */
+export function unboostVillageSuperTroop(
+  state: VillageState,
+  superTroopName: string,
+): VillageState {
+  return withSuperTroopState(
+    state,
+    unboostSuperTroop(getVillageSuperTroopState(state), superTroopName),
+  );
+}
+
+/**
+ * Advance boost timers on the village state by game-clock time.
+ * Expired boosts are removed. Returns the same state when nothing is active.
+ */
+export function tickVillageSuperTroopBoosts(
+  state: VillageState,
+  deltaMs: number,
+): VillageState {
+  const boosts = state.superTroopBoosts ?? [];
+  if (boosts.length === 0) return state;
+
+  const ticked = tickSuperTroopTimers({ activeBoosts: boosts }, deltaMs);
+  return { ...state, superTroopBoosts: ticked.activeBoosts };
+}
+
+/** Get the active super troop name for a base troop on the village state. */
+export function getVillageActiveSuperTroop(
+  state: VillageState,
+  baseTroopName: string,
+): string | undefined {
+  return getActiveSuperTroop(getVillageSuperTroopState(state), baseTroopName);
 }
 
 /** Get the boost duration constant. */

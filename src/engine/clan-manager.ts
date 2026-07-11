@@ -1,15 +1,11 @@
 // Clan system: single-player clan management with castle troops and perks.
 // All functions are pure: they return new state, never mutate.
 
+import type { VillageClanState } from '../types/village.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
 
-export interface ClanState {
-  name: string;
-  level: number;
-  xp: number;
-  badgeIndex: number;
-  castleTroops: Array<{ name: string; level: number; count: number }>;
-}
+// The clan is persisted on the village state; ClanState keeps the engine name.
+export type ClanState = VillageClanState;
 
 export const CLAN_BADGES = [
   'Shield', 'Sword', 'Crown', 'Star', 'Dragon', 'Skull', 'Phoenix', 'Hammer',

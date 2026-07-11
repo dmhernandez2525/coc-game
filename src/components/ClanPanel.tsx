@@ -12,6 +12,8 @@ interface ClanPanelProps {
   clan: ClanState | null;
   townHallLevel: number;
   onCreateClan: (name: string) => void;
+  onRequestTroops: () => void;
+  onRemoveCastleTroop: (troopName: string) => void;
   onClose: () => void;
 }
 
@@ -53,13 +55,28 @@ function CreateClanForm({ onCreateClan }: { onCreateClan: (name: string) => void
   );
 }
 
-function ClanDetails({ clan, townHallLevel }: { clan: ClanState; townHallLevel: number }) {
+/** Why the request button is blocked, or null when a request is allowed. */
+function getRequestBlockReason(capacity: number, used: number): string | null {
+  if (capacity === 0) return 'Unlocks at Town Hall 3';
+  if (used >= capacity) return 'Castle is full';
+  return null;
+}
+
+interface ClanDetailsProps {
+  clan: ClanState;
+  townHallLevel: number;
+  onRequestTroops: () => void;
+  onRemoveCastleTroop: (troopName: string) => void;
+}
+
+function ClanDetails({ clan, townHallLevel, onRequestTroops, onRemoveCastleTroop }: ClanDetailsProps) {
   const xpNeeded = getXPForNextLevel(clan.level);
   const xpPercent = xpNeeded > 0 ? Math.min((clan.xp / xpNeeded) * 100, 100) : 100;
   const capacity = getCastleCapacity(townHallLevel);
   const used = getCastleHousingUsed(clan);
   const perks = getAvailableClanPerks(clan.level);
   const badgeName = CLAN_BADGES[clan.badgeIndex] ?? 'Shield';
+  const requestBlockReason = getRequestBlockReason(capacity, used);
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -109,20 +126,44 @@ function ClanDetails({ clan, townHallLevel }: { clan: ClanState; townHallLevel: 
 
       {/* Castle troops */}
       <div>
-        <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-2">
-          Castle Troops
-          <span className="ml-2 text-xs font-normal text-slate-500">
-            {used} / {capacity}
-          </span>
-        </h4>
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">
+            Castle Troops
+            <span className="ml-2 text-xs font-normal text-slate-500">
+              {used} / {capacity}
+            </span>
+          </h4>
+          <button
+            onClick={onRequestTroops}
+            disabled={requestBlockReason !== null}
+            title={requestBlockReason ?? undefined}
+            className="px-3 py-1 rounded text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Request Troops
+          </button>
+        </div>
+        {requestBlockReason && (
+          <p className="text-xs text-slate-500 mb-2">{requestBlockReason}</p>
+        )}
         {clan.castleTroops.length === 0 ? (
-          <p className="text-sm text-slate-500 italic">No troops in castle.</p>
+          <p className="text-sm text-slate-500 italic">
+            No troops in castle. Request donations from your clanmates.
+          </p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {clan.castleTroops.map((t) => (
               <div key={t.name} className="flex items-center justify-between bg-slate-800 rounded px-3 py-2">
-                <span className="text-sm text-white">{t.name}</span>
-                <span className="text-xs text-amber-300">x{t.count}</span>
+                <div>
+                  <span className="text-sm text-white">{t.name}</span>
+                  <span className="ml-2 text-xs text-amber-300">x{t.count}</span>
+                </div>
+                <button
+                  onClick={() => onRemoveCastleTroop(t.name)}
+                  className="w-6 h-6 flex items-center justify-center rounded bg-red-700 hover:bg-red-600 text-white text-sm font-bold transition-colors"
+                  aria-label={`Remove ${t.name} from castle`}
+                >
+                  -
+                </button>
               </div>
             ))}
           </div>
@@ -132,7 +173,14 @@ function ClanDetails({ clan, townHallLevel }: { clan: ClanState; townHallLevel: 
   );
 }
 
-export function ClanPanel({ clan, townHallLevel, onCreateClan, onClose }: ClanPanelProps) {
+export function ClanPanel({
+  clan,
+  townHallLevel,
+  onCreateClan,
+  onRequestTroops,
+  onRemoveCastleTroop,
+  onClose,
+}: ClanPanelProps) {
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="w-full max-w-lg bg-slate-900 border-2 border-amber-500/60 rounded-lg shadow-xl max-h-[80vh] flex flex-col">
@@ -151,7 +199,12 @@ export function ClanPanel({ clan, townHallLevel, onCreateClan, onClose }: ClanPa
         {/* Body */}
         <div className="flex-1 overflow-y-auto">
           {clan ? (
-            <ClanDetails clan={clan} townHallLevel={townHallLevel} />
+            <ClanDetails
+              clan={clan}
+              townHallLevel={townHallLevel}
+              onRequestTroops={onRequestTroops}
+              onRemoveCastleTroop={onRemoveCastleTroop}
+            />
           ) : (
             <CreateClanForm onCreateClan={onCreateClan} />
           )}

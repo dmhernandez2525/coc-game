@@ -3,13 +3,14 @@ import type {
 } from '../types/battle.ts';
 import type { SpellData, SpellLevelStats } from '../types/troops.ts';
 import { getSpell } from '../data/loaders/spell-loader.ts';
+import { getTroop } from '../data/loaders/troop-loader.ts';
 import { distance } from './targeting-ai.ts';
 
 type SpellEffect =
   | 'instant_damage' | 'instant_building_pct'
   | 'heal_over_time' | 'buff' | 'debuff'
   | 'freeze' | 'haste' | 'skeleton_spawn' | 'bat_spawn' | 'clone' | 'invisibility'
-  | 'jump';
+  | 'jump' | 'recall';
 
 const SPELL_EFFECTS: Record<string, SpellEffect> = {
   'Lightning Spell': 'instant_damage',
@@ -24,7 +25,14 @@ const SPELL_EFFECTS: Record<string, SpellEffect> = {
   'Bat Spell': 'bat_spawn',
   'Clone Spell': 'clone',
   'Invisibility Spell': 'invisibility',
+  'Recall Spell': 'recall',
 };
+
+// Clone Spell copies are weaker than the originals and expire on their own.
+const CLONE_HP_MULTIPLIER = 0.5;
+const CLONE_FALLBACK_LIFESPAN = 30;
+const CLONE_FALLBACK_RADIUS = 3.5;
+const RECALL_FALLBACK_RADIUS = 5;
 
 export function isInRadius(x1: number, y1: number, x2: number, y2: number, radius: number): boolean {
   return distance(x1, y1, x2, y2) <= radius;
@@ -104,6 +112,71 @@ export function applyEarthquakeDamage(
   });
 
   return { buildings: updatedBuildings, defenses: updatedDefenses };
+}
+
+// -- Clone and Recall helpers -------------------------------------------------
+
+/** Pick units nearest the spell center whose combined housing fits the cap. */
+function packByHousing(
+  candidates: DeployedTroop[], x: number, y: number, capacity: number,
+): DeployedTroop[] {
+  const sorted = [...candidates].sort(
+    (a, b) => distance(x, y, a.x, a.y) - distance(x, y, b.x, b.y),
+  );
+  const picked: DeployedTroop[] = [];
+  let remaining = capacity;
+  for (const t of sorted) {
+    const housing = getTroop(t.name)?.housingSpace;
+    if (housing === undefined || housing > remaining) continue;
+    picked.push(t);
+    remaining -= housing;
+  }
+  return picked;
+}
+
+/** Clone targets attacker troops only; never heroes, defenders, or other clones. */
+function isClonableTroop(t: DeployedTroop, x: number, y: number, radius: number): boolean {
+  if (t.state === 'dead' || t.isDefender || t.isHero || t.isClone) return false;
+  return isInRadius(x, y, t.x, t.y, radius);
+}
+
+/**
+ * Recall only returns units that came from the deploy bar (deployTroop ids
+ * start with "troop_"). Heroes, clones, summons, and defenders stay put.
+ */
+function isRecallableTroop(t: DeployedTroop, x: number, y: number, radius: number): boolean {
+  if (t.state === 'dead' || t.isDefender || t.isClone || !t.id.startsWith('troop_')) return false;
+  return isInRadius(x, y, t.x, t.y, radius);
+}
+
+/** Build a reduced-HP copy of a troop with a limited lifespan. */
+function makeClone(source: DeployedTroop, lifespan: number, index: number): DeployedTroop {
+  const hp = Math.max(1, Math.round(source.maxHp * CLONE_HP_MULTIPLIER));
+  return {
+    ...source,
+    id: `clone_${source.id}_${index}`,
+    currentHp: hp,
+    maxHp: hp,
+    x: source.x + ((index % 3) - 1) * 0.5,
+    y: source.y + ((Math.floor(index / 3) % 3) - 1) * 0.5,
+    targetId: null,
+    state: 'idle',
+    isClone: true,
+    cloneLifespanRemaining: lifespan,
+  };
+}
+
+/** Merge recalled units back into the attacker's deploy bar counts. */
+function returnTroopsToDeployBar(
+  available: BattleState['availableTroops'], recalled: DeployedTroop[],
+): BattleState['availableTroops'] {
+  const updated = available.map((s) => ({ ...s }));
+  for (const t of recalled) {
+    const slot = updated.find((s) => s.name === t.name && s.level === t.level);
+    if (slot) slot.count += 1;
+    else updated.push({ name: t.name, level: t.level, count: 1 });
+  }
+  return updated;
 }
 
 // -- Spell deployment -------------------------------------------------------
@@ -199,6 +272,29 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
     }
     return { ...state, deployedTroops: [...state.deployedTroops, ...bats] };
   },
+  clone: (state, spellData, ls, x, y) => {
+    const radius = spellData.radius ?? CLONE_FALLBACK_RADIUS;
+    const capacity = stat(ls, 'clonedCapacity', 22);
+    const lifespan = (spellData.clonedLifespan as number | undefined) ?? CLONE_FALLBACK_LIFESPAN;
+    const eligible = state.deployedTroops.filter((t) => isClonableTroop(t, x, y, radius));
+    const clones = packByHousing(eligible, x, y, capacity)
+      .map((t, i) => makeClone(t, lifespan, i));
+    if (clones.length === 0) return state;
+    return { ...state, deployedTroops: [...state.deployedTroops, ...clones] };
+  },
+  recall: (state, spellData, ls, x, y) => {
+    const radius = spellData.radius ?? RECALL_FALLBACK_RADIUS;
+    const capacity = stat(ls, 'recalledCapacity', 83);
+    const eligible = state.deployedTroops.filter((t) => isRecallableTroop(t, x, y, radius));
+    const recalled = packByHousing(eligible, x, y, capacity);
+    if (recalled.length === 0) return state;
+    const recalledIds = new Set(recalled.map((t) => t.id));
+    return {
+      ...state,
+      deployedTroops: state.deployedTroops.filter((t) => !recalledIds.has(t.id)),
+      availableTroops: returnTroopsToDeployBar(state.availableTroops, recalled),
+    };
+  },
 };
 
 export function deploySpell(
@@ -255,6 +351,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
   heal_over_time: (spell, troops, deltaSec) => {
     const heal = spellStat(spell, 'healingPerSecond', 0) * deltaSec;
     return troops.map((t) => {
+      if (t.isDefender) return t; // Attacker spells never help defender units
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
       if (t.healingNerfed) return t; // Inferno Tower negates healing
       return { ...t, currentHp: Math.min(t.maxHp, t.currentHp + heal) };
@@ -264,6 +361,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
     const mult = spellStat(spell, 'damageMultiplier', 1);
     const spd = spellStat(spell, 'speedIncrease', 0);
     return troops.map((t) => {
+      if (t.isDefender) return t; // Attacker spells never help defender units
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
       return {
         ...t,
@@ -278,6 +376,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
     // Haste only boosts speed, NOT damage
     const spd = spellStat(spell, 'speedIncrease', 28);
     return troops.map((t) => {
+      if (t.isDefender) return t; // Attacker spells never help defender units
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
       return {
         ...t,
@@ -305,7 +404,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
   invisibility: (spell, troops) => {
     // Troops in radius become untargetable (reuse burrowed flag)
     return troops.map((t) => {
-      if (t.state === 'dead') return t;
+      if (t.state === 'dead' || t.isDefender) return t;
       const inRadius = isInRadius(spell.x, spell.y, t.x, t.y, spell.radius);
       return { ...t, isBurrowed: inRadius || t.isBurrowed };
     });
@@ -313,7 +412,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
   jump: (spell, troops) => {
     // Ground troops in radius can jump over walls (ignore wall collision)
     return troops.map((t) => {
-      if (t.state === 'dead' || t.isFlying) return t;
+      if (t.state === 'dead' || t.isFlying || t.isDefender) return t;
       const inRadius = isInRadius(spell.x, spell.y, t.x, t.y, spell.radius);
       return { ...t, jumpSpellActive: inRadius || t.jumpSpellActive === true };
     });

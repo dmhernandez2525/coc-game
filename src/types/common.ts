@@ -4,6 +4,9 @@ export type DamageType = 'single' | 'splash' | 'chain' | 'multiple_targets';
 
 export type TargetType = 'ground' | 'air' | 'ground_and_air' | 'ground_only' | 'all';
 
+/** X-Bow player-selectable targeting mode. Ground-only trades air coverage for range. */
+export type XBowMode = 'ground' | 'ground_and_air';
+
 export type BuildingCategory =
   | 'defense'
   | 'resource_collector'

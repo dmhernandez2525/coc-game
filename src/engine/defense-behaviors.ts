@@ -165,6 +165,67 @@ function processAirSweeper(
   defense.lastAttackTime = elapsed;
 }
 
+// --- Scattershot ---
+// Lobs a bouncing projectile at the nearest target. The impact scatters
+// shrapnel behind the target in a 90 degree cone, so troops past the impact
+// point take splash damage while troops beside or in front stay unharmed.
+// Each shot damages only one domain (ground OR air), matching the target.
+
+const SCATTER_CONE_HALF_ANGLE_COS = Math.cos(Math.PI / 4); // 90 degree arc
+
+/** True when a troop sits inside the shrapnel cone behind the impact point. */
+function isInScatterCone(
+  defense: ActiveDefense, target: DeployedTroop, troop: DeployedTroop, radius: number,
+): boolean {
+  const coneX = target.x - defense.x;
+  const coneY = target.y - defense.y;
+  const coneLen = Math.sqrt(coneX * coneX + coneY * coneY);
+  const spreadX = troop.x - target.x;
+  const spreadY = troop.y - target.y;
+  const spreadLen = Math.sqrt(spreadX * spreadX + spreadY * spreadY);
+  if (coneLen === 0 || spreadLen === 0 || spreadLen > radius) return false;
+
+  const cosAngle = (coneX * spreadX + coneY * spreadY) / (coneLen * spreadLen);
+  return cosAngle >= SCATTER_CONE_HALF_ANGLE_COS;
+}
+
+function processScattershot(
+  defense: ActiveDefense, troops: DeployedTroop[], elapsed: number,
+): void {
+  if (defense.isDestroyed || defense.isFrozen) return;
+
+  retargetIfDead(defense, troops);
+  const targetable = troops.filter((t) => !t.isDefender);
+  if (!defense.targetTroopId) defense.targetTroopId = findDefenseTarget(defense, targetable);
+  if (!defense.targetTroopId) return;
+
+  const target = troops.find((t) => t.id === defense.targetTroopId);
+  if (!target || target.state === 'dead') return;
+
+  if (!isInRange(defense, target)) {
+    defense.targetTroopId = null;
+    return;
+  }
+  if (elapsed - defense.lastAttackTime < defense.attackSpeed) return;
+
+  // Primary impact: one attack cycle worth of damage
+  const shotDamage = defense.dps * defense.attackSpeed;
+  damageTroop(target, shotDamage);
+
+  // Shrapnel bounce: splash behind the impact point, same domain only
+  const splashDamage = defense.scatterSplashDamage ?? shotDamage * 0.75;
+  const splashRadius = defense.scatterSplashRadius ?? 2.5;
+  for (const t of targetable) {
+    if (t.state === 'dead' || t.id === target.id) continue;
+    if (t.isFlying !== target.isFlying) continue;
+    if (!isInScatterCone(defense, target, t, splashRadius)) continue;
+    damageTroop(t, splashDamage);
+  }
+
+  if (target.currentHp <= 0) defense.targetTroopId = null;
+  defense.lastAttackTime = elapsed;
+}
+
 // --- Bomb Tower ---
 // Standard splash defense. On destruction, explodes for massive area damage.
 
@@ -185,6 +246,11 @@ export function processBombTowerDeath(
 }
 
 // --- Helpers ---
+
+function damageTroop(troop: DeployedTroop, damage: number): void {
+  troop.currentHp = Math.max(0, troop.currentHp - damage);
+  if (troop.currentHp <= 0) { troop.state = 'dead'; troop.currentHp = 0; }
+}
 
 function isInRange(defense: ActiveDefense, troop: DeployedTroop): boolean {
   const d = distance(defense.x, defense.y, troop.x, troop.y);
@@ -262,6 +328,7 @@ const DEFENSE_HANDLERS: Record<string, DefenseHandler> = {
   'Eagle Artillery': (d, ctx) => processEagleArtillery(d, ctx.troops, ctx.elapsed, ctx.totalHousingDeployed),
   'Mortar': (d, ctx) => processMortar(d, ctx.troops, ctx.elapsed),
   'Air Sweeper': (d, ctx) => processAirSweeper(d, ctx.troops, ctx.elapsed),
+  'Scattershot': (d, ctx) => processScattershot(d, ctx.troops, ctx.elapsed),
 };
 
 /**

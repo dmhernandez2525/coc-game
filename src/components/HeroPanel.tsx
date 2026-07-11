@@ -1,42 +1,39 @@
 import { useState } from 'react';
-import type { OwnedHero } from '../types/village.ts';
-import type { HeroEquipmentData } from '../types/troops.ts';
+import type { OwnedHero, OreAmounts, OwnedLevelEntry, ResourceAmounts } from '../types/village.ts';
 import {
   getAvailableHeroes,
   getHeroStats,
+  getHeroAbilityInfo,
+  getHeroUpgradeCost,
   isHeroAvailableForBattle,
 } from '../engine/hero-manager.ts';
 import { equipItem, unequipItem } from '../engine/equipment-manager.ts';
-import { getAvailablePets, assignPet, unassignPet } from '../engine/pet-manager.ts';
-import { heroEquipment } from '../data/loaders/hero-loader.ts';
-import { formatDuration } from '../utils/resource-format.ts';
+import { assignPet, unassignPet } from '../engine/pet-manager.ts';
+import { formatDuration, formatResource } from '../utils/resource-format.ts';
+import { EquipmentPanel } from './EquipmentPanel.tsx';
+import { PetPanel } from './PetPanel.tsx';
 
 // -- Types --
 
 interface HeroPanelProps {
   heroes: OwnedHero[];
   townHallLevel: number;
+  ores: OreAmounts;
+  ownedEquipment: OwnedLevelEntry[];
+  ownedPets: OwnedLevelEntry[];
+  blacksmithLevel: number;
+  petHouseLevel: number;
+  resources: ResourceAmounts;
   onUpdateHero: (heroName: string, updatedHero: OwnedHero) => void;
+  onUpgradeHero: (heroName: string) => void;
+  onUpgradeEquipment: (equipmentName: string) => void;
+  onUpgradePet: (petName: string) => void;
   onClose: () => void;
 }
 
-type DropdownState =
-  | { heroName: string; type: 'equipment'; slotIndex: 0 | 1 }
-  | { heroName: string; type: 'pet' }
-  | null;
-
-interface NamedEquipment {
-  name: string;
-  data: HeroEquipmentData;
-}
+type ManagePanel = { heroName: string; type: 'equipment' | 'pet' } | null;
 
 // -- Helpers --
-
-function getNamedEquipmentForHero(heroName: string): NamedEquipment[] {
-  return Object.entries(heroEquipment)
-    .filter(([, eq]) => eq.hero === heroName)
-    .map(([name, data]) => ({ name, data }));
-}
 
 function getStatusLabel(hero: OwnedHero): { text: string; color: string } {
   if (hero.isUpgrading) {
@@ -54,230 +51,37 @@ function getStatusLabel(hero: OwnedHero): { text: string; color: string } {
   return { text: 'Available', color: 'text-green-400' };
 }
 
-// -- Equipment Slot --
+/** Why the hero cannot start an upgrade right now, or null when it can. */
+function getHeroUpgradeBlockReason(hero: OwnedHero, resources: ResourceAmounts): string | null {
+  if (hero.isUpgrading) return 'Already upgrading';
+  if (hero.isRecovering) return 'Recovering';
 
-function EquipmentSlot({
-  hero,
-  slotIndex,
-  equipmentList,
-  isOpen,
-  onToggle,
-  onEquip,
-  onUnequip,
-}: {
-  hero: OwnedHero;
-  slotIndex: 0 | 1;
-  equipmentList: NamedEquipment[];
-  isOpen: boolean;
-  onToggle: () => void;
-  onEquip: (slotIndex: 0 | 1, equipmentName: string) => void;
-  onUnequip: (slotIndex: 0 | 1) => void;
-}) {
-  const equippedName = hero.equippedItems[slotIndex];
-  const otherSlot: 0 | 1 = slotIndex === 0 ? 1 : 0;
-
-  return (
-    <div className="relative">
-      <div className="flex items-center justify-between bg-slate-700/50 rounded px-2 py-1.5">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Slot {slotIndex + 1}:</span>
-          {equippedName ? (
-            <span className="text-xs text-amber-300 font-medium">{equippedName}</span>
-          ) : (
-            <span className="text-xs text-slate-500 italic">Empty Slot</span>
-          )}
-        </div>
-        <div className="flex gap-1">
-          {equippedName && (
-            <button
-              onClick={() => onUnequip(slotIndex)}
-              className="px-2 py-0.5 rounded text-xs bg-red-700/60 hover:bg-red-600 text-red-200 transition-colors"
-              aria-label={`Unequip ${equippedName} from slot ${slotIndex + 1}`}
-            >
-              Remove
-            </button>
-          )}
-          <button
-            onClick={onToggle}
-            className="px-2 py-0.5 rounded text-xs bg-amber-600/60 hover:bg-amber-500 text-amber-100 transition-colors"
-            aria-label={`Equip item to slot ${slotIndex + 1}`}
-          >
-            Equip
-          </button>
-        </div>
-      </div>
-
-      {isOpen && (
-        <div className="mt-1 bg-slate-700 rounded border border-slate-600 max-h-32 overflow-y-auto">
-          {equipmentList.length === 0 ? (
-            <p className="text-xs text-slate-500 italic px-2 py-1">No equipment available.</p>
-          ) : (
-            equipmentList.map((eq) => {
-              const alreadyInOther = hero.equippedItems[otherSlot] === eq.name;
-              return (
-                <button
-                  key={eq.name}
-                  onClick={() => onEquip(slotIndex, eq.name)}
-                  disabled={alreadyInOther}
-                  className="w-full text-left px-2 py-1 text-xs hover:bg-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <span className="text-white">{eq.name}</span>
-                  <span className="ml-1 text-slate-500 capitalize">({eq.data.rarity})</span>
-                  {alreadyInOther && (
-                    <span className="ml-1 text-slate-500">(other slot)</span>
-                  )}
-                </button>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// -- Pet Section --
-
-function PetSection({
-  hero,
-  allHeroes,
-  townHallLevel,
-  isOpen,
-  onToggle,
-  onAssign,
-  onUnassign,
-}: {
-  hero: OwnedHero;
-  allHeroes: OwnedHero[];
-  townHallLevel: number;
-  isOpen: boolean;
-  onToggle: () => void;
-  onAssign: (petName: string) => void;
-  onUnassign: () => void;
-}) {
-  const availablePets = getAvailablePets(townHallLevel);
-
-  return (
-    <div>
-      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-        Pet
-      </h4>
-      <div className="relative">
-        <div className="flex items-center justify-between bg-slate-700/50 rounded px-2 py-1.5">
-          {hero.assignedPet ? (
-            <span className="text-xs text-purple-300 font-medium">{hero.assignedPet}</span>
-          ) : (
-            <span className="text-xs text-slate-500 italic">No Pet</span>
-          )}
-          <div className="flex gap-1">
-            {hero.assignedPet && (
-              <button
-                onClick={onUnassign}
-                className="px-2 py-0.5 rounded text-xs bg-red-700/60 hover:bg-red-600 text-red-200 transition-colors"
-                aria-label={`Unassign ${hero.assignedPet}`}
-              >
-                Remove
-              </button>
-            )}
-            <button
-              onClick={onToggle}
-              className="px-2 py-0.5 rounded text-xs bg-purple-600/60 hover:bg-purple-500 text-purple-100 transition-colors"
-              aria-label="Assign pet"
-            >
-              Assign
-            </button>
-          </div>
-        </div>
-
-        {isOpen && (
-          <div className="mt-1 bg-slate-700 rounded border border-slate-600 max-h-32 overflow-y-auto">
-            {availablePets.length === 0 ? (
-              <p className="text-xs text-slate-500 italic px-2 py-1">No pets available.</p>
-            ) : (
-              availablePets.map((pet) => {
-                const assignedElsewhere = allHeroes.some(
-                  (h) => h.assignedPet === pet.name && h.name !== hero.name,
-                );
-                return (
-                  <button
-                    key={pet.name}
-                    onClick={() => onAssign(pet.name)}
-                    disabled={assignedElsewhere}
-                    className="w-full text-left px-2 py-1 text-xs hover:bg-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <span className="text-white">{pet.name}</span>
-                    {assignedElsewhere && (
-                      <span className="ml-1 text-slate-500">(assigned)</span>
-                    )}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  const upgrade = getHeroUpgradeCost(hero.name, hero.level);
+  if (!upgrade) return 'Max level';
+  if (resources[upgrade.resourceKey] < upgrade.cost) return `Not enough ${upgrade.resource}`;
+  return null;
 }
 
 // -- Hero Card --
 
 function HeroCard({
   hero,
-  townHallLevel,
-  allHeroes,
-  activeDropdown,
-  onSetDropdown,
-  onUpdateHero,
+  resources,
+  onUpgradeHero,
+  onManage,
 }: {
   hero: OwnedHero;
-  townHallLevel: number;
-  allHeroes: OwnedHero[];
-  activeDropdown: DropdownState;
-  onSetDropdown: (state: DropdownState) => void;
-  onUpdateHero: (heroName: string, updatedHero: OwnedHero) => void;
+  resources: ResourceAmounts;
+  onUpgradeHero: (heroName: string) => void;
+  onManage: (heroName: string, type: 'equipment' | 'pet') => void;
 }) {
   const stats = getHeroStats(hero.name, hero.level);
   const status = getStatusLabel(hero);
   const available = isHeroAvailableForBattle(hero);
-  const equipmentList = getNamedEquipmentForHero(hero.name);
-
-  const handleEquip = (slotIndex: 0 | 1, equipmentName: string) => {
-    const updated = equipItem(hero, slotIndex, equipmentName);
-    if (updated) {
-      onUpdateHero(hero.name, updated);
-    }
-    onSetDropdown(null);
-  };
-
-  const handleUnequip = (slotIndex: 0 | 1) => {
-    const updated = unequipItem(hero, slotIndex);
-    onUpdateHero(hero.name, updated);
-  };
-
-  const handleAssignPet = (petName: string) => {
-    const updated = assignPet(hero, petName, allHeroes);
-    if (updated) {
-      onUpdateHero(hero.name, updated);
-    }
-    onSetDropdown(null);
-  };
-
-  const handleUnassignPet = () => {
-    const updated = unassignPet(hero);
-    onUpdateHero(hero.name, updated);
-  };
-
-  const isEquipDropdownOpen = (slotIndex: 0 | 1) =>
-    activeDropdown !== null &&
-    activeDropdown.type === 'equipment' &&
-    activeDropdown.heroName === hero.name &&
-    activeDropdown.slotIndex === slotIndex;
-
-  const isPetDropdownOpen =
-    activeDropdown !== null &&
-    activeDropdown.type === 'pet' &&
-    activeDropdown.heroName === hero.name;
+  const ability = getHeroAbilityInfo(hero.name);
+  const upgrade = getHeroUpgradeCost(hero.name, hero.level);
+  const blockReason = getHeroUpgradeBlockReason(hero, resources);
+  const equippedCount = hero.equippedItems.filter((item) => item !== null).length;
 
   return (
     <div className="bg-slate-800 rounded-lg p-3 space-y-3">
@@ -314,47 +118,76 @@ function HeroCard({
         </div>
       )}
 
-      {/* Equipment slots */}
-      <div>
-        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-          Equipment
-        </h4>
-        <div className="space-y-1">
-          {([0, 1] as const).map((slotIndex) => (
-            <EquipmentSlot
-              key={slotIndex}
-              hero={hero}
-              slotIndex={slotIndex}
-              equipmentList={equipmentList}
-              isOpen={isEquipDropdownOpen(slotIndex)}
-              onToggle={() =>
-                onSetDropdown(
-                  isEquipDropdownOpen(slotIndex)
-                    ? null
-                    : { heroName: hero.name, type: 'equipment', slotIndex },
-                )
-              }
-              onEquip={handleEquip}
-              onUnequip={handleUnequip}
-            />
-          ))}
+      {/* Ability description */}
+      {ability && (
+        <div className="text-xs bg-slate-700/50 rounded px-2 py-1.5">
+          <span className="text-amber-300 font-semibold">{ability.name}:</span>{' '}
+          <span className="text-slate-400">{ability.description}</span>
         </div>
+      )}
+
+      {/* Hero upgrade */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-slate-400">
+          {upgrade
+            ? `Upgrade: ${formatResource(upgrade.cost)} ${upgrade.resource}`
+            : 'Max level reached'}
+        </span>
+        {upgrade && (
+          <button
+            onClick={() => onUpgradeHero(hero.name)}
+            disabled={blockReason !== null}
+            title={blockReason ?? undefined}
+            className="px-3 py-1 rounded text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label={`Upgrade ${hero.name}`}
+          >
+            Upgrade
+          </button>
+        )}
+      </div>
+      {blockReason && blockReason !== 'Max level' && !hero.isUpgrading && (
+        <p className="text-xs text-red-400">{blockReason}</p>
+      )}
+
+      {/* Equipment summary */}
+      <div className="flex items-center justify-between bg-slate-700/50 rounded px-2 py-1.5">
+        <div className="text-xs">
+          <span className="text-slate-500 mr-1">Equipment:</span>
+          {equippedCount > 0 ? (
+            <span className="text-amber-300">
+              {hero.equippedItems.filter((item) => item !== null).join(', ')}
+            </span>
+          ) : (
+            <span className="text-slate-500 italic">None equipped</span>
+          )}
+        </div>
+        <button
+          onClick={() => onManage(hero.name, 'equipment')}
+          className="px-2 py-0.5 rounded text-xs bg-cyan-700/60 hover:bg-cyan-600 text-cyan-100 transition-colors shrink-0"
+          aria-label={`Manage equipment for ${hero.name}`}
+        >
+          Manage
+        </button>
       </div>
 
-      {/* Pet assignment */}
-      <PetSection
-        hero={hero}
-        allHeroes={allHeroes}
-        townHallLevel={townHallLevel}
-        isOpen={isPetDropdownOpen}
-        onToggle={() =>
-          onSetDropdown(
-            isPetDropdownOpen ? null : { heroName: hero.name, type: 'pet' },
-          )
-        }
-        onAssign={handleAssignPet}
-        onUnassign={handleUnassignPet}
-      />
+      {/* Pet summary */}
+      <div className="flex items-center justify-between bg-slate-700/50 rounded px-2 py-1.5">
+        <div className="text-xs">
+          <span className="text-slate-500 mr-1">Pet:</span>
+          {hero.assignedPet ? (
+            <span className="text-purple-300">{hero.assignedPet}</span>
+          ) : (
+            <span className="text-slate-500 italic">No Pet</span>
+          )}
+        </div>
+        <button
+          onClick={() => onManage(hero.name, 'pet')}
+          className="px-2 py-0.5 rounded text-xs bg-purple-600/60 hover:bg-purple-500 text-purple-100 transition-colors shrink-0"
+          aria-label={`Manage pet for ${hero.name}`}
+        >
+          Manage
+        </button>
+      </div>
     </div>
   );
 }
@@ -364,12 +197,50 @@ function HeroCard({
 export function HeroPanel({
   heroes,
   townHallLevel,
+  ores,
+  ownedEquipment,
+  ownedPets,
+  blacksmithLevel,
+  petHouseLevel,
+  resources,
   onUpdateHero,
+  onUpgradeHero,
+  onUpgradeEquipment,
+  onUpgradePet,
   onClose,
 }: HeroPanelProps) {
-  const [activeDropdown, setActiveDropdown] = useState<DropdownState>(null);
+  const [managePanel, setManagePanel] = useState<ManagePanel>(null);
   const availableHeroDefinitions = getAvailableHeroes(townHallLevel);
   const hasHeroes = heroes.length > 0 || availableHeroDefinitions.length > 0;
+  const managedHero = managePanel
+    ? heroes.find((h) => h.name === managePanel.heroName) ?? null
+    : null;
+
+  const handleEquip = (slotIndex: 0 | 1, equipmentName: string) => {
+    if (!managedHero) return;
+    const updated = equipItem(managedHero, slotIndex, equipmentName);
+    if (updated) {
+      onUpdateHero(managedHero.name, updated);
+    }
+  };
+
+  const handleUnequip = (slotIndex: 0 | 1) => {
+    if (!managedHero) return;
+    onUpdateHero(managedHero.name, unequipItem(managedHero, slotIndex));
+  };
+
+  const handleAssignPet = (petName: string) => {
+    if (!managedHero) return;
+    const updated = assignPet(managedHero, petName, heroes);
+    if (updated) {
+      onUpdateHero(managedHero.name, updated);
+    }
+  };
+
+  const handleUnassignPet = () => {
+    if (!managedHero) return;
+    onUpdateHero(managedHero.name, unassignPet(managedHero));
+  };
 
   return (
     <div className="fixed inset-y-0 right-0 z-40 w-96 bg-slate-900/95 border-l-2 border-amber-500/60 backdrop-blur-sm flex flex-col">
@@ -400,15 +271,43 @@ export function HeroPanel({
             <HeroCard
               key={hero.name}
               hero={hero}
-              townHallLevel={townHallLevel}
-              allHeroes={heroes}
-              activeDropdown={activeDropdown}
-              onSetDropdown={setActiveDropdown}
-              onUpdateHero={onUpdateHero}
+              resources={resources}
+              onUpgradeHero={onUpgradeHero}
+              onManage={(heroName, type) => setManagePanel({ heroName, type })}
             />
           ))
         )}
       </div>
+
+      {/* Equipment management sub-panel */}
+      {managedHero && managePanel?.type === 'equipment' && (
+        <EquipmentPanel
+          hero={managedHero}
+          ownedEquipment={ownedEquipment}
+          ores={ores}
+          blacksmithLevel={blacksmithLevel}
+          onEquip={handleEquip}
+          onUnequip={handleUnequip}
+          onUpgradeEquipment={onUpgradeEquipment}
+          onClose={() => setManagePanel(null)}
+        />
+      )}
+
+      {/* Pet management sub-panel */}
+      {managedHero && managePanel?.type === 'pet' && (
+        <PetPanel
+          hero={managedHero}
+          allHeroes={heroes}
+          ownedPets={ownedPets}
+          townHallLevel={townHallLevel}
+          petHouseLevel={petHouseLevel}
+          darkElixir={resources.darkElixir}
+          onAssign={handleAssignPet}
+          onUnassign={handleUnassignPet}
+          onUpgradePet={onUpgradePet}
+          onClose={() => setManagePanel(null)}
+        />
+      )}
     </div>
   );
 }

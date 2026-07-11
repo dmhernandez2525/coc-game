@@ -2,7 +2,7 @@
 // All functions are pure: they return new state, never mutate.
 
 import type { PetData, PetLevelStats } from '../types/troops.ts';
-import type { OwnedHero } from '../types/village.ts';
+import type { OwnedHero, PlacedBuilding } from '../types/village.ts';
 import type { DeployedTroop } from '../types/battle.ts';
 import { getPet, pets } from '../data/loaders/hero-loader.ts';
 
@@ -13,11 +13,44 @@ export interface OwnedPet {
   level: number;
 }
 
+// Battle traits per pet: how each pet's signature ability maps onto the
+// battle engine's property-driven mechanics.
+// L.A.S.S.I springs over walls; Electro Owl's zap chains between targets
+// (handled by the chain-lightning mechanic); Mighty Yak busts walls;
+// Unicorn heals instead of fighting (handled by the healer mechanic).
+type PetTraitBuilder = (stats: PetLevelStats) => Partial<DeployedTroop>;
+
+const PET_TRAIT_BUILDERS: Record<string, PetTraitBuilder> = {
+  'L.A.S.S.I': () => ({ canJumpWalls: true }),
+  'Mighty Yak': () => ({ canJumpWalls: true, wallDamageMultiplier: 20 }),
+  'Electro Owl': () => ({ chainTargets: 2, chainDamageDecay: 0.8, attackRange: 3.5 }),
+  'Unicorn': (stats) => ({ healPerSecond: stats.healingPerSecond ?? 0, healRadius: 5, dps: 0, baseDps: 0 }),
+};
+
 // -- Public API --
 
 /** Get all available pets for a given Town Hall level. */
 export function getAvailablePets(townHallLevel: number): PetData[] {
   return Object.values(pets).filter((p) => p.thUnlock <= townHallLevel);
+}
+
+/** Get the placed Pet House's level. Returns 0 when it is not built. */
+export function getPetHouseLevel(buildings: PlacedBuilding[]): number {
+  return buildings.find((b) => b.buildingId === 'Pet House')?.level ?? 0;
+}
+
+/** Check if a pet is unlocked by both Town Hall and Pet House level. */
+export function isPetUnlocked(
+  petName: string, townHallLevel: number, petHouseLevel: number,
+): boolean {
+  const pet = getPet(petName);
+  if (!pet) return false;
+  return pet.thUnlock <= townHallLevel && pet.petHouseLevelRequired <= petHouseLevel;
+}
+
+/** Get the pets unlocked by the current Town Hall and Pet House levels. */
+export function getUnlockedPets(townHallLevel: number, petHouseLevel: number): PetData[] {
+  return Object.values(pets).filter((p) => isPetUnlocked(p.name, townHallLevel, petHouseLevel));
 }
 
 /** Get stats for a pet at a specific level. */
@@ -55,15 +88,13 @@ export function unassignPet(hero: OwnedHero): OwnedHero {
 }
 
 /**
- * Deploy a pet alongside its hero in battle.
- * Returns a DeployedTroop representing the pet, or null if no pet assigned.
+ * Create a battle unit for a pet near the given position, applying the
+ * pet's signature battle traits. Returns null for unknown pets or levels.
  */
-export function deployPet(
-  hero: OwnedHero, petLevel: number, heroX: number, heroY: number,
+export function createPetTroop(
+  petName: string, petLevel: number, x: number, y: number,
 ): DeployedTroop | null {
-  if (!hero.assignedPet) return null;
-
-  const petData = getPet(hero.assignedPet);
+  const petData = getPet(petName);
   if (!petData) return null;
 
   const stats = petData.levels.find((l) => l.level === petLevel);
@@ -71,24 +102,37 @@ export function deployPet(
 
   const offsetX = (Math.random() - 0.5) * 2;
   const offsetY = (Math.random() - 0.5) * 2;
+  const traits = PET_TRAIT_BUILDERS[petName]?.(stats) ?? {};
 
   return {
-    id: `pet_${hero.assignedPet}_${Date.now()}`,
-    name: hero.assignedPet,
+    id: `pet_${petName}_${Date.now()}`,
+    name: petName,
     level: petLevel,
     currentHp: stats.hp,
     maxHp: stats.hp,
-    x: heroX + offsetX,
-    y: heroY + offsetY,
+    x: x + offsetX,
+    y: y + offsetY,
     targetId: null,
     state: 'idle',
-    dps: stats.dps,
-    baseDps: stats.dps,
+    dps: stats.dps ?? 0,
+    baseDps: stats.dps ?? 0,
     attackRange: 1,
     movementSpeed: petData.movementSpeed,
     isFlying: petData.isFlying,
-    canJumpWalls: petData.name === 'L.A.S.S.I' || petData.name === 'Mighty Yak',
+    isPet: true,
+    ...traits,
   };
+}
+
+/**
+ * Deploy a pet alongside its hero in battle.
+ * Returns a DeployedTroop representing the pet, or null if no pet assigned.
+ */
+export function deployPet(
+  hero: OwnedHero, petLevel: number, heroX: number, heroY: number,
+): DeployedTroop | null {
+  if (!hero.assignedPet) return null;
+  return createPetTroop(hero.assignedPet, petLevel, heroX, heroY);
 }
 
 /** Get the upgrade cost for a pet at its current level. */
@@ -132,4 +176,25 @@ export function upgradePet(
   );
 
   return { pets: upgraded, cost: costInfo.cost };
+}
+
+/**
+ * Upgrade a pet by one level, seeding a level 1 entry when the pet has
+ * never been upgraded before. Same contract as upgradePet.
+ */
+export function upgradeOwnedPet(
+  ownedPets: OwnedPet[], petName: string, availableResources: number,
+): { pets: OwnedPet[]; cost: number } | null {
+  if (!getPet(petName)) return null;
+
+  const withEntry = ownedPets.some((p) => p.name === petName)
+    ? ownedPets
+    : [...ownedPets, { name: petName, level: 1 }];
+
+  return upgradePet(withEntry, petName, availableResources);
+}
+
+/** Get the level of an owned pet, defaulting to 1 when never upgraded. */
+export function getOwnedPetLevel(ownedPets: OwnedPet[], petName: string): number {
+  return ownedPets.find((p) => p.name === petName)?.level ?? 1;
 }

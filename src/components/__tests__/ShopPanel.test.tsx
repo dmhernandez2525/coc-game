@@ -10,36 +10,10 @@ import { getTownHall } from '../../data/loaders/index';
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makePlacedBuilding(
-  buildingId: string,
-  buildingType: PlacedBuilding['buildingType'] = 'defense',
-  overrides?: Partial<PlacedBuilding>,
-): PlacedBuilding {
-  return {
-    instanceId: `${buildingId}-${Math.random().toString(36).slice(2, 8)}`,
-    buildingId,
-    buildingType,
-    level: 1,
-    gridX: 0,
-    gridY: 0,
-    isUpgrading: false,
-    upgradeTimeRemaining: 0,
-    assignedBuilder: null,
-    ...overrides,
-  };
-}
-
 const richResources: ResourceAmounts = {
   gold: 9_999_999,
   elixir: 9_999_999,
   darkElixir: 9_999_999,
-  gems: 0,
-};
-
-const poorResources: ResourceAmounts = {
-  gold: 0,
-  elixir: 0,
-  darkElixir: 0,
   gems: 0,
 };
 
@@ -181,14 +155,17 @@ describe('ShopPanel', () => {
     expect(bombButton).toHaveProperty('disabled', true);
   });
 
-  it('does not show traps that are not unlocked at the current TH level', () => {
+  it('shows locked traps as disabled with an unlock hint', () => {
     // At TH3, Bomb is unlocked (thUnlock 3) but Spring Trap is not (thUnlock 4)
-    // However the component filters by maxCountByTH first; Spring Trap has no "3" key
     renderShop({ townHallLevel: 3 });
     clickTab('Traps');
 
     expect(screen.getByText('Bomb')).toBeDefined();
-    expect(screen.queryByText('Spring Trap')).toBeNull();
+
+    const springButton = screen.getByText('Spring Trap').closest('button')!;
+    expect(springButton).toHaveProperty('disabled', true);
+    expect(springButton.getAttribute('title')).toBe('Unlocks at Town Hall 4');
+    expect(screen.getByText('Unlocks at Town Hall 4')).toBeDefined();
   });
 
   it('does not call onSelectBuilding when a trap is clicked', () => {
@@ -268,12 +245,14 @@ describe('ShopPanel', () => {
     expect(screen.getByText(costText)).toBeDefined();
   });
 
-  it('shows no wall entry at TH1 since maxWalls is 0', () => {
+  it('shows a locked wall entry at TH1 with an unlock hint', () => {
     renderShop({ townHallLevel: 1 });
     clickTab('Walls');
 
-    expect(screen.queryByText('Wall')).toBeNull();
-    expect(screen.getByText('No buildings available in this category.')).toBeDefined();
+    const wallButton = screen.getByText('Wall').closest('button')!;
+    expect(wallButton).toHaveProperty('disabled', true);
+    expect(wallButton.getAttribute('title')).toBe('Unlocks at Town Hall 2');
+    expect(screen.getByText('Unlocks at Town Hall 2')).toBeDefined();
   });
 
   it('does not call onSelectBuilding when a wall is clicked', () => {

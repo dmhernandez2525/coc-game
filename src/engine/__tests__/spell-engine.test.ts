@@ -1124,3 +1124,170 @@ describe('tickSpells - spell duration expiration', () => {
     expect(result.spells[0]!.remainingDuration).toBe(14);
   });
 });
+
+// ---------------------------------------------------------------------------
+// tickSpells: attacker-only buffs never help defender units
+// ---------------------------------------------------------------------------
+
+describe('tickSpells - buffs are attacker-side only', () => {
+  it('Healing Spell does not heal defender troops in radius', () => {
+    const spell = makeSpell({ name: 'Healing Spell', level: 1, x: 5, y: 5, radius: 5 });
+    const defenderUnit = makeTroop({ x: 5, y: 5, currentHp: 50, maxHp: 100, isDefender: true });
+
+    const result = tickSpells([spell], [defenderUnit], [], [], 1000);
+
+    expect(result.troops[0]!.currentHp).toBe(50);
+  });
+
+  it('Rage Spell does not boost defender troops in radius', () => {
+    const spell = makeSpell({ name: 'Rage Spell', level: 1, x: 5, y: 5, radius: 5 });
+    const defenderUnit = makeTroop({
+      x: 5, y: 5, dps: 10, baseDps: 10, movementSpeed: 16, isDefender: true,
+    });
+
+    const result = tickSpells([spell], [defenderUnit], [], [], 1000);
+
+    expect(result.troops[0]!.dps).toBe(10);
+    expect(result.troops[0]!.movementSpeed).toBe(16);
+  });
+
+  it('Haste Spell does not speed up defender troops in radius', () => {
+    const spell = makeSpell({ name: 'Haste Spell', level: 1, x: 5, y: 5, radius: 5 });
+    const defenderUnit = makeTroop({ x: 5, y: 5, movementSpeed: 16, isDefender: true });
+
+    const result = tickSpells([spell], [defenderUnit], [], [], 1000);
+
+    expect(result.troops[0]!.movementSpeed).toBe(16);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// deploySpell: Clone Spell
+// ---------------------------------------------------------------------------
+
+describe('deploySpell - Clone Spell', () => {
+  function cloneState(troops: DeployedTroop[]): BattleState {
+    return makeBattleState({
+      deployedTroops: troops,
+      availableSpells: [{ name: 'Clone Spell', level: 1, count: 1 }],
+    });
+  }
+
+  it('creates reduced-HP copies of attacker troops in radius', () => {
+    // Barbarian: housingSpace 1, well under level 1 clonedCapacity (22)
+    const source = makeTroop({ name: 'Barbarian', x: 5, y: 5, currentHp: 100, maxHp: 100 });
+    const state = cloneState([source]);
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.deployedTroops).toHaveLength(2);
+    const clone = result!.deployedTroops[1]!;
+    expect(clone.isClone).toBe(true);
+    expect(clone.name).toBe('Barbarian');
+    // Clones spawn at half the original max HP
+    expect(clone.maxHp).toBe(50);
+    expect(clone.currentHp).toBe(50);
+    expect(clone.cloneLifespanRemaining).toBe(30);
+    expect(clone.id).not.toBe(source.id);
+  });
+
+  it('consumes the spell and creates no lingering ActiveSpell', () => {
+    const state = cloneState([makeTroop({ name: 'Barbarian', x: 5, y: 5 })]);
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result!.availableSpells[0]!.count).toBe(0);
+    expect(result!.spells).toHaveLength(0);
+  });
+
+  it('respects the cloned housing capacity, nearest troops first', () => {
+    // Dragons cost 20 housing; level 1 capacity 22 fits only one
+    const near = makeTroop({ name: 'Dragon', x: 5, y: 5, currentHp: 3000, maxHp: 3000, isFlying: true });
+    const far = makeTroop({ name: 'Dragon', x: 7, y: 5, currentHp: 3000, maxHp: 3000, isFlying: true });
+    const state = cloneState([near, far]);
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result!.deployedTroops).toHaveLength(3);
+    const clone = result!.deployedTroops[2]!;
+    expect(clone.id).toContain(near.id);
+  });
+
+  it('never clones heroes, defenders, other clones, or troops outside the radius', () => {
+    const hero = makeTroop({ name: 'Barbarian King', x: 5, y: 5, isHero: true });
+    const defender = makeTroop({ name: 'Barbarian', x: 5, y: 5, isDefender: true });
+    const existingClone = makeTroop({ name: 'Barbarian', x: 5, y: 5, isClone: true });
+    const outside = makeTroop({ name: 'Barbarian', x: 50, y: 50 });
+    const state = cloneState([hero, defender, existingClone, outside]);
+
+    const result = deploySpell(state, 'Clone Spell', 5, 5);
+
+    expect(result!.deployedTroops).toHaveLength(4); // No clones added
+  });
+});
+
+// ---------------------------------------------------------------------------
+// deploySpell: Recall Spell
+// ---------------------------------------------------------------------------
+
+describe('deploySpell - Recall Spell', () => {
+  function recallState(troops: DeployedTroop[], overrides?: Partial<BattleState>): BattleState {
+    return makeBattleState({
+      deployedTroops: troops,
+      availableSpells: [{ name: 'Recall Spell', level: 1, count: 1 }],
+      ...overrides,
+    });
+  }
+
+  it('returns troops in radius to the deploy bar with their counts merged', () => {
+    // makeTroop ids start with "troop_", matching deployTroop's id scheme
+    const t1 = makeTroop({ name: 'Barbarian', level: 1, x: 5, y: 5 });
+    const t2 = makeTroop({ name: 'Barbarian', level: 1, x: 6, y: 5 });
+    const state = recallState([t1, t2], {
+      availableTroops: [{ name: 'Barbarian', level: 1, count: 3 }],
+    });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5);
+
+    expect(result).not.toBeNull();
+    expect(result!.deployedTroops).toHaveLength(0);
+    expect(result!.availableTroops).toEqual([{ name: 'Barbarian', level: 1, count: 5 }]);
+    expect(result!.availableSpells[0]!.count).toBe(0);
+  });
+
+  it('adds a fresh deploy bar entry when the slot was used up', () => {
+    const t1 = makeTroop({ name: 'Barbarian', level: 2, x: 5, y: 5 });
+    const state = recallState([t1], { availableTroops: [] });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5);
+
+    expect(result!.availableTroops).toEqual([{ name: 'Barbarian', level: 2, count: 1 }]);
+  });
+
+  it('respects the recalled housing capacity, nearest troops first', () => {
+    // Dragons cost 20 housing; level 1 recalledCapacity 83 fits four of five
+    const dragons = [0, 1, 2, 3, 4].map((i) =>
+      makeTroop({ name: 'Dragon', level: 1, x: 5 + i, y: 5, isFlying: true }),
+    );
+    const state = recallState(dragons, { availableTroops: [] });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5);
+
+    expect(result!.deployedTroops).toHaveLength(1);
+    expect(result!.deployedTroops[0]!.id).toBe(dragons[4]!.id); // Farthest stays
+    expect(result!.availableTroops).toEqual([{ name: 'Dragon', level: 1, count: 4 }]);
+  });
+
+  it('never recalls clones, defenders, or units that did not come from the deploy bar', () => {
+    const clone = makeTroop({ name: 'Barbarian', x: 5, y: 5, isClone: true, id: 'clone_troop_9_0' });
+    const defender = makeTroop({ name: 'Barbarian', x: 5, y: 5, isDefender: true });
+    const summon = makeTroop({ name: 'Skeleton', x: 5, y: 5, id: 'skeleton_123_0' });
+    const state = recallState([clone, defender, summon], { availableTroops: [] });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5);
+
+    expect(result!.deployedTroops).toHaveLength(3);
+    expect(result!.availableTroops).toHaveLength(0);
+  });
+});

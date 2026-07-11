@@ -9,11 +9,16 @@ import {
   canPlaceBuilding,
   buildOccupiedSet,
 } from '../utils/grid-utils.ts';
+import { getWallConnection } from '../utils/wall-connections.ts';
 
 export interface PlacementMode {
   buildingId: string;
   width: number;
   height: number;
+  /** What is being placed. Defaults to a building when omitted. */
+  kind?: 'building' | 'trap';
+  /** Trap type name, present only when kind is 'trap'. */
+  trapId?: string;
 }
 
 interface VillageGridProps {
@@ -387,13 +392,19 @@ function getWallColor(level: number): { fill: string; stroke: string } {
   return WALL_COLORS[WALL_COLORS.length - 1]!;
 }
 
-// 4-directional neighbors for wall connection detection
-const WALL_NEIGHBORS = [
-  { dx: 1, dy: 0 },
-  { dx: -1, dy: 0 },
-  { dx: 0, dy: 1 },
-  { dx: 0, dy: -1 },
+// Directions in the same order the connection classifier reports them, so the
+// junction art (arms toward each connected neighbour + a center joint whose
+// size reflects straight/corner/T/cross) is driven off the tested classifier.
+const WALL_DIRECTIONS: Array<{ key: 'north' | 'south' | 'west' | 'east'; dx: number; dy: number }> = [
+  { key: 'north', dx: 0, dy: -1 },
+  { key: 'south', dx: 0, dy: 1 },
+  { key: 'west', dx: -1, dy: 0 },
+  { key: 'east', dx: 1, dy: 0 },
 ];
+
+// Center joint radius (in tile-half units) by connection count, so a straight
+// run reads differently from a corner, T-junction, or a 4-way cross.
+const JOINT_SCALE_BY_COUNT = [0.28, 0.3, 0.36, 0.42, 0.5];
 
 function drawWall(
   ctx: CanvasRenderingContext2D,
@@ -422,19 +433,25 @@ function drawWall(
   ctx.lineWidth = isSelected ? 2.5 : 1.5;
   ctx.stroke();
 
-  // Draw connection lines to adjacent walls
+  // Classify how this segment connects to its neighbours and draw an arm toward
+  // each connected side plus a center joint sized for the junction type.
+  const connection = getWallConnection(wall.gridX, wall.gridY, wallSet);
   ctx.strokeStyle = fill;
   ctx.lineWidth = Math.max(2, 3 * zoom);
-  for (const n of WALL_NEIGHBORS) {
-    const nKey = `${wall.gridX + n.dx},${wall.gridY + n.dy}`;
-    if (wallSet.has(nKey)) {
-      const np = toCanvas(wall.gridX + n.dx, wall.gridY + n.dy);
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.lineTo((p.x + np.x) / 2, (p.y + np.y) / 2);
-      ctx.stroke();
-    }
+  for (const dir of WALL_DIRECTIONS) {
+    if (!connection.neighbours[dir.key]) continue;
+    const np = toCanvas(wall.gridX + dir.dx, wall.gridY + dir.dy);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo((p.x + np.x) / 2, (p.y + np.y) / 2);
+    ctx.stroke();
   }
+
+  const jointScale = JOINT_SCALE_BY_COUNT[connection.count] ?? 0.28;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, hw * jointScale, 0, Math.PI * 2);
+  ctx.fillStyle = stroke;
+  ctx.fill();
 }
 
 function drawTrap(

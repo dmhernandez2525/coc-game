@@ -1,5 +1,11 @@
-// Clan War system: NPC clan generation, war matching, attack simulation, results.
+// Clan War system: NPC clan generation, war base assignment, attack tracking,
+// NPC attack simulation, results, and war loot.
 // All functions are pure: they return new state, never mutate.
+// Randomized steps accept an injectable RNG so tests stay deterministic.
+
+import type { NPCBase } from '../data/npc-bases.ts';
+import { getNPCBasesMatchingTH, getNPCBaseById } from '../data/npc-bases.ts';
+import type { Rng } from '../utils/seeded-rng.ts';
 
 // -- Types --
 
@@ -9,6 +15,8 @@ export interface WarClanMember {
   attacksRemaining: number;
   bestAttackStars: number;
   bestAttackDestruction: number;
+  /** NPC base layout this member defends with (war base). */
+  warBaseId?: string;
 }
 
 export interface WarClan {
@@ -27,6 +35,12 @@ export interface WarState {
   warSize: number; // 5v5, 10v10, 15v15
   preparationTimeRemaining: number; // seconds
   battleTimeRemaining: number; // seconds
+  /** Layout the player's clan defends with, chosen during preparation. */
+  playerWarBaseId?: string;
+  /** Final outcome, set when the war ends. */
+  result?: WarResult;
+  /** Loot actually credited to the treasury when the war ended. */
+  lootAwarded?: { gold: number; elixir: number; darkElixir: number };
 }
 
 export interface WarAttackResult {
@@ -52,6 +66,9 @@ const NPC_CLAN_NAMES = [
   'Dragon Slayers', 'Eagle Eyes', 'Ghost Regiment',
 ];
 
+// How strongly the defending war base's quality suppresses NPC attack stars.
+const DEFENSE_RATING_WEIGHT = 0.3;
+
 // -- Public API --
 
 /** Get available war sizes. */
@@ -59,18 +76,28 @@ export function getWarSizes(): readonly number[] {
   return WAR_SIZES;
 }
 
+/** Pick a war base layout for a defender of the given TH level. */
+function pickWarBaseId(thLevel: number, rng: Rng): string | undefined {
+  const pool = getNPCBasesMatchingTH(thLevel);
+  if (pool.length === 0) return undefined;
+  return pool[Math.floor(rng() * pool.length)]?.id;
+}
+
 /** Generate an NPC enemy clan matched to the player's TH levels. */
 export function generateEnemyClan(
   playerMembers: WarClanMember[],
+  rng: Rng = Math.random,
 ): WarClan {
-  const nameIndex = Math.floor(Math.random() * NPC_CLAN_NAMES.length);
+  const nameIndex = Math.floor(rng() * NPC_CLAN_NAMES.length);
   const clanName = NPC_CLAN_NAMES[nameIndex] ?? 'Goblin Horde';
 
-  // Generate mirrored members with slight TH variation
+  // Generate mirrored members with slight TH variation, each defending
+  // a real base layout from the NPC library.
   const enemyMembers: WarClanMember[] = playerMembers.map((pm, i) => {
-    const thVariation = Math.random() > 0.7 ? 1 : 0;
-    const direction = Math.random() > 0.5 ? 1 : -1;
+    const thVariation = rng() > 0.7 ? 1 : 0;
+    const direction = rng() > 0.5 ? 1 : -1;
     const thLevel = Math.max(1, pm.townHallLevel + thVariation * direction);
+    const warBaseId = pickWarBaseId(thLevel, rng);
 
     return {
       name: `NPC ${clanName} #${i + 1}`,
@@ -78,6 +105,7 @@ export function generateEnemyClan(
       attacksRemaining: ATTACKS_PER_MEMBER,
       bestAttackStars: 0,
       bestAttackDestruction: 0,
+      ...(warBaseId !== undefined ? { warBaseId } : {}),
     };
   });
 
@@ -94,6 +122,7 @@ export function startWar(
   playerClanName: string,
   playerTHLevels: number[],
   warSize: number,
+  rng: Rng = Math.random,
 ): WarState {
   const validSize = WAR_SIZES.includes(warSize as 5 | 10 | 15)
     ? warSize
@@ -121,7 +150,7 @@ export function startWar(
     totalDestruction: 0,
   };
 
-  const enemyClan = generateEnemyClan(playerMembers);
+  const enemyClan = generateEnemyClan(playerMembers, rng);
 
   return {
     phase: 'preparation',
@@ -131,6 +160,48 @@ export function startWar(
     preparationTimeRemaining: PREPARATION_TIME,
     battleTimeRemaining: BATTLE_TIME,
   };
+}
+
+/** War base layouts the player can defend with, given their TH level. */
+export function getSelectableWarBases(thLevel: number): NPCBase[] {
+  return getNPCBasesMatchingTH(thLevel);
+}
+
+/**
+ * Choose the layout the player's clan defends with.
+ * Only allowed during preparation day (scouting), like the real game.
+ */
+export function selectPlayerWarBase(war: WarState, baseId: string): WarState {
+  if (war.phase !== 'preparation') return war;
+  if (!getNPCBaseById(baseId)) return war;
+  return { ...war, playerWarBaseId: baseId };
+}
+
+/**
+ * Defensive quality of a war base, normalized to 0..1.
+ * More defenses at higher levels rate closer to 1 for the base's TH.
+ */
+export function getWarBaseDefenseRating(base: NPCBase): number {
+  const defenseLevels = base.buildings
+    .filter((b) => b.buildingType === 'defense')
+    .reduce((sum, b) => sum + b.level, 0);
+  const expectedMax = 6 + base.townHallLevel * 8;
+  return Math.min(1, defenseLevels / expectedMax);
+}
+
+/** Resolve the base layout an enemy war member defends with. */
+export function getEnemyWarBase(war: WarState, defenderIndex: number): NPCBase | null {
+  const member = war.enemyClan.members[defenderIndex];
+  if (!member) return null;
+  const assigned = member.warBaseId ? getNPCBaseById(member.warBaseId) : undefined;
+  if (assigned) return assigned;
+  // Fallback for wars started before base assignment existed
+  return getNPCBasesMatchingTH(member.townHallLevel)[0] ?? null;
+}
+
+/** Index of the next player member with attacks left, or -1 when spent. */
+export function getNextAttackerIndex(war: WarState): number {
+  return war.playerClan.members.findIndex((m) => m.attacksRemaining > 0);
 }
 
 /** Advance the war to battle phase. */
@@ -191,12 +262,26 @@ export function recordPlayerAttack(
   };
 }
 
+/** Star/destruction outcome for one simulated NPC attack roll. */
+function rollNPCAttack(roll: number, starChance: number, rng: Rng): { stars: number; destruction: number } {
+  if (roll < starChance * 0.3) return { stars: 3, destruction: 100 };
+  if (roll < starChance * 0.6) return { stars: 2, destruction: 50 + Math.floor(rng() * 30) };
+  if (roll < starChance) return { stars: 1, destruction: 30 + Math.floor(rng() * 20) };
+  return { stars: 0, destruction: Math.floor(rng() * 30) };
+}
+
 /**
  * Simulate NPC attacks. Each NPC member attacks the mirror position.
- * Results are randomized based on TH difference.
+ * Results are randomized based on TH difference, and suppressed by the
+ * quality of the war base the player's clan selected during preparation.
  */
-export function simulateNPCAttacks(war: WarState): WarState {
+export function simulateNPCAttacks(war: WarState, rng: Rng = Math.random): WarState {
   if (war.phase !== 'battle') return war;
+
+  const playerBase = war.playerWarBaseId ? getNPCBaseById(war.playerWarBaseId) : undefined;
+  const defensePenalty = playerBase
+    ? getWarBaseDefenseRating(playerBase) * DEFENSE_RATING_WEIGHT
+    : 0;
 
   const updatedEnemyClan = { ...war.enemyClan, members: [...war.enemyClan.members] };
   let totalStars = 0;
@@ -208,35 +293,18 @@ export function simulateNPCAttacks(war: WarState): WarState {
     if (!defender) continue;
 
     const thDiff = attacker.townHallLevel - defender.townHallLevel;
-    // Higher TH advantage = more likely to get stars
-    const baseStarChance = 0.5 + thDiff * 0.15;
+    // Higher TH advantage = more likely to get stars; a strong war base pushes back
+    const baseStarChance = Math.max(0.05, 0.5 + thDiff * 0.15 - defensePenalty);
 
     let stars = 0;
     let destruction = 0;
 
     // Simulate 2 attacks
     for (let attack = 0; attack < ATTACKS_PER_MEMBER; attack++) {
-      const roll = Math.random();
-      let attackStars: number;
-      let attackDestruction: number;
-
-      if (roll < baseStarChance * 0.3) {
-        attackStars = 3;
-        attackDestruction = 100;
-      } else if (roll < baseStarChance * 0.6) {
-        attackStars = 2;
-        attackDestruction = 50 + Math.floor(Math.random() * 30);
-      } else if (roll < baseStarChance) {
-        attackStars = 1;
-        attackDestruction = 30 + Math.floor(Math.random() * 20);
-      } else {
-        attackStars = 0;
-        attackDestruction = Math.floor(Math.random() * 30);
-      }
-
-      if (attackStars > stars) {
-        stars = attackStars;
-        destruction = Math.max(destruction, attackDestruction);
+      const outcome = rollNPCAttack(rng(), baseStarChance, rng);
+      if (outcome.stars > stars) {
+        stars = outcome.stars;
+        destruction = Math.max(destruction, outcome.destruction);
       }
     }
 
@@ -261,10 +329,8 @@ export function simulateNPCAttacks(war: WarState): WarState {
   };
 }
 
-/** End the war and determine the result. */
+/** End the war and determine the result. The result is stored on the state. */
 export function endWar(war: WarState): { war: WarState; result: WarResult } {
-  const endedWar: WarState = { ...war, phase: 'ended', battleTimeRemaining: 0 };
-
   const playerStars = war.playerClan.totalStars;
   const enemyStars = war.enemyClan.totalStars;
 
@@ -280,13 +346,19 @@ export function endWar(war: WarState): { war: WarState; result: WarResult } {
     result = playerDest > enemyDest ? 'victory' : playerDest < enemyDest ? 'defeat' : 'draw';
   }
 
+  const endedWar: WarState = { ...war, phase: 'ended', battleTimeRemaining: 0, result };
+
   return { war: endedWar, result };
 }
 
-/** Calculate war loot based on result and TH levels. */
+/**
+ * Calculate war loot based on result and TH levels.
+ * The optional multiplier applies the war league bonus.
+ */
 export function calculateWarLoot(
   result: WarResult,
   playerTHLevel: number,
+  leagueMultiplier = 1,
 ): { gold: number; elixir: number; darkElixir: number } {
   const baseLoot = playerTHLevel * 50000;
   const deLoot = playerTHLevel >= 7 ? playerTHLevel * 200 : 0;
@@ -297,7 +369,7 @@ export function calculateWarLoot(
     defeat: 0.2,
   };
 
-  const multiplier = multipliers[result];
+  const multiplier = multipliers[result] * leagueMultiplier;
 
   return {
     gold: Math.floor(baseLoot * multiplier),

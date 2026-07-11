@@ -2,6 +2,7 @@
 // All functions are pure: they return new state, never mutate.
 
 import type { TrainedTroop } from '../types/village.ts';
+import type { NPCBase } from '../data/npc-bases.ts';
 import { getTroop } from '../data/loaders/troop-loader.ts';
 import {
   getCampaignBattleConfig,
@@ -33,6 +34,14 @@ function calculateArmyPower(army: TrainedTroop[]): number {
   return power;
 }
 
+/** Defensive power contributed by the level's base layout. */
+function calculateBaseDefensePower(base: NPCBase | null): number {
+  if (!base) return 0;
+  return base.buildings
+    .filter((b) => b.buildingType === 'defense')
+    .reduce((sum, b) => sum + b.level * 120, 0);
+}
+
 /**
  * Simulate a campaign battle. Returns a deterministic result based on
  * the player's army power relative to the NPC army power for the level.
@@ -53,7 +62,8 @@ export function simulateCampaignBattle(
   if (!config) return null;
 
   const playerPower = calculateArmyPower(playerArmy);
-  const npcPower = calculateArmyPower(config.npcArmy);
+  // The defending garrison plus the level's base layout resist the attack
+  const npcPower = calculateArmyPower(config.npcArmy) + calculateBaseDefensePower(config.npcBase);
 
   if (playerPower === 0) {
     return { stars: 0, destructionPercent: 0, townHallDestroyed: false, loot: null };
