@@ -363,6 +363,22 @@ describe('deploySpell', () => {
     expect(result!.spells[0]!.remainingDuration).toBe(16);
   });
 
+  it('freezes only living defender troops in range for the configured duration', () => {
+    const defender = makeTroop({ id: 'defender', x: 8, y: 8, isDefender: true });
+    const attacker = makeTroop({ id: 'attacker', x: 8, y: 8, isDefender: false });
+    const outside = makeTroop({ id: 'outside', x: 30, y: 30, isDefender: true });
+    const state = makeBattleState({
+      timeRemaining: 170,
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+      deployedTroops: [defender, attacker, outside],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 8, 8)!;
+    expect(result.deployedTroops[0]).toMatchObject({ isFrozen: true, frozenUntil: 12.5 });
+    expect(result.deployedTroops[1]!.isFrozen).toBeUndefined();
+    expect(result.deployedTroops[2]!.isFrozen).toBeUndefined();
+  });
+
   it('does not mutate the original state', () => {
     const state = makeBattleState({
       availableSpells: [{ name: 'Lightning Spell', level: 1, count: 3 }],

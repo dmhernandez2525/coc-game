@@ -18,7 +18,22 @@ export default defineConfig({
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
-      include: ['src/engine/**/*.ts', 'src/data/loaders/**/*.ts', 'src/utils/**/*.ts'],
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
+      include: [
+        'src/engine/**/*.ts',
+        'src/data/loaders/**/*.ts',
+        'src/utils/**/*.ts',
+        'src/hooks/useResources.ts',
+        'src/store/game-store.ts',
+        'src/components/BuildingPanel.tsx',
+        'src/components/DefenseLogPanel.tsx',
+        'src/components/LabPanel.tsx',
+      ],
       exclude: ['**/*.test.ts', '**/*.test.tsx'],
     },
   },

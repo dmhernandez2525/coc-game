@@ -128,6 +128,8 @@ import { upgradeOwnedEquipment } from '../engine/equipment-manager.ts';
 import { upgradeOwnedPet, getPetHouseLevel } from '../engine/pet-manager.ts';
 import { getOres, getBlacksmithLevel } from '../engine/ore-manager.ts';
 import { simulateDefense } from '../engine/defense-simulator.ts';
+import { canReloadDefenseAmmo, reloadDefenseAmmo } from '../engine/defense-ammo.ts';
+import { getTroopResearchLevel, startResearch } from '../engine/research-manager.ts';
 
 type ActivePanel =
   | 'none' | 'shop' | 'settings' | 'saveLoad' | 'gemShop'
@@ -492,16 +494,8 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setState((prev) => removeSiegeMachine(prev, siegeName));
   }, [setState]);
 
-  // Lab handler (simplified: instant research for now)
   const handleResearch = useCallback((troopName: string) => {
-    setState((prev) => {
-      const troopIdx = prev.army.findIndex((t) => t.name === troopName);
-      if (troopIdx < 0) return prev;
-      const existing = prev.army[troopIdx]!;
-      const newArmy = [...prev.army];
-      newArmy[troopIdx] = { ...existing, level: existing.level + 1 };
-      return { ...prev, army: newArmy };
-    });
+    setState((prev) => startResearch(prev, troopName) ?? prev);
   }, [setState]);
 
   // Town Hall upgrade handler (completes via the normal upgrade tick pipeline)
@@ -528,19 +522,10 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     }));
   }, [selectedBuilding, setState]);
 
-  const handleReloadXBow = useCallback(() => {
-    if (!selectedBuilding || selectedBuilding.buildingId !== 'X-Bow') return;
+  const handleReloadDefenseAmmo = useCallback(() => {
+    if (!selectedBuilding) return;
     const instanceId = selectedBuilding.instanceId;
-    setState(prev => {
-      if (prev.resources.elixir < 10_000) return prev;
-      return {
-        ...prev,
-        resources: { ...prev.resources, elixir: prev.resources.elixir - 10_000 },
-        buildings: prev.buildings.map(building => building.instanceId === instanceId
-          ? { ...building, ammo: 1000, maxAmmo: 1000 }
-          : building),
-      };
-    });
+    setState((prev) => reloadDefenseAmmo(prev, instanceId) ?? prev);
   }, [selectedBuilding, setState]);
 
   // Building move handler
@@ -1030,8 +1015,8 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
           canUpgrade={canUpgrade}
           upgradeCost={upgradeCost}
           onToggleXBowMode={handleToggleXBowMode}
-          onReloadXBow={handleReloadXBow}
-          canReloadXBow={state.resources.elixir >= 10_000}
+          onReloadAmmo={handleReloadDefenseAmmo}
+          canReloadAmmo={canReloadDefenseAmmo(state, selectedBuilding.instanceId)}
         />
       )}
 
@@ -1104,8 +1089,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
         <LabPanel
           labLevel={getLabLevel(state)}
           troops={getAllTroops()}
-          troopLevels={Object.fromEntries(state.army.map((t) => [t.name, t.level]))}
+          troopLevels={Object.fromEntries(getAllTroops().map((troop) => [
+            troop.name,
+            getTroopResearchLevel(state, troop.name),
+          ]))}
           resources={state.resources}
+          activeResearch={state.activeResearch ?? null}
           onResearch={handleResearch}
           onClose={closePanel}
         />

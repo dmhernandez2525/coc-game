@@ -131,7 +131,11 @@ export function trainTroop(state: VillageState, troopName: string): VillageState
   } else {
     // Super troop stat tables start above level 1, so new entries begin at
     // the troop's lowest defined level (level 1 for regular troops)
-    army = [...state.army, { name: troopName, level: troop.levels[0]?.level ?? 1, count: 1 }];
+    army = [...state.army, {
+      name: troopName,
+      level: state.troopLevels?.[troopName] ?? troop.levels[0]?.level ?? 1,
+      count: 1,
+    }];
   }
 
   return { ...state, resources, army };

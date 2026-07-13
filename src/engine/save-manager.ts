@@ -68,6 +68,8 @@ function normalizeSave(data: VillageState): VillageState {
     army: Array.isArray(data.army) ? data.army : [],
     spells: Array.isArray(data.spells) ? data.spells : [],
     heroes: Array.isArray(data.heroes) ? data.heroes : [],
+    ...(data.troopLevels && typeof data.troopLevels === 'object' ? { troopLevels: data.troopLevels } : {}),
+    ...(data.activeResearch !== undefined ? { activeResearch: data.activeResearch } : {}),
     ores: data.ores ?? { shinyOre: 0, glowyOre: 0, starryOre: 0 },
     ownedEquipment: Array.isArray(data.ownedEquipment) ? data.ownedEquipment : [],
     ownedPets: Array.isArray(data.ownedPets) ? data.ownedPets : [],

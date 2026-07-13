@@ -10,6 +10,7 @@ import { completeUpgrade } from '../engine/village-manager.ts';
 import { tickHeroRecovery, tickHeroUpgrades } from '../engine/hero-manager.ts';
 import { tickVillageSuperTroopBoosts } from '../engine/super-troop-manager.ts';
 import { tickPotions, getPotionMultipliers } from '../engine/magic-items-manager.ts';
+import { tickResearch } from '../engine/research-manager.ts';
 
 const TICK_INTERVAL_MS = 1000;
 
@@ -80,7 +81,11 @@ export function tickVillage(state: VillageState, deltaMs: number): VillageState 
   const built = tickBuildingUpgrades(produced, deltaMs * mults.builderSpeed);
   const recovered = tickHeroRecoveryState(built, deltaMs);
   const upgraded = tickHeroUpgradeState(recovered, deltaMs);
-  return tickSuperTroopBoostState(upgraded, deltaMs);
+  const researched = tickResearch(
+    upgraded,
+    (deltaMs / 1000) * upgraded.gameClockSpeed * mults.labSpeed,
+  );
+  return tickSuperTroopBoostState(researched, deltaMs);
 }
 
 /**

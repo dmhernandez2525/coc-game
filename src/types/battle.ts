@@ -18,6 +18,7 @@ export interface DeployedTroop {
   attackRange: number;
   movementSpeed: number;
   isFlying: boolean;
+  housingSpace?: number;          // Real army capacity used for Eagle activation
   // Special troop mechanics
   isBurrowed?: boolean;           // Miner: untargetable while moving underground
   isEnraged?: boolean;            // Baby Dragon: alone in the sky
@@ -73,6 +74,8 @@ export interface DeployedTroop {
   lifeAuraApplied?: boolean;
   favoriteTargetOverrideUntil?: number;
   brainwashDuration?: number;
+  isFrozen?: boolean;             // Freeze Spell prevents defender movement/attacks
+  frozenUntil?: number;           // Battle elapsed second when the freeze expires
 }
 
 export interface ActiveDefense {

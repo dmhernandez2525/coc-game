@@ -2,6 +2,7 @@ import type { BattleState, DeployedTroop } from '../../types/battle.ts';
 import type { PlacedBuilding, PlacedTrap, VillageState } from '../../types/village.ts';
 import { createStarterVillage } from '../village-manager.ts';
 import { simulateDefense, triggerDefenseTraps } from '../defense-simulator.ts';
+import { reloadDefenseAmmo } from '../defense-ammo.ts';
 
 function makeTroop(overrides: Partial<DeployedTroop> = {}): DeployedTroop {
   return {
@@ -157,5 +158,31 @@ describe('simulateDefense', () => {
     expect(result.village.defenseLog).toHaveLength(20);
     expect(result.village.defenseLog?.[0]!.id).toBe('defense_999');
     expect(result.village.defenseLog?.some((entry) => entry.id === 'old_19')).toBe(false);
+  });
+
+  it('drains, freely reloads, persists, and drains Scattershot ammunition again', () => {
+    const village = villageWithDefense();
+    village.townHallLevel = 13;
+    village.buildings.push({ ...makeBuilding('scatter', 'Scattershot', 'defense', 20, 19), ammo: 2, maxAmmo: 90 });
+    village.buildings.push(
+      makeBuilding('outer_gold', 'Gold Storage', 'resource_storage', 5, 5),
+      makeBuilding('outer_elixir', 'Elixir Storage', 'resource_storage', 35, 35),
+    );
+    const first = simulateDefense(village, {
+      now: 10,
+      attackerArmy: [{ name: 'Golem', level: 1, count: 10 }],
+    }).village;
+    const drained = first.buildings.find((building) => building.instanceId === 'scatter')!.ammo!;
+    expect(drained).toBeLessThan(2);
+
+    const reloaded = reloadDefenseAmmo(first, 'scatter')!;
+    expect(reloaded.buildings.find((building) => building.instanceId === 'scatter')!.ammo).toBe(90);
+    expect(reloaded.resources).toEqual(first.resources);
+
+    const second = simulateDefense(reloaded, {
+      now: 20,
+      attackerArmy: [{ name: 'Golem', level: 1, count: 10 }],
+    }).village;
+    expect(second.buildings.find((building) => building.instanceId === 'scatter')!.ammo).toBeLessThan(90);
   });
 });

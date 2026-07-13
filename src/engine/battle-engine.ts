@@ -226,7 +226,7 @@ export function deployTroop(
     currentHp: levelStats.hp, maxHp: levelStats.hp, x, y,
     targetId: null, state: 'idle', dps: levelStats.dps, baseDps: levelStats.dps,
     attackRange: troopData.attackRange, movementSpeed: troopData.movementSpeed,
-    isFlying: troopData.isFlying,
+    isFlying: troopData.isFlying, housingSpace: troopData.housingSpace,
   };
 
   // Set special troop properties
@@ -514,7 +514,7 @@ function processTroop(
   troop: DeployedTroop, allTroops: DeployedTroop[],
   buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
 ): void {
-  if (troop.state === 'dead') return;
+  if (troop.state === 'dead' || troop.isFrozen) return;
 
   // Defender-owned units (CC troops, defending heroes) only fight attacker units
   if (troop.isDefender) {
@@ -589,6 +589,11 @@ function processDefense(
   destructionPercent: number, totalHousingDeployed: number,
 ): void {
   if (defense.isDestroyed) return;
+  if (defense.isFrozen) {
+    if (defense.frozenUntil !== undefined && elapsed < defense.frozenUntil) return;
+    defense.isFrozen = false;
+    defense.frozenUntil = undefined;
+  }
   if (defense.ammo !== undefined && defense.ammo <= 0) return;
 
   // Try special defense behavior first
@@ -685,11 +690,15 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   }
   troops.push(...abilitySummons);
 
-  // Calculate housing deployed for Eagle Artillery activation
-  const totalHousingDeployed = state.deployedTroops.length * 5; // Approximation: 5 housing per troop
+  // Eagle Artillery activation uses the real capacity of the deployed army.
+  const totalHousingDeployed = getDeployedHousingSpace(troops);
   const currentDestruction = calculateStars(buildings).destructionPercent;
 
   for (const troop of troops) {
+    if (troop.isFrozen && troop.frozenUntil !== undefined && elapsed >= troop.frozenUntil) {
+      troop.isFrozen = false;
+      troop.frozenUntil = undefined;
+    }
     // Expire hero cloak invisibility (Archer Queen's Royal Cloak)
     if (troop.invisibleUntil !== undefined && elapsed >= troop.invisibleUntil) {
       troop.invisibleUntil = undefined;
@@ -790,6 +799,13 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
     spells: spellResult.spells, stars, destructionPercent, loot,
     ...(defenderCC ? { defenderCC } : {}),
   };
+}
+
+export function getDeployedHousingSpace(troops: DeployedTroop[]): number {
+  return troops.reduce((total, troop) => {
+    if (troop.isDefender || troop.isPet || troop.isClone) return total;
+    return total + (troop.housingSpace ?? getTroop(troop.name)?.housingSpace ?? 0);
+  }, 0);
 }
 
 export function applyWardenLifeAura(troops: DeployedTroop[]): void {

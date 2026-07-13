@@ -8,6 +8,7 @@ import {
   applyWardenLifeAura,
   getBattleResult,
   isBattleOver,
+  getDeployedHousingSpace,
 } from '../battle-engine.ts';
 
 // ---------------------------------------------------------------------------
@@ -1297,6 +1298,54 @@ describe('tickBattle - clone lifespan', () => {
     const after = result.deployedTroops.find((t) => t.id === 'clone_troop_1_0');
     expect(after!.state).toBe('dead');
     expect(after!.currentHp).toBe(0);
+  });
+});
+
+describe('Eagle Artillery deployment housing', () => {
+  it('sums mixed-army housing instead of approximating from object count', () => {
+    const troops = [
+      ...Array.from({ length: 5 }, () => makeDeployedTroop({ name: 'Barbarian', housingSpace: 1 })),
+      ...Array.from({ length: 2 }, () => makeDeployedTroop({ name: 'Golem', housingSpace: 30 })),
+      makeDeployedTroop({ name: 'Golem', housingSpace: 30, isDefender: true }),
+    ];
+    expect(getDeployedHousingSpace(troops)).toBe(65);
+  });
+
+  it('activates with seven 30-space Golems despite having fewer than 40 objects', () => {
+    const eagle = makeDefense({ name: 'Eagle Artillery', eagleActivated: false, eagleActivationThreshold: 200 });
+    const troops = Array.from({ length: 7 }, (_, index) => makeDeployedTroop({
+      id: `golem_${index}`, name: 'Golem', housingSpace: 30, x: 20, y: 25,
+    }));
+    const result = tickBattle(makeBattleState({ timeRemaining: 170, deployedTroops: troops, defenses: [eagle] }), 50);
+    expect(result.defenses[0]!.eagleActivated).toBe(true);
+  });
+
+  it('does not activate for fifty 1-space Barbarians', () => {
+    const eagle = makeDefense({ name: 'Eagle Artillery', eagleActivated: false, eagleActivationThreshold: 200 });
+    const troops = Array.from({ length: 50 }, (_, index) => makeDeployedTroop({
+      id: `barbarian_${index}`, name: 'Barbarian', housingSpace: 1, x: 20, y: 25,
+    }));
+    const result = tickBattle(makeBattleState({ timeRemaining: 170, deployedTroops: troops, defenses: [eagle] }), 50);
+    expect(result.defenses[0]!.eagleActivated).toBe(false);
+  });
+});
+
+describe('tickBattle - frozen defender troops', () => {
+  it('prevents attacks until frozenUntil, then resumes', () => {
+    const defender = makeDeployedTroop({
+      id: 'frozen_cc', isDefender: true, isFrozen: true, frozenUntil: 12.5,
+      x: 10, y: 10, dps: 20, baseDps: 20,
+    });
+    const attacker = makeDeployedTroop({ id: 'attacker', x: 11, y: 10, currentHp: 100, maxHp: 100 });
+    const state = makeBattleState({ timeRemaining: 170, deployedTroops: [defender, attacker] });
+
+    const frozenTick = tickBattle(state, 1000);
+    expect(frozenTick.deployedTroops.find((troop) => troop.id === 'attacker')!.currentHp).toBe(100);
+    expect(frozenTick.deployedTroops.find((troop) => troop.id === 'frozen_cc')!.isFrozen).toBe(true);
+
+    const resumed = tickBattle(frozenTick, 2000);
+    expect(resumed.deployedTroops.find((troop) => troop.id === 'frozen_cc')!.isFrozen).toBe(false);
+    expect(resumed.deployedTroops.find((troop) => troop.id === 'attacker')!.currentHp).toBeLessThan(100);
   });
 });
 

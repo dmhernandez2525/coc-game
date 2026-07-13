@@ -55,6 +55,8 @@ export function createStarterVillage(): VillageState {
     army: [],
     spells: [],
     heroes: [],
+    troopLevels: {},
+    activeResearch: null,
     ores: { shinyOre: 0, glowyOre: 0, starryOre: 0 },
     ownedEquipment: [],
     ownedPets: [],

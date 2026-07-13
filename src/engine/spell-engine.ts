@@ -218,11 +218,10 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
       };
     });
 
-    // Freeze enemy CC troops in radius (slow to 0 speed)
+    // Freeze enemy Clan Castle troops in radius until the battle clock expires it.
     const troops = state.deployedTroops.map((t) => {
-      if (t.state === 'dead' || !isInRadius(x, y, t.x, t.y, radius)) return t;
-      // Enemy troops would be frozen in a real implementation
-      return t;
+      if (!t.isDefender || t.state === 'dead' || !isInRadius(x, y, t.x, t.y, radius)) return t;
+      return { ...t, isFrozen: true, frozenUntil: elapsed + freezeDuration };
     });
 
     return { ...state, defenses, deployedTroops: troops };

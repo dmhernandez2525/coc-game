@@ -57,6 +57,16 @@ export interface TrainedTroop {
   count: number;
 }
 
+export interface ResearchJob {
+  troopName: string;
+  fromLevel: number;
+  targetLevel: number;
+  resource: 'elixir' | 'darkElixir';
+  cost: number;
+  totalTimeSeconds: number;
+  remainingTimeSeconds: number;
+}
+
 /** Ore currencies earned from battles and spent on equipment upgrades. */
 export interface OreAmounts {
   shinyOre: number;
@@ -157,6 +167,10 @@ export interface VillageState {
   army: TrainedTroop[];
   spells: TrainedTroop[];
   heroes: OwnedHero[];
+  /** Researched levels also exist for troops not currently trained. */
+  troopLevels?: Record<string, number>;
+  /** The Laboratory runs one persisted research job at a time. */
+  activeResearch?: ResearchJob | null;
   // Optional: saves created before the ore/equipment/pet economy lack these
   ores?: OreAmounts;
   ownedEquipment?: OwnedLevelEntry[];

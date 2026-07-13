@@ -11,6 +11,7 @@ import type { SuperTroopState } from '../engine/super-troop-manager.ts';
 import type { MagicItemInventory } from '../engine/magic-items-manager.ts';
 import { createSaveManager } from '../engine/save-manager.ts';
 import type { SaveManager } from '../engine/save-manager.ts';
+import { tickResearch } from '../engine/research-manager.ts';
 
 // ---------------------------------------------------------------------------
 // Store shape
@@ -254,6 +255,7 @@ export const useGameStore = create<GameStore>((set, get) => {
         const superTroopState = tickSuperTroopTimers(s.superTroopState, deltaMs * village.gameClockSpeed);
 
         // Update total play time
+        village = tickResearch(village, (deltaMs / 1000) * village.gameClockSpeed);
         village = { ...village, totalPlayTime: village.totalPlayTime + deltaMs };
 
         return { village, superTroopState };
