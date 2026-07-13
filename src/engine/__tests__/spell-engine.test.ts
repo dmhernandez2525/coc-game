@@ -1367,4 +1367,69 @@ describe('deploySpell - Recall Spell', () => {
       pet: { recalledTroop: { currentHp: 700 } },
     });
   });
+
+  it('recalls a hero inside the radius without recalling its pet outside', () => {
+    const hero = makeTroop({
+      id: 'hero_king', name: 'Barbarian King', isHero: true, x: 5, y: 5,
+    });
+    const pet = makeTroop({
+      id: 'pet_yak', name: 'Mighty Yak', isPet: true,
+      ownerHeroName: 'Barbarian King', x: 30, y: 30,
+    });
+    const state = recallState([hero, pet], {
+      availableHeroes: [{
+        name: 'Barbarian King', level: 5, deployed: true,
+        pet: { name: 'Mighty Yak', level: 1 },
+      }],
+    });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toEqual([pet]);
+    expect(result.availableHeroes?.[0]).toMatchObject({
+      deployed: false,
+      recalledTroop: { id: 'hero_king' },
+      pet: { recalledTroop: undefined },
+    });
+  });
+
+  it('recalls and redeploys a pet inside the radius without moving its distant hero', () => {
+    const hero = makeTroop({
+      id: 'hero_king', name: 'Barbarian King', isHero: true, x: 30, y: 30,
+    });
+    const pet = makeTroop({
+      id: 'pet_yak', name: 'Mighty Yak', isPet: true,
+      ownerHeroName: 'Barbarian King', currentHp: 700, x: 5, y: 5,
+    });
+    const state = recallState([hero, pet], {
+      availableHeroes: [{
+        name: 'Barbarian King', level: 5, deployed: true,
+        pet: { name: 'Mighty Yak', level: 1 },
+      }],
+    });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toEqual([hero]);
+    expect(result.availableHeroes?.[0]).toMatchObject({
+      deployed: true,
+      recalledTroop: undefined,
+      pet: { recalledTroop: { id: 'pet_yak', currentHp: 700 } },
+    });
+  });
+
+  it('never treats Frostmites or Boogers as recallable pets', () => {
+    const frostmite = makeTroop({
+      id: 'frostmite', name: 'Frostmite', isPet: true,
+      ownerHeroName: 'Archer Queen', x: 5, y: 5,
+    });
+    const booger = makeTroop({
+      id: 'booger', name: 'Booger', isPet: true,
+      ownerHeroName: 'Archer Queen', x: 5, y: 5,
+    });
+
+    const result = deploySpell(recallState([frostmite, booger]), 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toEqual([frostmite, booger]);
+  });
 });

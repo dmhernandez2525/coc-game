@@ -278,8 +278,34 @@ export function deployHeroToBattle(
   state: BattleState, heroName: string, x: number, y: number,
 ): BattleState | null {
   const heroesList = state.availableHeroes ?? [];
-  const entry = heroesList.find((h) => h.name === heroName && !h.deployed);
+  const entry = heroesList.find((h) =>
+    h.name === heroName && (!h.deployed || h.pet?.recalledTroop !== undefined));
   if (!entry) return null;
+
+  if (entry.deployed) {
+    const recalledPet = entry.pet?.recalledTroop;
+    const owner = state.deployedTroops.find(troop =>
+      troop.isHero && troop.name === heroName && troop.state !== 'dead');
+    if (!recalledPet || !owner) return null;
+    const freshPet = createPetTroop(entry.pet!.name, entry.pet!.level, x, y);
+    if (!freshPet) return null;
+    const pet: DeployedTroop = {
+      ...recalledPet,
+      id: freshPet.id,
+      x: freshPet.x,
+      y: freshPet.y,
+      targetId: null,
+      state: 'idle',
+      ownerHeroName: heroName,
+    };
+    return {
+      ...state,
+      deployedTroops: [...state.deployedTroops, pet],
+      availableHeroes: heroesList.map(hero => hero.name === heroName
+        ? { ...hero, pet: hero.pet ? { ...hero.pet, recalledTroop: undefined } : hero.pet }
+        : hero),
+    };
+  }
 
   const freshHero = deployHero(heroName, entry.level, x, y);
   if (!freshHero) return null;
@@ -289,7 +315,14 @@ export function deployHeroToBattle(
     : freshHero;
 
   const boosted = entry.boost && !entry.recalledTroop ? applyBattleBoost(hero, entry.boost) : hero;
-  const freshPet = entry.pet ? createPetTroop(entry.pet.name, entry.pet.level, x, y) : null;
+  const existingPet = state.deployedTroops.find(troop =>
+    troop.isPet
+    && troop.ownerHeroName === heroName
+    && !['Frostmite', 'Booger'].includes(troop.name)
+    && troop.state !== 'dead');
+  const freshPet = entry.pet && !existingPet
+    ? createPetTroop(entry.pet.name, entry.pet.level, x, y)
+    : null;
   const pet = entry.pet?.recalledTroop && freshPet
     ? {
         ...entry.pet.recalledTroop,
@@ -477,7 +510,7 @@ function processDefenderUnit(troop: DeployedTroop, allTroops: DeployedTroop[], d
 
 /** Troops without a favorite-target preference respond to defending units. */
 function respondsToDefenders(troop: DeployedTroop): boolean {
-  if (troop.dps <= 0 || troop.isSiegeMachine) return false;
+  if (troop.dps <= 0 || troop.isSiegeMachine || troop.targetsBuildingsOnly) return false;
   const favorite = getTroop(troop.name)?.favoriteTarget ?? null;
   return favorite === null || favorite === 'Any Building';
 }
@@ -491,6 +524,14 @@ function troopFavoriteTarget(troop: DeployedTroop): string | null {
 
 function effectiveTroopDps(troop: DeployedTroop): number {
   return troop.dps * (troop.attackRateMultiplier ?? 1);
+}
+
+function troopDamageAgainstBuilding(
+  troop: DeployedTroop, targetId: string, buildings: BattleBuilding[], deltaMs: number,
+): number {
+  const target = buildings.find(building => building.instanceId === targetId && !building.isDestroyed);
+  const multiplier = target?.name === 'Wall' ? (troop.wallDamageMultiplier ?? 1) : 1;
+  return effectiveTroopDps(troop) * multiplier * deltaMs / 1000;
 }
 
 /** Attacker-side troop-vs-troop combat. Returns true if the troop engaged a defender unit. */
@@ -524,6 +565,7 @@ function processTroop(
 
   // Run special troop mechanics (may modify DPS, burrowed state, etc.)
   const specialHandled = processTroopSpecial(troop, allTroops, buildings, defenses, deltaMs);
+  if (troop.name === 'Unicorn') return;
 
   // Defending units distract attacker troops that have no favorite target
   if (tryUnitCombat(troop, allTroops, deltaMs)) return;
@@ -554,7 +596,12 @@ function processTroop(
         if (wallDist <= troop.attackRange) {
           troop.state = 'attacking';
           if (!specialHandled) {
-            applyDamage(blockingWallId, effectiveTroopDps(troop) * (deltaMs / 1000), buildings, defenses);
+            applyDamage(
+              blockingWallId,
+              troopDamageAgainstBuilding(troop, blockingWallId, buildings, deltaMs),
+              buildings,
+              defenses,
+            );
           }
           return;
         }
@@ -573,7 +620,12 @@ function processTroop(
     troop.state = 'attacking';
     // Only apply normal damage if special handler didn't already handle it
     if (!specialHandled) {
-      applyDamage(troop.targetId, effectiveTroopDps(troop) * (deltaMs / 1000), buildings, defenses);
+      applyDamage(
+        troop.targetId,
+        troopDamageAgainstBuilding(troop, troop.targetId, buildings, deltaMs),
+        buildings,
+        defenses,
+      );
     }
   } else {
     troop.state = 'moving';
@@ -724,6 +776,17 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
         if (troop.baseMovementSpeed !== undefined) troop.movementSpeed = troop.baseMovementSpeed;
       }
     }
+    if (troop.frostSlowUntil !== undefined && elapsed >= troop.frostSlowUntil) {
+      troop.frostSlowUntil = undefined;
+      if (troop.preFrostMovementSpeed !== undefined) {
+        troop.movementSpeed = troop.preFrostMovementSpeed;
+        troop.preFrostMovementSpeed = undefined;
+      }
+      if (troop.preFrostAttackRateMultiplier !== undefined) {
+        troop.attackRateMultiplier = troop.preFrostAttackRateMultiplier;
+        troop.preFrostAttackRateMultiplier = undefined;
+      }
+    }
     if (troop.favoriteTargetOverrideUntil !== undefined && elapsed >= troop.favoriteTargetOverrideUntil) {
       troop.favoriteTargetOverride = undefined;
       troop.favoriteTargetOverrideUntil = undefined;
@@ -767,6 +830,13 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   troops.push(...releaseSiegeCargo(troops, buildings));
 
   for (const defense of defenses) {
+    if (defense.frostSlowUntil !== undefined && elapsed >= defense.frostSlowUntil) {
+      defense.frostSlowUntil = undefined;
+      if (defense.preFrostAttackSpeed !== undefined) {
+        defense.attackSpeed = defense.preFrostAttackSpeed;
+        defense.preFrostAttackSpeed = undefined;
+      }
+    }
     const wasAlive = !defense.isDestroyed;
     processDefense(defense, troops, elapsed, deltaMs, currentDestruction, totalHousingDeployed);
     // Handle Bomb Tower death explosion

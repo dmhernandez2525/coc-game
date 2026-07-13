@@ -53,9 +53,11 @@ export interface DeployedTroop {
   ownerHeroName?: string;
   petAbilityReadyAt?: number;
   petAbilityConsumed?: boolean;
+  petRageUntil?: number;
   frostmitesPerSummon?: number;
   maxFrostmites?: number;
   stunDuration?: number;
+  diggySurfaceArmed?: boolean;
   poisonDps?: number;
   poisonSpeedMultiplier?: number;
   poisonAttackMultiplier?: number;
@@ -63,6 +65,8 @@ export interface DeployedTroop {
   spiritWalkDuration?: number;
   spiritWalkCooldown?: number;
   boogersPerSummon?: number;
+  maxBoogers?: number;
+  targetsBuildingsOnly?: boolean;
   favoriteTargetOverride?: string;
   attackRateMultiplier?: number;
   preSpellAttackRateMultiplier?: number;
@@ -76,6 +80,9 @@ export interface DeployedTroop {
   brainwashDuration?: number;
   isFrozen?: boolean;             // Freeze Spell prevents defender movement/attacks
   frozenUntil?: number;           // Battle elapsed second when the freeze expires
+  frostSlowUntil?: number;
+  preFrostMovementSpeed?: number;
+  preFrostAttackRateMultiplier?: number;
 }
 
 export interface ActiveDefense {
@@ -108,6 +115,8 @@ export interface ActiveDefense {
   eagleActivated?: boolean;
   isFrozen?: boolean;             // Freeze spell applied
   frozenUntil?: number;           // Elapsed time when freeze ends
+  frostSlowUntil?: number;
+  preFrostAttackSpeed?: number;
   targetType?: TargetType;        // Air/ground targeting legality from defense data
   xbowMode?: XBowMode;            // X-Bow: ground-only (14 tiles) or ground+air (11.5 tiles)
   scatterSplashDamage?: number;   // Scattershot: shrapnel damage behind the impact point

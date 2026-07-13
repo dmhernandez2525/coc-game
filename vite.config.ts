@@ -3,6 +3,7 @@ import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { testOnlyFiles } from './test-only-manifest.ts'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -15,7 +16,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     testTimeout: 15_000,
-    setupFiles: ['./src/test-setup.ts'],
+    setupFiles: testOnlyFiles.map(file => `./${file}`),
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     coverage: {
       provider: 'v8',
@@ -26,7 +27,7 @@ export default defineConfig({
         lines: 80,
       },
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.d.ts'],
+      exclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.d.ts', ...testOnlyFiles],
     },
   },
 })

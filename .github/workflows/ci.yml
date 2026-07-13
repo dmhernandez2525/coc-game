@@ -25,8 +25,14 @@ jobs:
       - name: Type check
         run: npx tsc -b --noEmit
 
+      - name: Lint
+        run: npm run lint --ignore-scripts
+
       - name: Run tests with coverage
         run: npx vitest run --coverage
 
       - name: Build
         run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high --ignore-scripts

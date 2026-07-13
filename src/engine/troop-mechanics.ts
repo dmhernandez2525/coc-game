@@ -1,5 +1,5 @@
 import type { DeployedTroop, ActiveDefense, BattleBuilding } from '../types/battle.ts';
-import { distance } from './targeting-ai.ts';
+import { distance, moveToward } from './targeting-ai.ts';
 
 // --- Wall Breaker ---
 // 40x damage to walls, self-destructs on impact.
@@ -70,6 +70,46 @@ function processHealer(
     if (t.isHero) heal *= 0.5; // 50% reduced healing on heroes
     t.currentHp = Math.min(t.maxHp, t.currentHp + heal);
   }
+}
+
+function processUnicorn(
+  unicorn: DeployedTroop, allTroops: DeployedTroop[], deltaMs: number,
+): void {
+  if (unicorn.state === 'dead') return;
+  const owner = allTroops.find(troop =>
+    troop.isHero
+    && troop.name === unicorn.ownerHeroName
+    && (troop.isDefender === true) === (unicorn.isDefender === true)
+    && troop.state !== 'dead');
+  if (!owner) {
+    unicorn.targetId = null;
+    unicorn.state = 'idle';
+    return;
+  }
+
+  unicorn.targetId = owner.id;
+  const radius = unicorn.healRadius ?? 5;
+  if (distance(unicorn.x, unicorn.y, owner.x, owner.y) > radius) {
+    unicorn.state = 'moving';
+    const position = moveToward(
+      unicorn.x,
+      unicorn.y,
+      owner.x,
+      owner.y,
+      unicorn.movementSpeed,
+      deltaMs,
+    );
+    unicorn.x = position.x;
+    unicorn.y = position.y;
+    return;
+  }
+
+  unicorn.state = 'idle';
+  if (owner.healingNerfed) return;
+  owner.currentHp = Math.min(
+    owner.maxHp,
+    owner.currentHp + (unicorn.healPerSecond ?? 0) * deltaMs / 1000,
+  );
 }
 
 // --- Baby Dragon ---
@@ -306,8 +346,8 @@ const TROOP_HANDLERS: Record<string, TroopMechanicHandler> = {
     return processElectroDragonAttack(troop, ctx.allTroops, ctx.buildings, ctx.defenses, ctx.deltaMs);
   },
   'Unicorn': (troop, ctx) => {
-    processHealer(troop, ctx.allTroops, ctx.deltaMs);
-    return true; // Unicorns don't deal normal damage
+    processUnicorn(troop, ctx.allTroops, ctx.deltaMs);
+    return true;
   },
 };
 

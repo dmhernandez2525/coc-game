@@ -15,9 +15,8 @@ export interface OwnedPet {
 
 // Battle traits per pet: how each pet's signature ability maps onto the
 // battle engine's property-driven mechanics.
-// L.A.S.S.I springs over walls; Electro Owl's zap chains between targets
-// (handled by the chain-lightning mechanic); Mighty Yak busts walls;
-// Unicorn heals instead of fighting (handled by the healer mechanic).
+// L.A.S.S.I springs over walls; Electro Owl's zap chains between targets;
+// Mighty Yak busts walls without bypassing them; Unicorn follows its owner.
 type PetTraitBuilder = (stats: PetLevelStats) => Partial<DeployedTroop>;
 
 function numericStat(stats: PetLevelStats, key: string, fallback: number): number {
@@ -37,7 +36,7 @@ function percentStat(stats: PetLevelStats, key: string, fallback: number): numbe
 
 const PET_TRAIT_BUILDERS: Record<string, PetTraitBuilder> = {
   'L.A.S.S.I': () => ({ canJumpWalls: true }),
-  'Mighty Yak': () => ({ canJumpWalls: true, wallDamageMultiplier: 20 }),
+  'Mighty Yak': () => ({ wallDamageMultiplier: 20 }),
   'Electro Owl': () => ({ chainTargets: 2, chainDamageDecay: 0.8, attackRange: 3.5 }),
   'Unicorn': (stats) => ({ healPerSecond: stats.healingPerSecond ?? 0, healRadius: 5, dps: 0, baseDps: 0 }),
   'Frosty': (stats) => ({
@@ -57,8 +56,16 @@ const PET_TRAIT_BUILDERS: Record<string, PetTraitBuilder> = {
     spiritWalkCooldown: numericStat(stats, 'abilityCooldown', 6),
   }),
   'Angry Jelly': (stats) => ({ brainwashDuration: numericStat(stats, 'brainwashDuration', 25) }),
-  'Sneezy': (stats) => ({ boogersPerSummon: numericStat(stats, 'boogersPerSneeze', 2) }),
+  'Sneezy': (stats) => ({
+    boogersPerSummon: numericStat(stats, 'boogersPerSneeze', 2),
+    maxBoogers: numericStat(stats, 'maxBoogers', 6),
+  }),
 };
+
+const SUMMON_COOLDOWN_SECONDS = 5;
+const PET_RAGE_DURATION_SECONDS = 8;
+const FROST_SLOW_DURATION_SECONDS = 2;
+const FROST_SPEED_MULTIPLIER = 0.5;
 
 // -- Public API --
 
@@ -191,43 +198,129 @@ function summonPetUnit(pet: DeployedTroop, name: string, index: number, elapsed:
     isFlying: name === 'Frostmite',
     isPet: true,
     ownerHeroName: pet.ownerHeroName,
+    targetsBuildingsOnly: name === 'Booger',
   };
+}
+
+function applyBoundedRage(
+  pet: DeployedTroop,
+  owner: DeployedTroop | undefined,
+  elapsed: number,
+  damageMultiplier: number,
+  speedMultiplier = 1,
+): void {
+  if (pet.state !== 'dead' && owner?.state === 'dead' && !pet.petAbilityConsumed) {
+    pet.petAbilityConsumed = true;
+    pet.petRageUntil = elapsed + PET_RAGE_DURATION_SECONDS;
+  }
+
+  const active = pet.petRageUntil !== undefined && elapsed < pet.petRageUntil;
+  pet.isEnraged = active;
+  pet.dps = pet.baseDps * (active ? damageMultiplier : 1);
+  pet.movementSpeed = (pet.baseMovementSpeed ?? pet.movementSpeed) * (active ? speedMultiplier : 1);
+}
+
+function applyFrostmiteSlow(
+  frostmite: DeployedTroop,
+  troops: DeployedTroop[],
+  defenses: Array<{
+    buildingInstanceId: string;
+    isDestroyed: boolean;
+    attackSpeed?: number;
+    frostSlowUntil?: number;
+    preFrostAttackSpeed?: number;
+  }>,
+  elapsed: number,
+): void {
+  if (frostmite.state !== 'attacking' || !frostmite.targetId) return;
+
+  const defense = defenses.find(candidate =>
+    candidate.buildingInstanceId === frostmite.targetId && !candidate.isDestroyed);
+  if (defense?.attackSpeed !== undefined) {
+    defense.preFrostAttackSpeed ??= defense.attackSpeed;
+    defense.attackSpeed = defense.preFrostAttackSpeed / FROST_SPEED_MULTIPLIER;
+    defense.frostSlowUntil = Math.max(
+      defense.frostSlowUntil ?? 0,
+      elapsed + FROST_SLOW_DURATION_SECONDS,
+    );
+  }
+
+  const target = troops.find(candidate =>
+    candidate.id === frostmite.targetId && candidate.isDefender && candidate.state !== 'dead');
+  if (!target) return;
+  target.baseMovementSpeed ??= target.movementSpeed;
+  target.preFrostMovementSpeed ??= target.movementSpeed;
+  target.preFrostAttackRateMultiplier ??= target.attackRateMultiplier ?? 1;
+  target.movementSpeed = target.baseMovementSpeed * FROST_SPEED_MULTIPLIER;
+  target.attackRateMultiplier = target.preFrostAttackRateMultiplier * FROST_SPEED_MULTIPLIER;
+  target.frostSlowUntil = Math.max(
+    target.frostSlowUntil ?? 0,
+    elapsed + FROST_SLOW_DURATION_SECONDS,
+  );
 }
 
 export function tickPetAbilities(
   troops: DeployedTroop[],
-  defenses: Array<{ buildingInstanceId: string; isDestroyed: boolean; isFrozen?: boolean; frozenUntil?: number }>,
+  defenses: Array<{
+    buildingInstanceId: string;
+    isDestroyed: boolean;
+    isFrozen?: boolean;
+    frozenUntil?: number;
+    attackSpeed?: number;
+    frostSlowUntil?: number;
+    preFrostAttackSpeed?: number;
+  }>,
   elapsed: number,
   deltaMs: number,
 ): DeployedTroop[] {
   const summons: DeployedTroop[] = [];
+  for (const frostmite of troops.filter(troop => troop.name === 'Frostmite')) {
+    applyFrostmiteSlow(frostmite, troops, defenses, elapsed);
+  }
+
   for (const pet of troops.filter(troop => troop.isPet && !['Frostmite', 'Booger'].includes(troop.name))) {
     const owner = findOwner(pet, troops);
 
-    if (pet.name === 'Mighty Yak' && owner?.state === 'dead') {
-      pet.dps = pet.baseDps * 1.7;
-      pet.movementSpeed = (pet.baseMovementSpeed ?? pet.movementSpeed) * 1.16;
+    if (pet.name === 'Mighty Yak') {
+      applyBoundedRage(pet, owner, elapsed, 1.7, 1.16);
     }
 
     if (pet.name === 'Frosty' && pet.state !== 'dead' && elapsed >= (pet.petAbilityReadyAt ?? 0)) {
       const current = troops.filter(troop => troop.name === 'Frostmite' && troop.ownerHeroName === pet.ownerHeroName && troop.state !== 'dead').length;
       const count = Math.min(pet.frostmitesPerSummon ?? 1, Math.max(0, (pet.maxFrostmites ?? 4) - current));
       for (let index = 0; index < count; index++) summons.push(summonPetUnit(pet, 'Frostmite', index, elapsed));
-      pet.petAbilityReadyAt = elapsed + 5;
+      pet.petAbilityReadyAt = elapsed + SUMMON_COOLDOWN_SECONDS;
     }
 
     if (pet.name === 'Sneezy' && pet.state !== 'dead' && elapsed >= (pet.petAbilityReadyAt ?? 0)) {
-      const count = pet.boogersPerSummon ?? 2;
+      const current = troops.filter(troop =>
+        troop.name === 'Booger'
+        && troop.ownerHeroName === pet.ownerHeroName
+        && troop.state !== 'dead').length;
+      const count = Math.min(
+        pet.boogersPerSummon ?? 2,
+        Math.max(0, (pet.maxBoogers ?? 6) - current),
+      );
       for (let index = 0; index < count; index++) summons.push(summonPetUnit(pet, 'Booger', index, elapsed));
-      pet.petAbilityReadyAt = elapsed + 5;
-      if (owner?.state === 'dead') pet.dps = pet.baseDps * 1.5;
+      pet.petAbilityReadyAt = elapsed + SUMMON_COOLDOWN_SECONDS;
+    }
+    if (pet.name === 'Sneezy') {
+      applyBoundedRage(pet, owner, elapsed, 1.5);
     }
 
-    if (pet.name === 'Diggy' && pet.state === 'attacking' && pet.targetId) {
-      const target = defenses.find(defense => defense.buildingInstanceId === pet.targetId && !defense.isDestroyed);
-      if (target) {
-        target.isFrozen = true;
-        target.frozenUntil = Math.max(target.frozenUntil ?? 0, elapsed + (pet.stunDuration ?? 2));
+    if (pet.name === 'Diggy' && pet.state !== 'dead') {
+      if (pet.state === 'moving') {
+        pet.isBurrowed = true;
+        pet.diggySurfaceArmed = true;
+      } else if (pet.state === 'attacking' && pet.targetId && pet.diggySurfaceArmed) {
+        pet.isBurrowed = false;
+        pet.diggySurfaceArmed = false;
+        const target = defenses.find(defense =>
+          defense.buildingInstanceId === pet.targetId && !defense.isDestroyed);
+        if (target) {
+          target.isFrozen = true;
+          target.frozenUntil = Math.max(target.frozenUntil ?? 0, elapsed + (pet.stunDuration ?? 2));
+        }
       }
     }
 
@@ -245,7 +338,7 @@ export function tickPetAbilities(
       }
     }
 
-    if (pet.name === 'Phoenix' && owner?.state === 'dead' && !pet.petAbilityConsumed) {
+    if (pet.name === 'Phoenix' && pet.state === 'dead' && owner?.state === 'dead' && !pet.petAbilityConsumed) {
       owner.state = 'idle';
       owner.currentHp = Math.max(1, owner.maxHp * 0.5);
       owner.invincibleUntil = elapsed + (pet.phoenixReviveDuration ?? 6);

@@ -135,6 +135,7 @@ function packByHousing(
 }
 
 function unitHousing(troop: DeployedTroop): number | undefined {
+  if (troop.isPet) return 0;
   return troop.isHero ? 25 : getTroop(troop.name)?.housingSpace;
 }
 
@@ -145,11 +146,15 @@ function isClonableTroop(t: DeployedTroop, x: number, y: number, radius: number)
 }
 
 /**
- * Recall only returns units that came from the deploy bar (deployTroop ids
- * start with "troop_"). Heroes, clones, summons, and defenders stay put.
+ * Recall independently returns deploy-bar troops, heroes, and assigned pets
+ * inside its radius. Clones, summons, and defenders stay put.
  */
 function isRecallableTroop(t: DeployedTroop, x: number, y: number, radius: number): boolean {
-  if (t.state === 'dead' || t.isDefender || t.isClone || t.isPet) return false;
+  if (t.state === 'dead' || t.isDefender || t.isClone) return false;
+  if (t.isPet) {
+    if (!t.ownerHeroName || ['Frostmite', 'Booger'].includes(t.name)) return false;
+    return isInRadius(x, y, t.x, t.y, radius);
+  }
   if (!t.id.startsWith('troop_') && !t.isHero) return false;
   return isInRadius(x, y, t.x, t.y, radius);
 }
@@ -308,20 +313,21 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
     const recalled = packByHousing(eligible, x, y, capacity);
     if (recalled.length === 0) return state;
     const recalledHeroes = new Set(recalled.filter(t => t.isHero).map(t => t.name));
-    const recalledPets = state.deployedTroops.filter(t => t.isPet && t.ownerHeroName && recalledHeroes.has(t.ownerHeroName));
-    const recalledIds = new Set([...recalled, ...recalledPets].map((t) => t.id));
+    const recalledPets = recalled.filter(t => t.isPet && t.ownerHeroName);
+    const recalledPetOwners = new Set(recalledPets.map(t => t.ownerHeroName));
+    const recalledIds = new Set(recalled.map((t) => t.id));
     const regularTroops = recalled.filter(t => !t.isHero && !t.isPet);
     return {
       ...state,
       deployedTroops: state.deployedTroops.filter((t) => !recalledIds.has(t.id)),
       availableTroops: returnTroopsToDeployBar(state.availableTroops, regularTroops),
       availableHeroes: (state.availableHeroes ?? []).map((hero) => {
-        if (!recalledHeroes.has(hero.name)) return hero;
+        if (!recalledHeroes.has(hero.name) && !recalledPetOwners.has(hero.name)) return hero;
         const recalledHero = recalled.find((troop) => troop.isHero && troop.name === hero.name);
         const recalledPet = recalledPets.find((troop) => troop.ownerHeroName === hero.name);
         return {
           ...hero,
-          deployed: false,
+          deployed: recalledHero ? false : hero.deployed,
           recalledTroop: recalledHero ? { ...recalledHero } : hero.recalledTroop,
           pet: hero.pet
             ? { ...hero.pet, recalledTroop: recalledPet ? { ...recalledPet } : hero.pet.recalledTroop }
