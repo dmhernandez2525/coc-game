@@ -40,6 +40,7 @@ export interface DeployedTroop {
   jumpSpellActive?: boolean;      // Troop is inside a Jump Spell radius
   isDefender?: boolean;           // Defender-owned troop (e.g. defensive CC troops)
   baseMovementSpeed?: number;     // Unbuffed movement speed (captured by the spell engine)
+  preSpellMovementSpeed?: number;
   preSpellDps?: number;           // DPS before spell buffs; restored when buffs lapse
   invisibleUntil?: number;        // Elapsed seconds when hero cloak invisibility ends
   invincibleUntil?: number;       // Grand Warden Eternal Tome: takes no damage until this elapsed second
@@ -48,6 +49,30 @@ export interface DeployedTroop {
   isPet?: boolean;                // Hero pet deployed alongside its hero
   isSiegeMachine?: boolean;       // Siege machine: paths to the Town Hall, ignores defenders
   carriedTroops?: Array<{ name: string; level: number; count: number }>; // CC troops riding in a siege
+  ownerHeroName?: string;
+  petAbilityReadyAt?: number;
+  petAbilityConsumed?: boolean;
+  frostmitesPerSummon?: number;
+  maxFrostmites?: number;
+  stunDuration?: number;
+  poisonDps?: number;
+  poisonSpeedMultiplier?: number;
+  poisonAttackMultiplier?: number;
+  phoenixReviveDuration?: number;
+  spiritWalkDuration?: number;
+  spiritWalkCooldown?: number;
+  boogersPerSummon?: number;
+  favoriteTargetOverride?: string;
+  attackRateMultiplier?: number;
+  preSpellAttackRateMultiplier?: number;
+  poisonedUntil?: number;
+  poisonDamagePerSecond?: number;
+  lifeAuraBoostPercent?: number;
+  lifeAuraRadius?: number;
+  lifeAuraBaseMaxHp?: number;
+  lifeAuraApplied?: boolean;
+  favoriteTargetOverrideUntil?: number;
+  brainwashDuration?: number;
 }
 
 export interface ActiveDefense {
@@ -84,6 +109,8 @@ export interface ActiveDefense {
   xbowMode?: XBowMode;            // X-Bow: ground-only (14 tiles) or ground+air (11.5 tiles)
   scatterSplashDamage?: number;   // Scattershot: shrapnel damage behind the impact point
   scatterSplashRadius?: number;   // Scattershot: shrapnel spread radius around the target
+  ammo?: number;
+  maxAmmo?: number;
 }
 
 export interface BattleBuilding {
@@ -117,6 +144,7 @@ export interface HeroBattleBoost {
 export interface PetAssignment {
   name: string;
   level: number;
+  recalledTroop?: DeployedTroop;
 }
 
 /** Hero the attacker can still deploy this battle (one deploy per hero). */
@@ -126,6 +154,7 @@ export interface AvailableHero {
   deployed: boolean;
   boost?: HeroBattleBoost;
   pet?: PetAssignment;
+  recalledTroop?: DeployedTroop;
 }
 
 /** Defender clan castle garrison waiting to deploy when attackers come near. */
@@ -165,6 +194,9 @@ export interface ActiveSpell {
   radius: number;
   remainingDuration: number;
   totalDuration: number;
+  remainingCloneCapacity?: number;
+  clonedSourceIds?: string[];
+  cloneLifespan?: number;
 }
 
 export interface BattleResult {

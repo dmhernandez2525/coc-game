@@ -25,6 +25,7 @@ import { AchievementPanel } from './AchievementPanel.tsx';
 import { MagicItemsPanel } from './MagicItemsPanel.tsx';
 import { SuperTroopPanel } from './SuperTroopPanel.tsx';
 import { StatsPanel } from './StatsPanel.tsx';
+import { DefenseLogPanel } from './DefenseLogPanel.tsx';
 import { SpellPanel } from './SpellPanel.tsx';
 import { ClanWarPanel } from './ClanWarPanel.tsx';
 import { useVillage } from '../hooks/useVillage.ts';
@@ -126,12 +127,13 @@ import { startHeroUpgrade } from '../engine/hero-manager.ts';
 import { upgradeOwnedEquipment } from '../engine/equipment-manager.ts';
 import { upgradeOwnedPet, getPetHouseLevel } from '../engine/pet-manager.ts';
 import { getOres, getBlacksmithLevel } from '../engine/ore-manager.ts';
+import { simulateDefense } from '../engine/defense-simulator.ts';
 
 type ActivePanel =
   | 'none' | 'shop' | 'settings' | 'saveLoad' | 'gemShop'
   | 'army' | 'lab' | 'clan' | 'heroes' | 'achievements'
   | 'magicItems' | 'superTroops' | 'stats' | 'spells' | 'clanWar' | 'league'
-  | 'layoutPresets';
+  | 'layoutPresets' | 'defenseLog';
 
 interface VillageScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -526,6 +528,21 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     }));
   }, [selectedBuilding, setState]);
 
+  const handleReloadXBow = useCallback(() => {
+    if (!selectedBuilding || selectedBuilding.buildingId !== 'X-Bow') return;
+    const instanceId = selectedBuilding.instanceId;
+    setState(prev => {
+      if (prev.resources.elixir < 10_000) return prev;
+      return {
+        ...prev,
+        resources: { ...prev.resources, elixir: prev.resources.elixir - 10_000 },
+        buildings: prev.buildings.map(building => building.instanceId === instanceId
+          ? { ...building, ammo: 1000, maxAmmo: 1000 }
+          : building),
+      };
+    });
+  }, [selectedBuilding, setState]);
+
   // Building move handler
   const handleMoveBuilding = useCallback(() => {
     if (!selectedBuilding || selectedBuilding.buildingId === 'Town Hall') return;
@@ -563,6 +580,28 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       return { ...prev, resources, traps: rearmAllTraps(prev.traps ?? []) };
     });
   }, [state.traps, setState]);
+
+  const handleSimulateDefense = useCallback(() => {
+    const outcome = simulateDefense(state);
+    setState(outcome.village);
+    const summary = `${outcome.entry.stars} stars, ${outcome.entry.destructionPercent}% destruction`;
+    pushToast(
+      outcome.entry.result === 'victory' ? 'success' : 'error',
+      `${outcome.entry.result === 'victory' ? 'Defense won' : 'Defense lost'}: ${summary}`,
+    );
+  }, [state, setState, pushToast]);
+
+  // Returning players receive one incoming raid after eight real-world hours.
+  // The persisted timestamp prevents remounts from producing duplicate defenses.
+  const autoDefenseCheckedRef = useRef(false);
+  useEffect(() => {
+    if (autoDefenseCheckedRef.current) return;
+    const lastDefense = state.lastDefenseAt ?? state.lastSaveTimestamp;
+    if (Date.now() - lastDefense < 8 * 60 * 60 * 1000) return;
+    autoDefenseCheckedRef.current = true;
+    const id = window.setTimeout(handleSimulateDefense, 0);
+    return () => window.clearTimeout(id);
+  }, [state.lastDefenseAt, state.lastSaveTimestamp, handleSimulateDefense]);
 
   // --- Layout presets (localStorage arrangement snapshots) ---
   const [layoutPresets, setLayoutPresets] = useState<LayoutPresetMeta[]>(() => listLayoutPresets());
@@ -828,6 +867,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
             Attack
           </button>
           <button
+            onClick={() => openPanel('defenseLog')}
+            className="px-4 py-2 bg-red-800 hover:bg-red-700 rounded-lg font-semibold text-sm transition-colors"
+          >
+            Defense Log
+          </button>
+          <button
             onClick={() => onNavigate('campaign')}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-semibold text-sm transition-colors"
           >
@@ -985,6 +1030,8 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
           canUpgrade={canUpgrade}
           upgradeCost={upgradeCost}
           onToggleXBowMode={handleToggleXBowMode}
+          onReloadXBow={handleReloadXBow}
+          canReloadXBow={state.resources.elixir >= 10_000}
         />
       )}
 
@@ -1138,6 +1185,14 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       {activePanel === 'stats' && (
         <StatsPanel
           stats={state.statistics ?? stats}
+          onClose={closePanel}
+        />
+      )}
+
+      {activePanel === 'defenseLog' && (
+        <DefenseLogPanel
+          entries={state.defenseLog ?? []}
+          onSimulate={handleSimulateDefense}
           onClose={closePanel}
         />
       )}

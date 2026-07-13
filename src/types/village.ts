@@ -24,6 +24,8 @@ export interface PlacedBuilding {
   uncollectedResources?: number;
   lastCollectionTime?: number;
   xbowMode?: XBowMode;            // X-Bow only: player-selected targeting mode
+  ammo?: number;
+  maxAmmo?: number;
 }
 
 export interface PlacedWall {
@@ -129,6 +131,20 @@ export interface VillageObstacle {
   removalTime: number;
 }
 
+export interface DefenseLogEntry {
+  id: string;
+  timestamp: number;
+  attackerName: string;
+  attackerTownHallLevel: number;
+  stars: number;
+  destructionPercent: number;
+  durationSeconds: number;
+  trophyChange: number;
+  trapsTriggered: string[];
+  lootStolen: Pick<ResourceAmounts, 'gold' | 'elixir' | 'darkElixir'>;
+  result: 'victory' | 'defeat';
+}
+
 export interface VillageState {
   version: number;
   townHallLevel: number;
@@ -158,6 +174,10 @@ export interface VillageState {
   superTroopBoosts?: ActiveSuperTroopBoost[];
   magicItems?: Record<string, number>;
   activePotions?: ActivePotionBoost[];
+  /** Recent simulated attacks against this village, newest first. */
+  defenseLog?: DefenseLogEntry[];
+  /** Last real-world timestamp at which an incoming defense was simulated. */
+  lastDefenseAt?: number;
   starBonusStars?: number;
   // Optional: saves created before the statistics / achievement wiring lack these
   statistics?: GameStatistics;

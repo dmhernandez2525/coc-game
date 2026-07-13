@@ -16,6 +16,8 @@ interface BuildingPanelProps {
   canUpgrade: boolean;
   upgradeCost: UpgradeCost | null;
   onToggleXBowMode?: () => void;
+  onReloadXBow?: () => void;
+  canReloadXBow?: boolean;
 }
 
 const XBOW_MODE_LABELS: Record<XBowMode, string> = {
@@ -47,6 +49,8 @@ export function BuildingPanel({
   canUpgrade,
   upgradeCost,
   onToggleXBowMode,
+  onReloadXBow,
+  canReloadXBow = false,
 }: BuildingPanelProps) {
   const xbowMode: XBowMode = building.xbowMode ?? 'ground_and_air';
   return (
@@ -88,15 +92,29 @@ export function BuildingPanel({
 
         {/* X-Bow targeting mode toggle */}
         {building.buildingId === 'X-Bow' && onToggleXBowMode && (
-          <div className="flex items-center gap-3 text-sm mb-3">
-            <span className="text-slate-400">Targeting mode:</span>
-            <button
-              onClick={onToggleXBowMode}
-              className="px-3 py-1 rounded font-semibold text-sm transition-colors bg-sky-700 hover:bg-sky-600 text-white"
-            >
-              {XBOW_MODE_LABELS[xbowMode]}
-            </button>
-            <span className="text-xs text-slate-500">Tap to switch</span>
+          <div className="mb-3 space-y-2">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-slate-400">Targeting mode:</span>
+              <button
+                onClick={onToggleXBowMode}
+                className="px-3 py-1 rounded font-semibold text-sm transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+              >
+                {XBOW_MODE_LABELS[xbowMode]}
+              </button>
+            </div>
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-slate-400">Elixir charge:</span>
+              <span className="text-cyan-300 tabular-nums">{building.ammo ?? 1000} / {building.maxAmmo ?? 1000}</span>
+              {onReloadXBow && (
+                <button
+                  onClick={onReloadXBow}
+                  disabled={!canReloadXBow || (building.ammo ?? 1000) >= (building.maxAmmo ?? 1000)}
+                  className="px-3 py-1 rounded font-semibold text-sm bg-fuchsia-700 hover:bg-fuchsia-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Reload, 10,000 Elixir
+                </button>
+              )}
+            </div>
           </div>
         )}
 

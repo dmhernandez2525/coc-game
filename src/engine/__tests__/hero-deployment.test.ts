@@ -279,6 +279,31 @@ describe('deployHeroToBattle', () => {
     expect(state.deployedTroops).toHaveLength(0);
     expect(state.availableHeroes![0]!.deployed).toBe(false);
   });
+
+  it('redeploys recalled heroes and pets with their retained hitpoints', () => {
+    const recalledHero = makeTroop({
+      id: 'old_hero', name: 'Barbarian King', level: 5,
+      isHero: true, currentHp: 600, maxHp: 1595,
+    });
+    const recalledPet = makeTroop({
+      id: 'old_pet', name: 'Mighty Yak', level: 1,
+      isPet: true, ownerHeroName: 'Barbarian King', currentHp: 700, maxHp: 3750,
+    });
+    const state = makeBattleState({
+      availableHeroes: [{
+        name: 'Barbarian King', level: 5, deployed: false,
+        recalledTroop: recalledHero,
+        pet: { name: 'Mighty Yak', level: 1, recalledTroop: recalledPet },
+      }],
+    });
+
+    const next = deployHeroToBattle(state, 'Barbarian King', 8, 12)!;
+
+    expect(next.deployedTroops.find((troop) => troop.isHero)?.currentHp).toBe(600);
+    expect(next.deployedTroops.find((troop) => troop.isPet)?.currentHp).toBe(700);
+    expect(next.availableHeroes?.[0]!.recalledTroop).toBeUndefined();
+    expect(next.availableHeroes?.[0]!.pet?.recalledTroop).toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------

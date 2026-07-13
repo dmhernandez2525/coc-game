@@ -58,6 +58,8 @@ export function createStarterVillage(): VillageState {
     ores: { shinyOre: 0, glowyOre: 0, starryOre: 0 },
     ownedEquipment: [],
     ownedPets: [],
+    defenseLog: [],
+    lastDefenseAt: Date.now(),
     trophies: 0,
     league: 'Unranked',
     campaignProgress: { levels: [], totalStars: 0 },
