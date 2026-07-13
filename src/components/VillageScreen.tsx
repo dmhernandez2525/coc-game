@@ -25,6 +25,7 @@ import { AchievementPanel } from './AchievementPanel.tsx';
 import { MagicItemsPanel } from './MagicItemsPanel.tsx';
 import { SuperTroopPanel } from './SuperTroopPanel.tsx';
 import { StatsPanel } from './StatsPanel.tsx';
+import { DefenseLogPanel } from './DefenseLogPanel.tsx';
 import { SpellPanel } from './SpellPanel.tsx';
 import { ClanWarPanel } from './ClanWarPanel.tsx';
 import { useVillage } from '../hooks/useVillage.ts';
@@ -126,12 +127,15 @@ import { startHeroUpgrade } from '../engine/hero-manager.ts';
 import { upgradeOwnedEquipment } from '../engine/equipment-manager.ts';
 import { upgradeOwnedPet, getPetHouseLevel } from '../engine/pet-manager.ts';
 import { getOres, getBlacksmithLevel } from '../engine/ore-manager.ts';
+import { simulateDefense } from '../engine/defense-simulator.ts';
+import { canReloadDefenseAmmo, reloadDefenseAmmo } from '../engine/defense-ammo.ts';
+import { getTroopResearchLevel, startResearch } from '../engine/research-manager.ts';
 
 type ActivePanel =
   | 'none' | 'shop' | 'settings' | 'saveLoad' | 'gemShop'
   | 'army' | 'lab' | 'clan' | 'heroes' | 'achievements'
   | 'magicItems' | 'superTroops' | 'stats' | 'spells' | 'clanWar' | 'league'
-  | 'layoutPresets';
+  | 'layoutPresets' | 'defenseLog';
 
 interface VillageScreenProps {
   onNavigate: (screen: Screen) => void;
@@ -490,16 +494,8 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
     setState((prev) => removeSiegeMachine(prev, siegeName));
   }, [setState]);
 
-  // Lab handler (simplified: instant research for now)
   const handleResearch = useCallback((troopName: string) => {
-    setState((prev) => {
-      const troopIdx = prev.army.findIndex((t) => t.name === troopName);
-      if (troopIdx < 0) return prev;
-      const existing = prev.army[troopIdx]!;
-      const newArmy = [...prev.army];
-      newArmy[troopIdx] = { ...existing, level: existing.level + 1 };
-      return { ...prev, army: newArmy };
-    });
+    setState((prev) => startResearch(prev, troopName) ?? prev);
   }, [setState]);
 
   // Town Hall upgrade handler (completes via the normal upgrade tick pipeline)
@@ -524,6 +520,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
         return { ...b, xbowMode: current === 'ground_and_air' ? 'ground' : 'ground_and_air' };
       }),
     }));
+  }, [selectedBuilding, setState]);
+
+  const handleReloadDefenseAmmo = useCallback(() => {
+    if (!selectedBuilding) return;
+    const instanceId = selectedBuilding.instanceId;
+    setState((prev) => reloadDefenseAmmo(prev, instanceId) ?? prev);
   }, [selectedBuilding, setState]);
 
   // Building move handler
@@ -563,6 +565,28 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       return { ...prev, resources, traps: rearmAllTraps(prev.traps ?? []) };
     });
   }, [state.traps, setState]);
+
+  const handleSimulateDefense = useCallback(() => {
+    const outcome = simulateDefense(state);
+    setState(outcome.village);
+    const summary = `${outcome.entry.stars} stars, ${outcome.entry.destructionPercent}% destruction`;
+    pushToast(
+      outcome.entry.result === 'victory' ? 'success' : 'error',
+      `${outcome.entry.result === 'victory' ? 'Defense won' : 'Defense lost'}: ${summary}`,
+    );
+  }, [state, setState, pushToast]);
+
+  // Returning players receive one incoming raid after eight real-world hours.
+  // The persisted timestamp prevents remounts from producing duplicate defenses.
+  const autoDefenseCheckedRef = useRef(false);
+  useEffect(() => {
+    if (autoDefenseCheckedRef.current) return;
+    const lastDefense = state.lastDefenseAt ?? state.lastSaveTimestamp;
+    if (Date.now() - lastDefense < 8 * 60 * 60 * 1000) return;
+    autoDefenseCheckedRef.current = true;
+    const id = window.setTimeout(handleSimulateDefense, 0);
+    return () => window.clearTimeout(id);
+  }, [state.lastDefenseAt, state.lastSaveTimestamp, handleSimulateDefense]);
 
   // --- Layout presets (localStorage arrangement snapshots) ---
   const [layoutPresets, setLayoutPresets] = useState<LayoutPresetMeta[]>(() => listLayoutPresets());
@@ -828,6 +852,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
             Attack
           </button>
           <button
+            onClick={() => openPanel('defenseLog')}
+            className="px-4 py-2 bg-red-800 hover:bg-red-700 rounded-lg font-semibold text-sm transition-colors"
+          >
+            Defense Log
+          </button>
+          <button
             onClick={() => onNavigate('campaign')}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-semibold text-sm transition-colors"
           >
@@ -985,6 +1015,8 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
           canUpgrade={canUpgrade}
           upgradeCost={upgradeCost}
           onToggleXBowMode={handleToggleXBowMode}
+          onReloadAmmo={handleReloadDefenseAmmo}
+          canReloadAmmo={canReloadDefenseAmmo(state, selectedBuilding.instanceId)}
         />
       )}
 
@@ -1057,8 +1089,12 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
         <LabPanel
           labLevel={getLabLevel(state)}
           troops={getAllTroops()}
-          troopLevels={Object.fromEntries(state.army.map((t) => [t.name, t.level]))}
+          troopLevels={Object.fromEntries(getAllTroops().map((troop) => [
+            troop.name,
+            getTroopResearchLevel(state, troop.name),
+          ]))}
           resources={state.resources}
+          activeResearch={state.activeResearch ?? null}
           onResearch={handleResearch}
           onClose={closePanel}
         />
@@ -1138,6 +1174,14 @@ export function VillageScreen({ onNavigate, externalState, externalSetState }: V
       {activePanel === 'stats' && (
         <StatsPanel
           stats={state.statistics ?? stats}
+          onClose={closePanel}
+        />
+      )}
+
+      {activePanel === 'defenseLog' && (
+        <DefenseLogPanel
+          entries={state.defenseLog ?? []}
+          onSimulate={handleSimulateDefense}
           onClose={closePanel}
         />
       )}

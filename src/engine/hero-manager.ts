@@ -34,6 +34,10 @@ export function deployHero(
   const stats = hero.levels.find((l) => l.level === level);
   if (!stats) return null;
 
+  const lifeAuraBoostPercent = heroName === 'Grand Warden'
+    ? ((stats.lifeAuraHPBoostPercent as number | null | undefined) ?? 0)
+    : 0;
+
   return {
     id: `hero_${isDefender ? 'def_' : ''}${heroName}_${Date.now()}`,
     name: heroName,
@@ -51,6 +55,7 @@ export function deployHero(
     isFlying: hero.isFlying,
     isHero: true,
     heroAbilityUsed: false,
+    ...(lifeAuraBoostPercent > 0 ? { lifeAuraBoostPercent, lifeAuraRadius: 7 } : {}),
     ...(isDefender ? { isDefender: true } : {}),
   };
 }

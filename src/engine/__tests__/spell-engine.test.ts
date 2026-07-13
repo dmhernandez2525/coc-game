@@ -363,6 +363,22 @@ describe('deploySpell', () => {
     expect(result!.spells[0]!.remainingDuration).toBe(16);
   });
 
+  it('freezes only living defender troops in range for the configured duration', () => {
+    const defender = makeTroop({ id: 'defender', x: 8, y: 8, isDefender: true });
+    const attacker = makeTroop({ id: 'attacker', x: 8, y: 8, isDefender: false });
+    const outside = makeTroop({ id: 'outside', x: 30, y: 30, isDefender: true });
+    const state = makeBattleState({
+      timeRemaining: 170,
+      availableSpells: [{ name: 'Freeze Spell', level: 1, count: 1 }],
+      deployedTroops: [defender, attacker, outside],
+    });
+
+    const result = deploySpell(state, 'Freeze Spell', 8, 8)!;
+    expect(result.deployedTroops[0]).toMatchObject({ isFrozen: true, frozenUntil: 12.5 });
+    expect(result.deployedTroops[1]!.isFrozen).toBeUndefined();
+    expect(result.deployedTroops[2]!.isFrozen).toBeUndefined();
+  });
+
   it('does not mutate the original state', () => {
     const state = makeBattleState({
       availableSpells: [{ name: 'Lightning Spell', level: 1, count: 3 }],
@@ -944,6 +960,24 @@ describe('tickSpells - Poison Spell slowdown', () => {
     // movementSpeed = 100 * (1 - 26 / 100) = 74
     expect(result.troops[0]!.movementSpeed).toBeCloseTo(74);
   });
+
+  it('slows attack rate in the cloud and restores it after leaving', () => {
+    const spell = makeSpell({
+      name: 'Poison Spell', level: 1, x: 5, y: 5, radius: 4,
+      remainingDuration: 10, totalDuration: 16,
+    });
+    const troop = makeTroop({
+      x: 5, y: 5, currentHp: 1000, maxHp: 1000,
+      movementSpeed: 100, isDefender: true, attackRateMultiplier: 1,
+    });
+
+    const poisoned = tickSpells([spell], [troop], [], [], 1000);
+    poisoned.troops[0]!.x = 50;
+    const outside = tickSpells(poisoned.spells, poisoned.troops, [], [], 1000);
+
+    expect(poisoned.troops[0]!.attackRateMultiplier).toBeCloseTo(0.65);
+    expect(outside.troops[0]!.attackRateMultiplier).toBe(1);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1185,20 +1219,24 @@ describe('deploySpell - Clone Spell', () => {
     const clone = result!.deployedTroops[1]!;
     expect(clone.isClone).toBe(true);
     expect(clone.name).toBe('Barbarian');
-    // Clones spawn at half the original max HP
-    expect(clone.maxHp).toBe(50);
-    expect(clone.currentHp).toBe(50);
+    expect(clone.maxHp).toBe(100);
+    expect(clone.currentHp).toBe(100);
     expect(clone.cloneLifespanRemaining).toBe(30);
     expect(clone.id).not.toBe(source.id);
   });
 
-  it('consumes the spell and creates no lingering ActiveSpell', () => {
+  it('consumes the spell and creates an 18-second lingering ring', () => {
     const state = cloneState([makeTroop({ name: 'Barbarian', x: 5, y: 5 })]);
 
     const result = deploySpell(state, 'Clone Spell', 5, 5);
 
     expect(result!.availableSpells[0]!.count).toBe(0);
-    expect(result!.spells).toHaveLength(0);
+    expect(result!.spells).toHaveLength(1);
+    expect(result!.spells[0]).toMatchObject({
+      name: 'Clone Spell',
+      remainingDuration: 18,
+      totalDuration: 18,
+    });
   });
 
   it('respects the cloned housing capacity, nearest troops first', () => {
@@ -1224,6 +1262,19 @@ describe('deploySpell - Clone Spell', () => {
     const result = deploySpell(state, 'Clone Spell', 5, 5);
 
     expect(result!.deployedTroops).toHaveLength(4); // No clones added
+  });
+
+  it('clones a troop that enters the ring after deployment and only clones it once', () => {
+    const state = cloneState([]);
+    const cast = deploySpell(state, 'Clone Spell', 5, 5)!;
+    const entrant = makeTroop({ name: 'Barbarian', x: 5, y: 5 });
+
+    const firstTick = tickSpells(cast.spells, [entrant], [], [], 1000);
+    const secondTick = tickSpells(firstTick.spells, firstTick.troops, [], [], 1000);
+
+    expect(firstTick.troops.filter((troop) => troop.isClone)).toHaveLength(1);
+    expect(secondTick.troops.filter((troop) => troop.isClone)).toHaveLength(1);
+    expect(secondTick.spells[0]!.remainingCloneCapacity).toBe(21);
   });
 });
 
@@ -1289,5 +1340,96 @@ describe('deploySpell - Recall Spell', () => {
 
     expect(result!.deployedTroops).toHaveLength(3);
     expect(result!.availableTroops).toHaveLength(0);
+  });
+
+  it('recalls a hero and its pet while preserving both combat states', () => {
+    const hero = makeTroop({
+      id: 'hero_king', name: 'Barbarian King', isHero: true,
+      currentHp: 600, maxHp: 1000, x: 5, y: 5,
+    });
+    const pet = makeTroop({
+      id: 'pet_yak', name: 'Mighty Yak', isPet: true,
+      ownerHeroName: 'Barbarian King', currentHp: 700, maxHp: 900, x: 5, y: 5,
+    });
+    const state = recallState([hero, pet], {
+      availableHeroes: [{
+        name: 'Barbarian King', level: 5, deployed: true,
+        pet: { name: 'Mighty Yak', level: 1 },
+      }],
+    });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toHaveLength(0);
+    expect(result.availableHeroes?.[0]).toMatchObject({
+      deployed: false,
+      recalledTroop: { currentHp: 600 },
+      pet: { recalledTroop: { currentHp: 700 } },
+    });
+  });
+
+  it('recalls a hero inside the radius without recalling its pet outside', () => {
+    const hero = makeTroop({
+      id: 'hero_king', name: 'Barbarian King', isHero: true, x: 5, y: 5,
+    });
+    const pet = makeTroop({
+      id: 'pet_yak', name: 'Mighty Yak', isPet: true,
+      ownerHeroName: 'Barbarian King', x: 30, y: 30,
+    });
+    const state = recallState([hero, pet], {
+      availableHeroes: [{
+        name: 'Barbarian King', level: 5, deployed: true,
+        pet: { name: 'Mighty Yak', level: 1 },
+      }],
+    });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toEqual([pet]);
+    expect(result.availableHeroes?.[0]).toMatchObject({
+      deployed: false,
+      recalledTroop: { id: 'hero_king' },
+      pet: { recalledTroop: undefined },
+    });
+  });
+
+  it('recalls and redeploys a pet inside the radius without moving its distant hero', () => {
+    const hero = makeTroop({
+      id: 'hero_king', name: 'Barbarian King', isHero: true, x: 30, y: 30,
+    });
+    const pet = makeTroop({
+      id: 'pet_yak', name: 'Mighty Yak', isPet: true,
+      ownerHeroName: 'Barbarian King', currentHp: 700, x: 5, y: 5,
+    });
+    const state = recallState([hero, pet], {
+      availableHeroes: [{
+        name: 'Barbarian King', level: 5, deployed: true,
+        pet: { name: 'Mighty Yak', level: 1 },
+      }],
+    });
+
+    const result = deploySpell(state, 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toEqual([hero]);
+    expect(result.availableHeroes?.[0]).toMatchObject({
+      deployed: true,
+      recalledTroop: undefined,
+      pet: { recalledTroop: { id: 'pet_yak', currentHp: 700 } },
+    });
+  });
+
+  it('never treats Frostmites or Boogers as recallable pets', () => {
+    const frostmite = makeTroop({
+      id: 'frostmite', name: 'Frostmite', isPet: true,
+      ownerHeroName: 'Archer Queen', x: 5, y: 5,
+    });
+    const booger = makeTroop({
+      id: 'booger', name: 'Booger', isPet: true,
+      ownerHeroName: 'Archer Queen', x: 5, y: 5,
+    });
+
+    const result = deploySpell(recallState([frostmite, booger]), 'Recall Spell', 5, 5)!;
+
+    expect(result.deployedTroops).toEqual([frostmite, booger]);
   });
 });

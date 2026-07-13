@@ -96,6 +96,19 @@ describe('save and load round-trip', () => {
 
     expect(manager.save(state, 'slot1')).toBe(true);
   });
+
+  it('persists an in-flight Laboratory job for reload and resume', () => {
+    const manager = createSaveManager();
+    const state = makeVillageState({
+      troopLevels: { Barbarian: 1 },
+      activeResearch: {
+        troopName: 'Barbarian', fromLevel: 1, targetLevel: 2,
+        resource: 'elixir', cost: 25_000, totalTimeSeconds: 86_400, remainingTimeSeconds: 43_200,
+      },
+    });
+    manager.save(state, 'research');
+    expect(manager.load('research')?.activeResearch).toEqual(state.activeResearch);
+  });
 });
 
 // ---------------------------------------------------------------------------

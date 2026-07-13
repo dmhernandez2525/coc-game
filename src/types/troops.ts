@@ -154,6 +154,7 @@ export interface PetLevelStats {
   upgradeCost: number;
   upgradeTime: number;
   petHouseLevel: number;
+  [key: string]: unknown;
 }
 
 export interface PetData {

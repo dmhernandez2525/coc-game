@@ -5,8 +5,10 @@ import {
   deployTroop,
   calculateStars,
   tickBattle,
+  applyWardenLifeAura,
   getBattleResult,
   isBattleOver,
+  getDeployedHousingSpace,
 } from '../battle-engine.ts';
 
 // ---------------------------------------------------------------------------
@@ -1185,6 +1187,26 @@ describe('initBattleState - X-Bow modes', () => {
     expect(def.xbowMode).toBe('ground_and_air');
     expect(def.range.max).toBe(11.5);
   });
+
+  it('loads persisted ammo and stops firing when the magazine is empty', () => {
+    const xbow = makePlacedBuilding('X-Bow', 'defense', 1, { ammo: 1, maxAmmo: 1000 });
+    const initialized = initBattleState({ buildings: [xbow] }, [], []);
+    expect(initialized.defenses[0]!.ammo).toBe(1);
+
+    const target = makeDeployedTroop({ x: 20, y: 21, currentHp: 1000, maxHp: 1000 });
+    const state = {
+      ...initialized,
+      timeRemaining: 175,
+      deployedTroops: [target],
+      availableTroops: [],
+    };
+    const fired = tickBattle(state, 1000);
+    const hpAfterShot = fired.deployedTroops[0]!.currentHp;
+    const emptyTick = tickBattle({ ...fired, phase: 'active' }, 1000);
+
+    expect(fired.defenses[0]!.ammo).toBe(0);
+    expect(emptyTick.deployedTroops[0]!.currentHp).toBe(hpAfterShot);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1206,6 +1228,44 @@ describe('initBattleState - Scattershot', () => {
 
     const building = state.buildings.find((b) => b.name === 'Scattershot');
     expect(building!.maxHp).toBe(3600);
+    expect(def.ammo).toBe(90);
+    expect(def.maxAmmo).toBe(90);
+  });
+});
+
+describe('Grand Warden Life Aura', () => {
+  it('increases nearby attacker max HP without healing repeatedly', () => {
+    const warden = makeDeployedTroop({
+      id: 'warden', name: 'Grand Warden', isHero: true,
+      x: 5, y: 5, lifeAuraBoostPercent: 20, lifeAuraRadius: 7,
+    });
+    const ally = makeDeployedTroop({ id: 'ally', x: 6, y: 5, currentHp: 80, maxHp: 100 });
+    const troops = [warden, ally];
+
+    applyWardenLifeAura(troops);
+    const firstHp = ally.currentHp;
+    applyWardenLifeAura(troops);
+
+    expect(ally.maxHp).toBe(120);
+    expect(firstHp).toBe(100);
+    expect(ally.currentHp).toBe(firstHp);
+  });
+
+  it('removes the bonus when a troop leaves the aura', () => {
+    const warden = makeDeployedTroop({
+      id: 'warden', name: 'Grand Warden', isHero: true,
+      x: 5, y: 5, lifeAuraBoostPercent: 20, lifeAuraRadius: 7,
+    });
+    const ally = makeDeployedTroop({ id: 'ally', x: 6, y: 5, currentHp: 100, maxHp: 100 });
+    const troops = [warden, ally];
+    applyWardenLifeAura(troops);
+    ally.x = 30;
+
+    applyWardenLifeAura(troops);
+
+    expect(ally.maxHp).toBe(100);
+    expect(ally.currentHp).toBe(100);
+    expect(ally.lifeAuraApplied).toBe(false);
   });
 });
 
@@ -1238,6 +1298,54 @@ describe('tickBattle - clone lifespan', () => {
     const after = result.deployedTroops.find((t) => t.id === 'clone_troop_1_0');
     expect(after!.state).toBe('dead');
     expect(after!.currentHp).toBe(0);
+  });
+});
+
+describe('Eagle Artillery deployment housing', () => {
+  it('sums mixed-army housing instead of approximating from object count', () => {
+    const troops = [
+      ...Array.from({ length: 5 }, () => makeDeployedTroop({ name: 'Barbarian', housingSpace: 1 })),
+      ...Array.from({ length: 2 }, () => makeDeployedTroop({ name: 'Golem', housingSpace: 30 })),
+      makeDeployedTroop({ name: 'Golem', housingSpace: 30, isDefender: true }),
+    ];
+    expect(getDeployedHousingSpace(troops)).toBe(65);
+  });
+
+  it('activates with seven 30-space Golems despite having fewer than 40 objects', () => {
+    const eagle = makeDefense({ name: 'Eagle Artillery', eagleActivated: false, eagleActivationThreshold: 200 });
+    const troops = Array.from({ length: 7 }, (_, index) => makeDeployedTroop({
+      id: `golem_${index}`, name: 'Golem', housingSpace: 30, x: 20, y: 25,
+    }));
+    const result = tickBattle(makeBattleState({ timeRemaining: 170, deployedTroops: troops, defenses: [eagle] }), 50);
+    expect(result.defenses[0]!.eagleActivated).toBe(true);
+  });
+
+  it('does not activate for fifty 1-space Barbarians', () => {
+    const eagle = makeDefense({ name: 'Eagle Artillery', eagleActivated: false, eagleActivationThreshold: 200 });
+    const troops = Array.from({ length: 50 }, (_, index) => makeDeployedTroop({
+      id: `barbarian_${index}`, name: 'Barbarian', housingSpace: 1, x: 20, y: 25,
+    }));
+    const result = tickBattle(makeBattleState({ timeRemaining: 170, deployedTroops: troops, defenses: [eagle] }), 50);
+    expect(result.defenses[0]!.eagleActivated).toBe(false);
+  });
+});
+
+describe('tickBattle - frozen defender troops', () => {
+  it('prevents attacks until frozenUntil, then resumes', () => {
+    const defender = makeDeployedTroop({
+      id: 'frozen_cc', isDefender: true, isFrozen: true, frozenUntil: 12.5,
+      x: 10, y: 10, dps: 20, baseDps: 20,
+    });
+    const attacker = makeDeployedTroop({ id: 'attacker', x: 11, y: 10, currentHp: 100, maxHp: 100 });
+    const state = makeBattleState({ timeRemaining: 170, deployedTroops: [defender, attacker] });
+
+    const frozenTick = tickBattle(state, 1000);
+    expect(frozenTick.deployedTroops.find((troop) => troop.id === 'attacker')!.currentHp).toBe(100);
+    expect(frozenTick.deployedTroops.find((troop) => troop.id === 'frozen_cc')!.isFrozen).toBe(true);
+
+    const resumed = tickBattle(frozenTick, 2000);
+    expect(resumed.deployedTroops.find((troop) => troop.id === 'frozen_cc')!.isFrozen).toBe(false);
+    expect(resumed.deployedTroops.find((troop) => troop.id === 'attacker')!.currentHp).toBeLessThan(100);
   });
 });
 

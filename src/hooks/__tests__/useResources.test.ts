@@ -246,6 +246,19 @@ describe('tickVillage', () => {
     expect(next.superTroopBoosts?.[0]?.remainingDurationMs).toBe(20_000);
   });
 
+  it('applies the Research Potion and game speed to the active Laboratory job', () => {
+    const state = makeVillageState({
+      gameClockSpeed: 2,
+      activePotions: [{ itemId: 'research_potion', remainingMs: 60_000 }],
+      activeResearch: {
+        troopName: 'Barbarian', fromLevel: 1, targetLevel: 2, resource: 'elixir',
+        cost: 1000, totalTimeSeconds: 100, remainingTimeSeconds: 100,
+      },
+    });
+    const next = tickVillage(state, 1000);
+    expect(next.activeResearch?.remainingTimeSeconds).toBe(52);
+  });
+
   it('does not mutate the input state', () => {
     const state = makeVillageState({
       buildings: [makeGoldMine()],

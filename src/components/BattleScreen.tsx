@@ -369,18 +369,18 @@ export function BattleScreen({ onNavigate, externalState, onBattleComplete, enem
             <button
               key={hero.name}
               onClick={() => handleSelectHero(hero.name)}
-              disabled={hero.deployed}
+              disabled={hero.deployed && !hero.pet?.recalledTroop}
               className={`flex flex-col items-center px-3 py-1.5 rounded-lg min-w-[88px] transition-colors ${
                 selectedHero === hero.name
                   ? 'bg-amber-500 text-slate-900'
-                  : hero.deployed
+                  : hero.deployed && !hero.pet?.recalledTroop
                     ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                     : 'bg-amber-800 hover:bg-amber-700 text-amber-100'
               }`}
             >
               <span className="text-xs font-semibold truncate max-w-[80px]">{hero.name}</span>
               <span className="text-[10px] tabular-nums mt-0.5">
-                {hero.deployed ? 'Deployed' : `Lv ${hero.level}`}
+                {hero.pet?.recalledTroop ? 'Pet ready' : hero.deployed ? 'Deployed' : `Lv ${hero.level}`}
               </span>
             </button>
           ))}

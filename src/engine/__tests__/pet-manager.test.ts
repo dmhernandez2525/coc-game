@@ -1,4 +1,5 @@
 import type { OwnedHero, PlacedBuilding } from '../../types/village.ts';
+import type { ActiveDefense, DeployedTroop } from '../../types/battle.ts';
 import {
   getAvailablePets,
   getPetHouseLevel,
@@ -15,6 +16,7 @@ import {
   upgradePet,
   upgradeOwnedPet,
   getOwnedPetLevel,
+  tickPetAbilities,
 } from '../pet-manager.ts';
 import type { OwnedPet } from '../pet-manager.ts';
 
@@ -201,11 +203,12 @@ describe('deployPet', () => {
     expect(troop!.canJumpWalls).toBe(true);
   });
 
-  it('sets canJumpWalls for Mighty Yak', () => {
+  it('does not let Mighty Yak bypass the walls it is built to damage', () => {
     const hero = makeHero({ assignedPet: 'Mighty Yak' });
     const troop = deployPet(hero, 1, 0, 0);
     expect(troop).not.toBeNull();
-    expect(troop!.canJumpWalls).toBe(true);
+    expect(troop!.canJumpWalls).not.toBe(true);
+    expect(troop!.wallDamageMultiplier).toBe(20);
   });
 
   it('generates unique pet id containing the pet name', () => {
@@ -369,7 +372,7 @@ describe('createPetTroop', () => {
 
   it('gives Mighty Yak its wall busting traits', () => {
     const troop = createPetTroop('Mighty Yak', 1, 0, 0);
-    expect(troop!.canJumpWalls).toBe(true);
+    expect(troop!.canJumpWalls).not.toBe(true);
     expect(troop!.wallDamageMultiplier).toBe(20);
   });
 
@@ -380,6 +383,218 @@ describe('createPetTroop', () => {
     expect(troop!.healPerSecond).toBe(stats.healingPerSecond);
     expect(troop!.healPerSecond).toBeGreaterThan(0);
     expect(troop!.healRadius).toBeGreaterThan(0);
+  });
+
+  it('wires signature traits for every later pet', () => {
+    expect(createPetTroop('Frosty', 1, 0, 0)).toMatchObject({ frostmitesPerSummon: 1, maxFrostmites: 4 });
+    expect(createPetTroop('Diggy', 1, 0, 0)).toMatchObject({ stunDuration: 2 });
+    expect(createPetTroop('Poison Lizard', 1, 0, 0)).toMatchObject({
+      poisonDps: 80,
+      poisonSpeedMultiplier: 0.74,
+      poisonAttackMultiplier: 0.65,
+    });
+    expect(createPetTroop('Phoenix', 1, 0, 0)).toMatchObject({ phoenixReviveDuration: 6 });
+    expect(createPetTroop('Spirit Fox', 1, 0, 0)).toMatchObject({ spiritWalkDuration: 3 });
+    expect(createPetTroop('Angry Jelly', 1, 0, 0)).toMatchObject({ brainwashDuration: 25 });
+    expect(createPetTroop('Sneezy', 1, 0, 0)).toMatchObject({ boogersPerSummon: 2 });
+  });
+});
+
+function makeBattleHero(overrides: Partial<DeployedTroop> = {}): DeployedTroop {
+  return {
+    id: 'hero_king',
+    name: 'Barbarian King',
+    level: 10,
+    currentHp: 1000,
+    maxHp: 1000,
+    x: 0,
+    y: 0,
+    targetId: null,
+    state: 'idle',
+    dps: 100,
+    baseDps: 100,
+    attackRange: 1,
+    movementSpeed: 16,
+    isFlying: false,
+    isHero: true,
+    ...overrides,
+  };
+}
+
+function assignedPet(name: string): DeployedTroop {
+  const pet = createPetTroop(name, 1, 0, 0)!;
+  pet.ownerHeroName = 'Barbarian King';
+  return pet;
+}
+
+describe('tickPetAbilities', () => {
+  it('spawns Frostmites and Sneezy Boogers on their cooldowns', () => {
+    const hero = makeBattleHero();
+    const frosty = assignedPet('Frosty');
+    const sneezy = assignedPet('Sneezy');
+
+    const summons = tickPetAbilities([hero, frosty, sneezy], [], 0, 1000);
+
+    expect(summons.filter((troop) => troop.name === 'Frostmite')).toHaveLength(1);
+    expect(summons.filter((troop) => troop.name === 'Booger')).toHaveLength(2);
+    expect(frosty.petAbilityReadyAt).toBe(5);
+    expect(sneezy.petAbilityReadyAt).toBe(5);
+  });
+
+  it('burrows Diggy while moving and stuns once when surfacing', () => {
+    const hero = makeBattleHero();
+    const diggy = assignedPet('Diggy');
+    diggy.targetId = 'cannon';
+    const defense = { buildingInstanceId: 'cannon', isDestroyed: false } as ActiveDefense;
+
+    diggy.state = 'moving';
+    tickPetAbilities([hero, diggy], [defense], 9, 1000);
+    expect(diggy.isBurrowed).toBe(true);
+
+    diggy.state = 'attacking';
+    tickPetAbilities([hero, diggy], [defense], 10, 1000);
+    expect(diggy.isBurrowed).toBe(false);
+    expect(defense.isFrozen).toBe(true);
+    expect(defense.frozenUntil).toBe(12);
+
+    tickPetAbilities([hero, diggy], [defense], 11, 1000);
+    expect(defense.frozenUntil).toBe(12);
+
+    diggy.state = 'moving';
+    tickPetAbilities([hero, diggy], [defense], 12, 1000);
+    diggy.state = 'attacking';
+    tickPetAbilities([hero, diggy], [defense], 13, 1000);
+    expect(defense.frozenUntil).toBe(15);
+  });
+
+  it('makes Frostmites slow defense fire and defending troops', () => {
+    const hero = makeBattleHero();
+    const frosty = assignedPet('Frosty');
+    const frostmite = tickPetAbilities([hero, frosty], [], 0, 1000)[0]!;
+    const defense = {
+      buildingInstanceId: 'cannon', isDestroyed: false, attackSpeed: 1,
+    } as ActiveDefense;
+    frostmite.state = 'attacking';
+    frostmite.targetId = 'cannon';
+
+    tickPetAbilities([hero, frostmite], [defense], 5, 1000);
+
+    expect(defense.attackSpeed).toBe(2);
+    expect(defense.frostSlowUntil).toBe(7);
+
+    const defender = makeBattleHero({
+      id: 'defender', name: 'Archer', isHero: false, isDefender: true,
+      movementSpeed: 20, attackRateMultiplier: 0.8,
+    });
+    frostmite.targetId = defender.id;
+    tickPetAbilities([hero, frostmite, defender], [], 8, 1000);
+
+    expect(defender.movementSpeed).toBe(10);
+    expect(defender.attackRateMultiplier).toBe(0.4);
+    expect(defender.frostSlowUntil).toBe(10);
+  });
+
+  it('applies Poison Lizard damage plus movement and attack-rate slows', () => {
+    const hero = makeBattleHero();
+    const lizard = assignedPet('Poison Lizard');
+    const defender = makeBattleHero({
+      id: 'defender', name: 'Archer', isHero: false, isDefender: true,
+      currentHp: 500, maxHp: 500, movementSpeed: 20,
+    });
+
+    tickPetAbilities([hero, lizard, defender], [], 10, 1000);
+
+    expect(defender.currentHp).toBe(420);
+    expect(defender.movementSpeed).toBeCloseTo(14.8);
+    expect(defender.attackRateMultiplier).toBeCloseTo(0.65);
+    expect(defender.poisonedUntil).toBe(12);
+  });
+
+  it('revives a fallen owner only after Phoenix is defeated', () => {
+    const hero = makeBattleHero({ state: 'dead', currentHp: 0 });
+    const phoenix = assignedPet('Phoenix');
+
+    tickPetAbilities([hero, phoenix], [], 7, 1000);
+
+    expect(hero.state).toBe('dead');
+    expect(phoenix.petAbilityConsumed).not.toBe(true);
+
+    phoenix.state = 'dead';
+    phoenix.currentHp = 0;
+    tickPetAbilities([hero, phoenix], [], 8, 1000);
+
+    expect(hero.state).toBe('idle');
+    expect(hero.currentHp).toBe(500);
+    expect(hero.invincibleUntil).toBe(14);
+    expect(phoenix.petAbilityConsumed).toBe(true);
+  });
+
+  it('makes a Spirit Fox and its owner invisible on cooldown', () => {
+    const hero = makeBattleHero();
+    const fox = assignedPet('Spirit Fox');
+
+    tickPetAbilities([hero, fox], [], 4, 1000);
+
+    expect(hero.isBurrowed).toBe(true);
+    expect(hero.invisibleUntil).toBe(7);
+    expect(fox.isBurrowed).toBe(true);
+    expect(fox.petAbilityReadyAt).toBe(10);
+  });
+
+  it('brainwashes Angry Jelly owners toward defenses for a bounded duration', () => {
+    const hero = makeBattleHero();
+    const jelly = assignedPet('Angry Jelly');
+
+    tickPetAbilities([hero, jelly], [], 5, 1000);
+
+    expect(hero.favoriteTargetOverride).toBe('Defenses');
+    expect(hero.favoriteTargetOverrideUntil).toBe(30);
+    expect(jelly.petAbilityConsumed).toBe(true);
+  });
+
+  it('enrages Mighty Yak for exactly eight seconds without compounding speed', () => {
+    const hero = makeBattleHero({ state: 'dead', currentHp: 0 });
+    const yak = assignedPet('Mighty Yak');
+    const baseSpeed = yak.movementSpeed;
+
+    tickPetAbilities([hero, yak], [], 1, 1000);
+    tickPetAbilities([hero, yak], [], 2, 1000);
+
+    expect(yak.petRageUntil).toBe(9);
+    expect(yak.isEnraged).toBe(true);
+    expect(yak.dps).toBeCloseTo(yak.baseDps * 1.7);
+    expect(yak.movementSpeed).toBeCloseTo(baseSpeed * 1.16);
+
+    tickPetAbilities([hero, yak], [], 9, 1000);
+    expect(yak.isEnraged).toBe(false);
+    expect(yak.dps).toBe(yak.baseDps);
+    expect(yak.movementSpeed).toBe(baseSpeed);
+  });
+
+  it('bounds Sneezy rage and living Boogers while keeping summons building-only', () => {
+    const hero = makeBattleHero({ state: 'dead', currentHp: 0 });
+    const sneezy = assignedPet('Sneezy');
+    const existing = Array.from({ length: 5 }, (_, index) => ({
+      ...makeBattleHero({
+        id: `booger_${index}`, name: 'Booger', isHero: false,
+        currentHp: 20, maxHp: 20,
+      }),
+      isPet: true,
+      ownerHeroName: 'Barbarian King',
+    }));
+
+    const summons = tickPetAbilities([hero, sneezy, ...existing], [], 1, 1000);
+
+    expect(summons).toHaveLength(1);
+    expect(summons[0]).toMatchObject({
+      name: 'Booger', targetsBuildingsOnly: true, attackRange: 0.8,
+    });
+    expect(sneezy.dps).toBe(sneezy.baseDps * 1.5);
+    expect(sneezy.petRageUntil).toBe(9);
+
+    tickPetAbilities([hero, sneezy, ...existing, ...summons], [], 9, 1000);
+    expect(sneezy.isEnraged).toBe(false);
+    expect(sneezy.dps).toBe(sneezy.baseDps);
   });
 });
 

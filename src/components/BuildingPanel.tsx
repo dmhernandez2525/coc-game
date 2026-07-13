@@ -1,5 +1,6 @@
 import type { PlacedBuilding } from '../types/village.ts';
 import type { XBowMode } from '../types/common.ts';
+import { getBuildingAmmo, getDefenseAmmoProfile, getReloadLabel } from '../engine/defense-ammo.ts';
 
 interface UpgradeCost {
   amount: number;
@@ -16,6 +17,8 @@ interface BuildingPanelProps {
   canUpgrade: boolean;
   upgradeCost: UpgradeCost | null;
   onToggleXBowMode?: () => void;
+  onReloadAmmo?: () => void;
+  canReloadAmmo?: boolean;
 }
 
 const XBOW_MODE_LABELS: Record<XBowMode, string> = {
@@ -47,8 +50,12 @@ export function BuildingPanel({
   canUpgrade,
   upgradeCost,
   onToggleXBowMode,
+  onReloadAmmo,
+  canReloadAmmo = false,
 }: BuildingPanelProps) {
   const xbowMode: XBowMode = building.xbowMode ?? 'ground_and_air';
+  const ammoProfile = getDefenseAmmoProfile(building.buildingId);
+  const ammo = getBuildingAmmo(building);
   return (
     <div className="fixed bottom-0 left-0 right-0 z-30 bg-slate-900/95 border-t-2 border-amber-500/60 backdrop-blur-sm">
       <div className="max-w-2xl mx-auto px-4 py-3">
@@ -88,15 +95,30 @@ export function BuildingPanel({
 
         {/* X-Bow targeting mode toggle */}
         {building.buildingId === 'X-Bow' && onToggleXBowMode && (
-          <div className="flex items-center gap-3 text-sm mb-3">
-            <span className="text-slate-400">Targeting mode:</span>
+          <div className="mb-3">
+            <div className="flex items-center gap-3 text-sm">
+              <span className="text-slate-400">Targeting mode:</span>
+              <button
+                onClick={onToggleXBowMode}
+                className="px-3 py-1 rounded font-semibold text-sm transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+              >
+                {XBOW_MODE_LABELS[xbowMode]}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {ammoProfile && ammo && onReloadAmmo && (
+          <div className="mb-3 flex items-center gap-3 text-sm">
+            <span className="text-slate-400">{ammoProfile.meterLabel}:</span>
+            <span className="text-cyan-300 tabular-nums">{ammo.ammo} / {ammo.maxAmmo}</span>
             <button
-              onClick={onToggleXBowMode}
-              className="px-3 py-1 rounded font-semibold text-sm transition-colors bg-sky-700 hover:bg-sky-600 text-white"
+              onClick={onReloadAmmo}
+              disabled={!canReloadAmmo}
+              className="px-3 py-1 rounded font-semibold text-sm bg-fuchsia-700 hover:bg-fuchsia-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {XBOW_MODE_LABELS[xbowMode]}
+              {getReloadLabel(building.buildingId)}
             </button>
-            <span className="text-xs text-slate-500">Tap to switch</span>
           </div>
         )}
 

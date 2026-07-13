@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { BattleState, BattleBuilding, DeployedTroop } from '../../types/battle.ts';
-import { deployHeroToBattle } from '../battle-engine.ts';
+import type { ActiveDefense, BattleState, BattleBuilding, DeployedTroop } from '../../types/battle.ts';
+import { deployHeroToBattle, tickBattle } from '../battle-engine.ts';
 import { createPetTroop, getPetStats } from '../pet-manager.ts';
 import { processTroopSpecial } from '../troop-mechanics.ts';
 
@@ -194,27 +194,43 @@ describe('Electro Owl zap', () => {
 // ---------------------------------------------------------------------------
 
 describe('Unicorn healing', () => {
-  it('heals a damaged ground ally within range', () => {
+  it.each([false, true])('follows and fully heals its paired %s hero', (isFlying) => {
     const unicorn = createPetTroop('Unicorn', 1, 10, 10)!;
     const healPerSec = getPetStats('Unicorn', 1)!.healingPerSecond!;
-    const ally = makeTroop({ currentHp: 100, maxHp: 300 });
+    unicorn.ownerHeroName = 'Archer Queen';
+    const hero = makeTroop({
+      id: 'hero_queen', name: 'Archer Queen', currentHp: 100, maxHp: 1000,
+      x: 20, y: 10, isHero: true, isFlying,
+    });
 
-    const handled = processTroopSpecial(unicorn, [unicorn, ally], [], [], 1000);
+    const handled = processTroopSpecial(unicorn, [unicorn, hero], [], [], 250);
 
     expect(handled).toBe(true);
-    expect(ally.currentHp).toBe(100 + healPerSec);
+    expect(unicorn.state).toBe('moving');
+    expect(unicorn.x).toBeGreaterThan(10);
+    expect(hero.currentHp).toBe(100);
+
+    unicorn.x = hero.x;
+    unicorn.y = hero.y;
+    processTroopSpecial(unicorn, [unicorn, hero], [], [], 1000);
+    expect(unicorn.targetId).toBe(hero.id);
+    expect(hero.currentHp).toBe(100 + healPerSec);
   });
 
-  it('heals heroes at half rate and skips flying allies', () => {
+  it('never heals an unpaired hero or ordinary ally', () => {
     const unicorn = createPetTroop('Unicorn', 1, 10, 10)!;
-    const healPerSec = getPetStats('Unicorn', 1)!.healingPerSecond!;
-    const hero = makeTroop({ id: 'hero_1', currentHp: 100, maxHp: 1000, isHero: true });
-    const flyer = makeTroop({ id: 'flyer_1', currentHp: 100, maxHp: 300, isFlying: true });
+    unicorn.ownerHeroName = 'Archer Queen';
+    const wrongHero = makeTroop({
+      id: 'hero_king', name: 'Barbarian King', currentHp: 100, maxHp: 1000, isHero: true,
+    });
+    const ally = makeTroop({ id: 'ally', currentHp: 100, maxHp: 300 });
 
-    processTroopSpecial(unicorn, [unicorn, hero, flyer], [], [], 1000);
+    processTroopSpecial(unicorn, [unicorn, wrongHero, ally], [], [], 1000);
 
-    expect(hero.currentHp).toBe(100 + healPerSec / 2);
-    expect(flyer.currentHp).toBe(100);
+    expect(wrongHero.currentHp).toBe(100);
+    expect(ally.currentHp).toBe(100);
+    expect(unicorn.targetId).toBeNull();
+    expect(unicorn.state).toBe('idle');
   });
 
   it('deals no attack damage of its own', () => {
@@ -222,5 +238,76 @@ describe('Unicorn healing', () => {
 
     expect(unicorn.dps).toBe(0);
     expect(unicorn.baseDps).toBe(0);
+  });
+});
+
+describe('Mighty Yak wall busting', () => {
+  it('stops at walls and consumes its 20x wall damage multiplier', () => {
+    const yak = createPetTroop('Mighty Yak', 1, 10, 10)!;
+    yak.state = 'attacking';
+    yak.targetId = 'wall';
+    const state = makeBattleState({
+      timeRemaining: 179,
+      deployedTroops: [yak],
+      buildings: [makeBuilding('wall', {
+        name: 'Wall', x: 10, y: 10, currentHp: 2000, maxHp: 2000,
+      })],
+    });
+
+    const next = tickBattle(state, 1000);
+
+    expect(yak.canJumpWalls).not.toBe(true);
+    expect(next.buildings[0]!.currentHp).toBe(800);
+  });
+});
+
+describe('pet effect expiry', () => {
+  it('restores Frostmite-slowed troop and defense rates at the deadline', () => {
+    const troop = makeTroop({
+      isDefender: true,
+      movementSpeed: 10,
+      attackRateMultiplier: 0.4,
+      frostSlowUntil: 2,
+      preFrostMovementSpeed: 20,
+      preFrostAttackRateMultiplier: 0.8,
+    });
+    const defense: ActiveDefense = {
+      buildingInstanceId: 'tower',
+      name: 'Archer Tower',
+      level: 1,
+      currentHp: 500,
+      maxHp: 500,
+      x: 20,
+      y: 20,
+      targetTroopId: null,
+      dps: 10,
+      baseDps: 10,
+      range: { min: 0, max: 10 },
+      attackSpeed: 2,
+      preFrostAttackSpeed: 1,
+      frostSlowUntil: 2,
+      lastAttackTime: 0,
+      isDestroyed: false,
+    };
+    const state = makeBattleState({
+      timeRemaining: 179,
+      deployedTroops: [troop],
+      defenses: [defense],
+    });
+
+    const next = tickBattle(state, 1000);
+
+    expect(next.deployedTroops[0]).toMatchObject({
+      movementSpeed: 20,
+      attackRateMultiplier: 0.8,
+      frostSlowUntil: undefined,
+      preFrostMovementSpeed: undefined,
+      preFrostAttackRateMultiplier: undefined,
+    });
+    expect(next.defenses[0]).toMatchObject({
+      attackSpeed: 1,
+      frostSlowUntil: undefined,
+      preFrostAttackSpeed: undefined,
+    });
   });
 });

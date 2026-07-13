@@ -29,7 +29,7 @@ const SPELL_EFFECTS: Record<string, SpellEffect> = {
 };
 
 // Clone Spell copies are weaker than the originals and expire on their own.
-const CLONE_HP_MULTIPLIER = 0.5;
+const CLONE_HP_MULTIPLIER = 1;
 const CLONE_FALLBACK_LIFESPAN = 30;
 const CLONE_FALLBACK_RADIUS = 3.5;
 const RECALL_FALLBACK_RADIUS = 5;
@@ -126,7 +126,7 @@ function packByHousing(
   const picked: DeployedTroop[] = [];
   let remaining = capacity;
   for (const t of sorted) {
-    const housing = getTroop(t.name)?.housingSpace;
+    const housing = unitHousing(t);
     if (housing === undefined || housing > remaining) continue;
     picked.push(t);
     remaining -= housing;
@@ -134,22 +134,32 @@ function packByHousing(
   return picked;
 }
 
+function unitHousing(troop: DeployedTroop): number | undefined {
+  if (troop.isPet) return 0;
+  return troop.isHero ? 25 : getTroop(troop.name)?.housingSpace;
+}
+
 /** Clone targets attacker troops only; never heroes, defenders, or other clones. */
 function isClonableTroop(t: DeployedTroop, x: number, y: number, radius: number): boolean {
-  if (t.state === 'dead' || t.isDefender || t.isHero || t.isClone) return false;
+  if (t.state === 'dead' || t.isDefender || t.isHero || t.isPet || t.isClone) return false;
   return isInRadius(x, y, t.x, t.y, radius);
 }
 
 /**
- * Recall only returns units that came from the deploy bar (deployTroop ids
- * start with "troop_"). Heroes, clones, summons, and defenders stay put.
+ * Recall independently returns deploy-bar troops, heroes, and assigned pets
+ * inside its radius. Clones, summons, and defenders stay put.
  */
 function isRecallableTroop(t: DeployedTroop, x: number, y: number, radius: number): boolean {
-  if (t.state === 'dead' || t.isDefender || t.isClone || !t.id.startsWith('troop_')) return false;
+  if (t.state === 'dead' || t.isDefender || t.isClone) return false;
+  if (t.isPet) {
+    if (!t.ownerHeroName || ['Frostmite', 'Booger'].includes(t.name)) return false;
+    return isInRadius(x, y, t.x, t.y, radius);
+  }
+  if (!t.id.startsWith('troop_') && !t.isHero) return false;
   return isInRadius(x, y, t.x, t.y, radius);
 }
 
-/** Build a reduced-HP copy of a troop with a limited lifespan. */
+/** Build a full-HP copy of a troop with a limited lifespan. */
 function makeClone(source: DeployedTroop, lifespan: number, index: number): DeployedTroop {
   const hp = Math.max(1, Math.round(source.maxHp * CLONE_HP_MULTIPLIER));
   return {
@@ -213,11 +223,10 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
       };
     });
 
-    // Freeze enemy CC troops in radius (slow to 0 speed)
+    // Freeze enemy Clan Castle troops in radius until the battle clock expires it.
     const troops = state.deployedTroops.map((t) => {
-      if (t.state === 'dead' || !isInRadius(x, y, t.x, t.y, radius)) return t;
-      // Enemy troops would be frozen in a real implementation
-      return t;
+      if (!t.isDefender || t.state === 'dead' || !isInRadius(x, y, t.x, t.y, radius)) return t;
+      return { ...t, isFrozen: true, frozenUntil: elapsed + freezeDuration };
     });
 
     return { ...state, defenses, deployedTroops: troops };
@@ -277,10 +286,25 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
     const capacity = stat(ls, 'clonedCapacity', 22);
     const lifespan = (spellData.clonedLifespan as number | undefined) ?? CLONE_FALLBACK_LIFESPAN;
     const eligible = state.deployedTroops.filter((t) => isClonableTroop(t, x, y, radius));
-    const clones = packByHousing(eligible, x, y, capacity)
+    const selected = packByHousing(eligible, x, y, capacity);
+    const clones = selected
       .map((t, i) => makeClone(t, lifespan, i));
-    if (clones.length === 0) return state;
-    return { ...state, deployedTroops: [...state.deployedTroops, ...clones] };
+    const usedCapacity = selected.reduce((sum, troop) => sum + (unitHousing(troop) ?? 0), 0);
+    const ringDuration = (spellData.spellDuration as number | undefined) ?? 18;
+    const ring: ActiveSpell = {
+      id: `clone-ring-${Date.now()}`,
+      name: 'Clone Spell',
+      level: ls.level,
+      x,
+      y,
+      radius,
+      remainingDuration: ringDuration,
+      totalDuration: ringDuration,
+      remainingCloneCapacity: capacity - usedCapacity,
+      clonedSourceIds: selected.map((troop) => troop.id),
+      cloneLifespan: lifespan,
+    };
+    return { ...state, deployedTroops: [...state.deployedTroops, ...clones], spells: [...state.spells, ring] };
   },
   recall: (state, spellData, ls, x, y) => {
     const radius = spellData.radius ?? RECALL_FALLBACK_RADIUS;
@@ -288,11 +312,28 @@ const INSTANT_APPLIERS: Record<string, InstantApplier> = {
     const eligible = state.deployedTroops.filter((t) => isRecallableTroop(t, x, y, radius));
     const recalled = packByHousing(eligible, x, y, capacity);
     if (recalled.length === 0) return state;
+    const recalledHeroes = new Set(recalled.filter(t => t.isHero).map(t => t.name));
+    const recalledPets = recalled.filter(t => t.isPet && t.ownerHeroName);
+    const recalledPetOwners = new Set(recalledPets.map(t => t.ownerHeroName));
     const recalledIds = new Set(recalled.map((t) => t.id));
+    const regularTroops = recalled.filter(t => !t.isHero && !t.isPet);
     return {
       ...state,
       deployedTroops: state.deployedTroops.filter((t) => !recalledIds.has(t.id)),
-      availableTroops: returnTroopsToDeployBar(state.availableTroops, recalled),
+      availableTroops: returnTroopsToDeployBar(state.availableTroops, regularTroops),
+      availableHeroes: (state.availableHeroes ?? []).map((hero) => {
+        if (!recalledHeroes.has(hero.name) && !recalledPetOwners.has(hero.name)) return hero;
+        const recalledHero = recalled.find((troop) => troop.isHero && troop.name === hero.name);
+        const recalledPet = recalledPets.find((troop) => troop.ownerHeroName === hero.name);
+        return {
+          ...hero,
+          deployed: recalledHero ? false : hero.deployed,
+          recalledTroop: recalledHero ? { ...recalledHero } : hero.recalledTroop,
+          pet: hero.pet
+            ? { ...hero.pet, recalledTroop: recalledPet ? { ...recalledPet } : hero.pet.recalledTroop }
+            : hero.pet,
+        };
+      }),
     };
   },
 };
@@ -347,6 +388,33 @@ function spellStat(spell: ActiveSpell, key: string, fallback: number): number {
 
 type TickApplier = (spell: ActiveSpell, troops: DeployedTroop[], deltaSec: number) => DeployedTroop[];
 
+function applyCloneRing(
+  spell: ActiveSpell,
+  troops: DeployedTroop[],
+): { spell: ActiveSpell; troops: DeployedTroop[] } {
+  const remaining = spell.remainingCloneCapacity ?? 0;
+  if (remaining <= 0) return { spell, troops };
+  const alreadyCloned = new Set(spell.clonedSourceIds ?? []);
+  const candidates = troops.filter((troop) => (
+    !alreadyCloned.has(troop.id)
+    && isClonableTroop(troop, spell.x, spell.y, spell.radius)
+  ));
+  const selected = packByHousing(candidates, spell.x, spell.y, remaining);
+  if (selected.length === 0) return { spell, troops };
+  const clones = selected.map((troop, index) => (
+    makeClone(troop, spell.cloneLifespan ?? CLONE_FALLBACK_LIFESPAN, troops.length + index)
+  ));
+  const used = selected.reduce((sum, troop) => sum + (unitHousing(troop) ?? 0), 0);
+  return {
+    spell: {
+      ...spell,
+      remainingCloneCapacity: remaining - used,
+      clonedSourceIds: [...alreadyCloned, ...selected.map((troop) => troop.id)],
+    },
+    troops: [...troops, ...clones],
+  };
+}
+
 const TICK_APPLIERS: Record<string, TickApplier> = {
   heal_over_time: (spell, troops, deltaSec) => {
     const heal = spellStat(spell, 'healingPerSecond', 0) * deltaSec;
@@ -367,7 +435,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
         ...t,
         preSpellDps: t.preSpellDps ?? t.dps,
         dps: t.baseDps * mult,
-        baseMovementSpeed: t.baseMovementSpeed ?? t.movementSpeed,
+        preSpellMovementSpeed: t.preSpellMovementSpeed ?? t.movementSpeed,
         movementSpeed: t.movementSpeed + spd,
       };
     });
@@ -380,7 +448,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
       if (t.state === 'dead' || !isInRadius(spell.x, spell.y, t.x, t.y, spell.radius)) return t;
       return {
         ...t,
-        baseMovementSpeed: t.baseMovementSpeed ?? t.movementSpeed,
+        preSpellMovementSpeed: t.preSpellMovementSpeed ?? t.movementSpeed,
         movementSpeed: t.movementSpeed + spd,
       };
     });
@@ -388,6 +456,7 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
   debuff: (spell, troops, deltaSec) => {
     const dmg = spellStat(spell, 'maxDamagePerSecond', 0) * deltaSec;
     const slowPct = spellStat(spell, 'speedDecrease', 50); // percentage slow
+    const attackSlowPct = spellStat(spell, 'attackRateDecrease', 35);
     return troops.map((t) => {
       // Poison only affects defender troops, never the attacker's own army
       if (!t.isDefender) return t;
@@ -395,8 +464,11 @@ const TICK_APPLIERS: Record<string, TickApplier> = {
       const hp = Math.max(0, t.currentHp - dmg);
       return {
         ...t, currentHp: hp,
-        baseMovementSpeed: t.baseMovementSpeed ?? t.movementSpeed,
+        preSpellMovementSpeed: t.preSpellMovementSpeed ?? t.movementSpeed,
         movementSpeed: t.movementSpeed * (1 - slowPct / 100), // Poison slows movement
+        preSpellAttackRateMultiplier: t.preSpellAttackRateMultiplier ?? t.attackRateMultiplier ?? 1,
+        attackRateMultiplier: (t.preSpellAttackRateMultiplier ?? t.attackRateMultiplier ?? 1)
+          * (1 - attackSlowPct / 100),
         state: hp <= 0 ? 'dead' as const : t.state,
       };
     });
@@ -432,8 +504,13 @@ function clearSpellEffects(t: DeployedTroop): DeployedTroop {
     cleared.dps = cleared.preSpellDps;
     cleared.preSpellDps = undefined;
   }
-  if (cleared.baseMovementSpeed !== undefined) {
-    cleared.movementSpeed = cleared.baseMovementSpeed;
+  if (cleared.preSpellMovementSpeed !== undefined) {
+    cleared.movementSpeed = cleared.preSpellMovementSpeed;
+    cleared.preSpellMovementSpeed = undefined;
+  }
+  if (cleared.preSpellAttackRateMultiplier !== undefined) {
+    cleared.attackRateMultiplier = cleared.preSpellAttackRateMultiplier;
+    cleared.preSpellAttackRateMultiplier = undefined;
   }
   if (cleared.name !== 'Miner' && cleared.invisibleUntil === undefined) {
     cleared.isBurrowed = false;
@@ -449,13 +526,21 @@ export function tickSpells(
   const deltaSec = deltaMs / 1000;
   let updatedTroops = troops.map(clearSpellEffects);
 
-  for (const spell of spells) {
+  const activeSpellStates = spells.map((spell) => ({ ...spell }));
+  for (let index = 0; index < activeSpellStates.length; index++) {
+    const spell = activeSpellStates[index]!;
     const effect = SPELL_EFFECTS[spell.name];
+    if (effect === 'clone') {
+      const result = applyCloneRing(spell, updatedTroops);
+      activeSpellStates[index] = result.spell;
+      updatedTroops = result.troops;
+      continue;
+    }
     const applier = effect ? TICK_APPLIERS[effect] : undefined;
     if (applier) updatedTroops = applier(spell, updatedTroops, deltaSec);
   }
 
-  const updatedSpells = spells
+  const updatedSpells = activeSpellStates
     .map((s) => ({ ...s, remainingDuration: s.remainingDuration - deltaSec }))
     .filter((s) => s.remainingDuration > 0);
 

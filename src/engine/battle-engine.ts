@@ -13,7 +13,7 @@ import { processDefenseSpecial, processBombTowerDeath } from './defense-behavior
 import { processTroopSpecial, processDeathSpawns, processDeathDamage } from './troop-mechanics.ts';
 import { deployHero, activateHeroAbility } from './hero-manager.ts';
 import { applyBattleBoost } from './equipment-manager.ts';
-import { createPetTroop } from './pet-manager.ts';
+import { createPetTroop, tickPetAbilities } from './pet-manager.ts';
 import { shouldDeployDefensiveCC, deployDefensiveCCTroops, deployOffensiveCCTroops } from './cc-troops-manager.ts';
 import { deploySiegeMachine } from './siege-manager.ts';
 import { distributeLootAcrossBuildings } from './loot-calculator.ts';
@@ -160,10 +160,14 @@ export function initBattleState(
         def.splashRadius = 1;
       } else if (placed.buildingId === 'X-Bow') {
         applyXBowMode(def, placed.xbowMode ?? DEFAULT_XBOW_MODE);
+        def.maxAmmo = placed.maxAmmo ?? 1000;
+        def.ammo = Math.min(placed.ammo ?? def.maxAmmo, def.maxAmmo);
       } else if (placed.buildingId === 'Scattershot') {
         const shotDamage = dps * def.attackSpeed;
         def.scatterSplashDamage = (levelStats as { splashDamage?: number }).splashDamage ?? shotDamage * 0.75;
         def.scatterSplashRadius = SCATTERSHOT_SPLASH_RADIUS;
+        def.maxAmmo = placed.maxAmmo ?? 90;
+        def.ammo = Math.min(placed.ammo ?? def.maxAmmo, def.maxAmmo);
       }
 
       defenses.push(def);
@@ -222,7 +226,7 @@ export function deployTroop(
     currentHp: levelStats.hp, maxHp: levelStats.hp, x, y,
     targetId: null, state: 'idle', dps: levelStats.dps, baseDps: levelStats.dps,
     attackRange: troopData.attackRange, movementSpeed: troopData.movementSpeed,
-    isFlying: troopData.isFlying,
+    isFlying: troopData.isFlying, housingSpace: troopData.housingSpace,
   };
 
   // Set special troop properties
@@ -274,20 +278,75 @@ export function deployHeroToBattle(
   state: BattleState, heroName: string, x: number, y: number,
 ): BattleState | null {
   const heroesList = state.availableHeroes ?? [];
-  const entry = heroesList.find((h) => h.name === heroName && !h.deployed);
+  const entry = heroesList.find((h) =>
+    h.name === heroName && (!h.deployed || h.pet?.recalledTroop !== undefined));
   if (!entry) return null;
 
-  const hero = deployHero(heroName, entry.level, x, y);
-  if (!hero) return null;
+  if (entry.deployed) {
+    const recalledPet = entry.pet?.recalledTroop;
+    const owner = state.deployedTroops.find(troop =>
+      troop.isHero && troop.name === heroName && troop.state !== 'dead');
+    if (!recalledPet || !owner) return null;
+    const freshPet = createPetTroop(entry.pet!.name, entry.pet!.level, x, y);
+    if (!freshPet) return null;
+    const pet: DeployedTroop = {
+      ...recalledPet,
+      id: freshPet.id,
+      x: freshPet.x,
+      y: freshPet.y,
+      targetId: null,
+      state: 'idle',
+      ownerHeroName: heroName,
+    };
+    return {
+      ...state,
+      deployedTroops: [...state.deployedTroops, pet],
+      availableHeroes: heroesList.map(hero => hero.name === heroName
+        ? { ...hero, pet: hero.pet ? { ...hero.pet, recalledTroop: undefined } : hero.pet }
+        : hero),
+    };
+  }
 
-  const boosted = entry.boost ? applyBattleBoost(hero, entry.boost) : hero;
-  const pet = entry.pet ? createPetTroop(entry.pet.name, entry.pet.level, x, y) : null;
+  const freshHero = deployHero(heroName, entry.level, x, y);
+  if (!freshHero) return null;
+
+  const hero = entry.recalledTroop
+    ? { ...entry.recalledTroop, id: freshHero.id, x, y, targetId: null, state: 'idle' as const }
+    : freshHero;
+
+  const boosted = entry.boost && !entry.recalledTroop ? applyBattleBoost(hero, entry.boost) : hero;
+  const existingPet = state.deployedTroops.find(troop =>
+    troop.isPet
+    && troop.ownerHeroName === heroName
+    && !['Frostmite', 'Booger'].includes(troop.name)
+    && troop.state !== 'dead');
+  const freshPet = entry.pet && !existingPet
+    ? createPetTroop(entry.pet.name, entry.pet.level, x, y)
+    : null;
+  const pet = entry.pet?.recalledTroop && freshPet
+    ? {
+        ...entry.pet.recalledTroop,
+        id: freshPet.id,
+        x: freshPet.x,
+        y: freshPet.y,
+        targetId: null,
+        state: 'idle' as const,
+      }
+    : freshPet;
+  if (pet) pet.ownerHeroName = heroName;
   const arrivals = pet ? [boosted, pet] : [boosted];
 
   return {
     ...state,
     deployedTroops: [...state.deployedTroops, ...arrivals],
-    availableHeroes: heroesList.map((h) => (h.name === heroName ? { ...h, deployed: true } : h)),
+    availableHeroes: heroesList.map((h) => (h.name === heroName
+      ? {
+          ...h,
+          deployed: true,
+          recalledTroop: undefined,
+          pet: h.pet ? { ...h.pet, recalledTroop: undefined } : h.pet,
+        }
+      : h)),
   };
 }
 
@@ -424,7 +483,7 @@ function engageUnit(troop: DeployedTroop, target: DeployedTroop, deltaMs: number
   const dist = distance(troop.x, troop.y, target.x, target.y);
   if (dist <= Math.max(troop.attackRange, 0.5)) {
     troop.state = 'attacking';
-    target.currentHp = Math.max(0, target.currentHp - troop.dps * (deltaMs / 1000));
+    target.currentHp = Math.max(0, target.currentHp - effectiveTroopDps(troop) * (deltaMs / 1000));
     if (target.currentHp <= 0) target.state = 'dead';
     return;
   }
@@ -451,7 +510,7 @@ function processDefenderUnit(troop: DeployedTroop, allTroops: DeployedTroop[], d
 
 /** Troops without a favorite-target preference respond to defending units. */
 function respondsToDefenders(troop: DeployedTroop): boolean {
-  if (troop.dps <= 0 || troop.isSiegeMachine) return false;
+  if (troop.dps <= 0 || troop.isSiegeMachine || troop.targetsBuildingsOnly) return false;
   const favorite = getTroop(troop.name)?.favoriteTarget ?? null;
   return favorite === null || favorite === 'Any Building';
 }
@@ -459,7 +518,20 @@ function respondsToDefenders(troop: DeployedTroop): boolean {
 /** Resolve a unit's favorite target: sieges always path to the Town Hall. */
 function troopFavoriteTarget(troop: DeployedTroop): string | null {
   if (troop.isSiegeMachine) return 'Town Hall';
+  if (troop.favoriteTargetOverride) return troop.favoriteTargetOverride;
   return getTroop(troop.name)?.favoriteTarget ?? null;
+}
+
+function effectiveTroopDps(troop: DeployedTroop): number {
+  return troop.dps * (troop.attackRateMultiplier ?? 1);
+}
+
+function troopDamageAgainstBuilding(
+  troop: DeployedTroop, targetId: string, buildings: BattleBuilding[], deltaMs: number,
+): number {
+  const target = buildings.find(building => building.instanceId === targetId && !building.isDestroyed);
+  const multiplier = target?.name === 'Wall' ? (troop.wallDamageMultiplier ?? 1) : 1;
+  return effectiveTroopDps(troop) * multiplier * deltaMs / 1000;
 }
 
 /** Attacker-side troop-vs-troop combat. Returns true if the troop engaged a defender unit. */
@@ -483,7 +555,7 @@ function processTroop(
   troop: DeployedTroop, allTroops: DeployedTroop[],
   buildings: BattleBuilding[], defenses: ActiveDefense[], deltaMs: number,
 ): void {
-  if (troop.state === 'dead') return;
+  if (troop.state === 'dead' || troop.isFrozen) return;
 
   // Defender-owned units (CC troops, defending heroes) only fight attacker units
   if (troop.isDefender) {
@@ -493,6 +565,7 @@ function processTroop(
 
   // Run special troop mechanics (may modify DPS, burrowed state, etc.)
   const specialHandled = processTroopSpecial(troop, allTroops, buildings, defenses, deltaMs);
+  if (troop.name === 'Unicorn') return;
 
   // Defending units distract attacker troops that have no favorite target
   if (tryUnitCombat(troop, allTroops, deltaMs)) return;
@@ -523,7 +596,12 @@ function processTroop(
         if (wallDist <= troop.attackRange) {
           troop.state = 'attacking';
           if (!specialHandled) {
-            applyDamage(blockingWallId, troop.dps * (deltaMs / 1000), buildings, defenses);
+            applyDamage(
+              blockingWallId,
+              troopDamageAgainstBuilding(troop, blockingWallId, buildings, deltaMs),
+              buildings,
+              defenses,
+            );
           }
           return;
         }
@@ -542,7 +620,12 @@ function processTroop(
     troop.state = 'attacking';
     // Only apply normal damage if special handler didn't already handle it
     if (!specialHandled) {
-      applyDamage(troop.targetId, troop.dps * (deltaMs / 1000), buildings, defenses);
+      applyDamage(
+        troop.targetId,
+        troopDamageAgainstBuilding(troop, troop.targetId, buildings, deltaMs),
+        buildings,
+        defenses,
+      );
     }
   } else {
     troop.state = 'moving';
@@ -558,10 +641,22 @@ function processDefense(
   destructionPercent: number, totalHousingDeployed: number,
 ): void {
   if (defense.isDestroyed) return;
+  if (defense.isFrozen) {
+    if (defense.frozenUntil !== undefined && elapsed < defense.frozenUntil) return;
+    defense.isFrozen = false;
+    defense.frozenUntil = undefined;
+  }
+  if (defense.ammo !== undefined && defense.ammo <= 0) return;
 
   // Try special defense behavior first
   const ctx = { troops, elapsed, deltaMs, destructionPercent, totalHousingDeployed };
-  if (processDefenseSpecial(defense, ctx)) return;
+  const lastAttackBeforeSpecial = defense.lastAttackTime;
+  if (processDefenseSpecial(defense, ctx)) {
+    if (defense.lastAttackTime > lastAttackBeforeSpecial && defense.ammo !== undefined) {
+      defense.ammo = Math.max(0, defense.ammo - 1);
+    }
+    return;
+  }
 
   // Standard defense behavior
   if (defense.targetTroopId) {
@@ -602,6 +697,7 @@ function processDefense(
     if (target.currentHp <= 0) { target.state = 'dead'; target.currentHp = 0; defense.targetTroopId = null; }
   }
   defense.lastAttackTime = elapsed;
+  if (defense.ammo !== undefined) defense.ammo = Math.max(0, defense.ammo - 1);
 }
 
 /** Run a single simulation tick, advancing the battle by deltaMs milliseconds. */
@@ -646,11 +742,15 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   }
   troops.push(...abilitySummons);
 
-  // Calculate housing deployed for Eagle Artillery activation
-  const totalHousingDeployed = state.deployedTroops.length * 5; // Approximation: 5 housing per troop
+  // Eagle Artillery activation uses the real capacity of the deployed army.
+  const totalHousingDeployed = getDeployedHousingSpace(troops);
   const currentDestruction = calculateStars(buildings).destructionPercent;
 
   for (const troop of troops) {
+    if (troop.isFrozen && troop.frozenUntil !== undefined && elapsed >= troop.frozenUntil) {
+      troop.isFrozen = false;
+      troop.frozenUntil = undefined;
+    }
     // Expire hero cloak invisibility (Archer Queen's Royal Cloak)
     if (troop.invisibleUntil !== undefined && elapsed >= troop.invisibleUntil) {
       troop.invisibleUntil = undefined;
@@ -665,11 +765,40 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
       troop.cloneLifespanRemaining -= deltaMs / 1000;
       if (troop.cloneLifespanRemaining <= 0) { troop.state = 'dead'; troop.currentHp = 0; }
     }
+    if (troop.poisonedUntil !== undefined) {
+      if (elapsed < troop.poisonedUntil) {
+        troop.currentHp = Math.max(0, troop.currentHp - (troop.poisonDamagePerSecond ?? 0) * deltaMs / 1000);
+        if (troop.currentHp <= 0) troop.state = 'dead';
+      } else {
+        troop.poisonedUntil = undefined;
+        troop.poisonDamagePerSecond = undefined;
+        troop.attackRateMultiplier = 1;
+        if (troop.baseMovementSpeed !== undefined) troop.movementSpeed = troop.baseMovementSpeed;
+      }
+    }
+    if (troop.frostSlowUntil !== undefined && elapsed >= troop.frostSlowUntil) {
+      troop.frostSlowUntil = undefined;
+      if (troop.preFrostMovementSpeed !== undefined) {
+        troop.movementSpeed = troop.preFrostMovementSpeed;
+        troop.preFrostMovementSpeed = undefined;
+      }
+      if (troop.preFrostAttackRateMultiplier !== undefined) {
+        troop.attackRateMultiplier = troop.preFrostAttackRateMultiplier;
+        troop.preFrostAttackRateMultiplier = undefined;
+      }
+    }
+    if (troop.favoriteTargetOverrideUntil !== undefined && elapsed >= troop.favoriteTargetOverrideUntil) {
+      troop.favoriteTargetOverride = undefined;
+      troop.favoriteTargetOverrideUntil = undefined;
+    }
     // Healing block only lasts while a single-target Inferno stays locked on
     troop.healingNerfed = defenses.some((d) =>
       d.name === 'Inferno Tower' && !d.isDestroyed && !d.isFrozen
       && d.infernoMode !== 'multi' && d.targetTroopId === troop.id);
   }
+
+  troops.push(...tickPetAbilities(troops, defenses, elapsed, deltaMs));
+  applyWardenLifeAura(troops);
 
   // Snapshot HP of Eternal Tome protected troops; restored after damage phases
   const invincibleHp = new Map<string, number>();
@@ -701,6 +830,13 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
   troops.push(...releaseSiegeCargo(troops, buildings));
 
   for (const defense of defenses) {
+    if (defense.frostSlowUntil !== undefined && elapsed >= defense.frostSlowUntil) {
+      defense.frostSlowUntil = undefined;
+      if (defense.preFrostAttackSpeed !== undefined) {
+        defense.attackSpeed = defense.preFrostAttackSpeed;
+        defense.preFrostAttackSpeed = undefined;
+      }
+    }
     const wasAlive = !defense.isDestroyed;
     processDefense(defense, troops, elapsed, deltaMs, currentDestruction, totalHousingDeployed);
     // Handle Bomb Tower death explosion
@@ -733,6 +869,44 @@ export function tickBattle(state: BattleState, deltaMs: number): BattleState {
     spells: spellResult.spells, stars, destructionPercent, loot,
     ...(defenderCC ? { defenderCC } : {}),
   };
+}
+
+export function getDeployedHousingSpace(troops: DeployedTroop[]): number {
+  return troops.reduce((total, troop) => {
+    if (troop.isDefender || troop.isPet || troop.isClone) return total;
+    return total + (troop.housingSpace ?? getTroop(troop.name)?.housingSpace ?? 0);
+  }, 0);
+}
+
+export function applyWardenLifeAura(troops: DeployedTroop[]): void {
+  const previous = new Map<string, { applied: boolean; currentHp: number }>();
+  for (const troop of troops) {
+    if (troop.lifeAuraBaseMaxHp !== undefined) {
+      previous.set(troop.id, { applied: troop.lifeAuraApplied === true, currentHp: troop.currentHp });
+      troop.maxHp = troop.lifeAuraBaseMaxHp;
+      troop.currentHp = Math.min(troop.currentHp, troop.maxHp);
+      troop.lifeAuraApplied = false;
+    }
+  }
+
+  const wardens = troops.filter(troop => troop.name === 'Grand Warden'
+    && troop.state !== 'dead' && !troop.isDefender && (troop.lifeAuraBoostPercent ?? 0) > 0);
+  for (const warden of wardens) {
+    for (const troop of troops) {
+      if (troop.state === 'dead' || troop.isDefender || troop.id === warden.id) continue;
+      if (distance(warden.x, warden.y, troop.x, troop.y) > (warden.lifeAuraRadius ?? 7)) continue;
+      const baseMaxHp = troop.lifeAuraBaseMaxHp ?? troop.maxHp;
+      const boostedMaxHp = baseMaxHp * (1 + (warden.lifeAuraBoostPercent ?? 0) / 100);
+      const gain = boostedMaxHp - baseMaxHp;
+      troop.lifeAuraBaseMaxHp = baseMaxHp;
+      troop.maxHp = boostedMaxHp;
+      const prior = previous.get(troop.id);
+      troop.currentHp = prior?.applied
+        ? Math.min(boostedMaxHp, prior.currentHp)
+        : Math.min(boostedMaxHp, troop.currentHp + gain);
+      troop.lifeAuraApplied = true;
+    }
+  }
 }
 
 /** Grant Eternal Tome invincibility to nearby attacker-side units. */
